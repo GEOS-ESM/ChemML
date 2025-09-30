@@ -7,4 +7,5 @@ This folder contains materials related to using the [Deepsensor python package](
 Material was developed for use on NCCS Discover.
 
 - `deepsensor_cenv.yaml`: Description of a conda environment created for using the Deepsensor package
-- `Deepsensor_trial_Jul2025.ipynb`: Initial attempts, likely to be superceded.
+- `Deepsensor_trial_Jul2025.ipynb`: Initial attempts, later superceded.
+- `Deepsensor_trial_Aug2025.ipynb`: More refined attempts, suitable for a demonstration.
