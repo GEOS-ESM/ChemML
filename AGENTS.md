@@ -2,10 +2,10 @@
 
 ## Project Structure & Module Organization
 
-This repository contains research materials for machine-learning-based air-quality analysis:
+This repository is under active development as a set of codes implementing a machine-learning-based air-quality forecasting workflow. It is not necessarily intended to become a standalone installable Python package.
 
-- `deepsensor_demo/` contains progressively refined Jupyter demonstrations and the Conda environment specification (`deepsensor_cenv.yml`).
-- `deepsensor_run/` contains the Discover batch runner (`ASIAAQ_Deepsensor_Run.py`) and notebooks for configuring and interpreting batches.
+- `docs/examples/deepsensor_demo/` contains progressively refined Jupyter demonstrations and the Conda environment specification (`deepsensor_cenv.yml`).
+- `docs/examples/deepsensor_run/` contains the Discover batch runner (`ASIAAQ_Deepsensor_Run.py`) and notebooks for configuring and interpreting batches.
 - `README.md`, the folder READMEs, `CHANGELOG.md`, and `CONTRIBUTING.md` document usage, history, and contribution policy.
 - `.github/workflows/` contains CI checks; there is currently no dedicated `tests/` directory.
 
@@ -16,12 +16,12 @@ Large input and output datasets are external to the repository. Do not commit ge
 There is no project build or automated Python test command. For local checks:
 
 - `yamllint -d relaxed --no-warnings .github/workflows/*.yml .yamllint.yml` validates YAML in the same style as CI.
-- Open notebooks with Jupyter in the environment described by `deepsensor_demo/deepsensor_cenv.yml`; run cells incrementally and confirm referenced data paths are available.
-- On NCCS Discover, run a configured batch entry with `python deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
+- Open notebooks with Jupyter in the environment described by `docs/examples/deepsensor_demo/deepsensor_cenv.yml`; run cells incrementally and confirm referenced data paths are available.
+- On NCCS Discover, run a configured batch entry with `python docs/examples/deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
 
 ## Coding Style & Naming Conventions
 
-Use LF line endings, trim trailing whitespace, and keep a final newline. Follow `.editorconfig`: four spaces for Python, two spaces for YAML and CMake, and no tabs. Use descriptive `snake_case` for new Python variables and functions; retain existing uppercase-style names when editing the legacy runner unless a focused cleanup is intended. Keep notebooks readable and explain non-obvious scientific assumptions in Markdown cells.
+Use LF line endings, trim trailing whitespace, and keep a final newline. Follow `.editorconfig`: four spaces for Python, two spaces for YAML and CMake, and no tabs. Use descriptive `snake_case` for new Python variables and functions; retain existing uppercase-style names when editing the legacy runner unless a focused cleanup is intended. Keep notebooks readable and explain non-obvious scientific assumptions in Markdown cells. Specific Python and dependency versions are provisional; check and update them as the workflow is built out and its compatibility is established.
 
 ## Testing Guidelines
 
@@ -29,4 +29,4 @@ No unit-test framework or coverage threshold is configured. For changes to analy
 
 ## Commit & Pull Request Guidelines
 
-Use short, imperative commit subjects that describe the change (for example, `Update CHANGELOG.md` or `Add ...`). Pull requests should explain the scientific or operational impact, identify affected notebooks/scripts, and include relevant execution details or screenshots for notebook/output changes. Add at least one required repository label and update `CHANGELOG.md` using Keep a Changelog format; trivial changes may use the repository's documented changelog-skip label. External contributors must complete the GEOS-ESM CLA described in `CONTRIBUTING.md`.
+Use short, imperative commit subjects that describe the change (for example, `Update CHANGELOG.md` or `Add ...`). Pull requests should explain the scientific or operational impact, identify affected notebooks/scripts, and include relevant execution details or screenshots for notebook/output changes. Add at least one required repository label. Maintain `CHANGELOG.md` by recording major new additions and changes under the appropriate Keep a Changelog section, including the date of the change. Trivial changes may use the repository's documented changelog-skip label. External contributors must complete the GEOS-ESM CLA described in `CONTRIBUTING.md`.

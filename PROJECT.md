@@ -40,6 +40,9 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - [x] Set up GitHub repository and branch.
 - [ ] Implement package structure.
 - [ ] Create configuration management system.
+- [ ] Create `config/credentials_template.yaml`.
+- [ ] Create `config/filepaths_template.yaml`.
+- [ ] Create `config/regions/region_template.yaml`.
 - [ ] Implement credentials management.
 - [ ] Set up logging utilities.
 - [ ] Create database manager framework.
@@ -236,8 +239,19 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 **Tasks**:
 
 - [ ] Write a comprehensive user guide.
+- [ ] Create `docs/installation.md`.
+- [ ] Create `docs/user_guide.md`.
+- [ ] Create `docs/configuration.md`.
+- [ ] Create `docs/data_sources.md`.
+- [ ] Create `docs/nccs_deployment.md`.
+- [ ] Create `docs/api_reference.md`.
 - [ ] Create API reference documentation.
 - [ ] Develop example Jupyter notebooks.
+- [ ] Create `docs/examples/01_data_acquisition.ipynb`.
+- [ ] Create `docs/examples/02_model_training.ipynb`.
+- [ ] Create `docs/examples/03_retrospective_forecast.ipynb`.
+- [ ] Create `docs/examples/04_realtime_forecast.ipynb`.
+- [ ] Create `docs/examples/05_validation_analysis.ipynb`.
 - [ ] Write an NCCS deployment guide.
 - [ ] Complete unit-test coverage.
 - [ ] Perform integration testing.

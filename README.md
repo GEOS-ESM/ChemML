@@ -4,7 +4,9 @@
 [![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
 [![Development Branch](https://img.shields.io/badge/branch-CNPDF__aqforecast__development-orange)](https://github.com/GEOS-ESM/ChemML/tree/CNPDF_aqforecast_development)
 
-ChemML is a Python package for high-resolution air quality estimation and forecasting that combines satellite observations, numerical model outputs, and ground-based measurements using deep learning techniques. The system leverages the DeepSensor framework to produce probabilistic forecasts of PM2.5, ozone (O₃), and nitrogen dioxide (NO₂) at fine spatial resolution (e.g., 1 km).
+ChemML is a developing set of Python codes for high-resolution air quality estimation and forecasting. It combines satellite observations, numerical model outputs, and ground-based measurements using deep learning techniques, and leverages the DeepSensor framework to produce probabilistic forecasts of PM2.5, ozone (O₃), and nitrogen dioxide (NO₂) at fine spatial resolution (e.g., 1 km).
+
+> **Warning:** ChemML is still under development. The structure and capabilities described below are the intended workflow, and some components, configuration files, documentation pages, and example notebooks have not yet been built out.
 
 ## Overview
 
@@ -26,6 +28,7 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 
 ## Quick Start
 
+The setup steps below are a development guide and may not yet be fully executable.
 
 ### Required Credentials
 
@@ -38,38 +41,48 @@ You will need:
 
 1. Clone the repository:
 
-> git clone https://github.com/GEOS-ESM/ChemML.git cd ChemML git checkout CNPDF_aqforecast_development
+```bash
+git clone https://github.com/GEOS-ESM/ChemML.git
+cd ChemML
+git checkout CNPDF_aqforecast_development
+```
 
 2. Create and activate the conda environment:
 
-> conda env create -f environment.yml 
-> conda activate chemml
+```bash
+conda env create -f environment.yml
+conda activate chemml
+```
 
-3. Install the package:
+3. Set up credentials:
 
-> pip install -e .
-
-4. Set up credentials:
-
-> cp config/credentials_template.yaml config/credentials.yaml
+```bash
+cp config/credentials_template.yaml config/credentials.yaml
+```
 
 Edit `config/credentials.yaml` with your API keys and credentials
 
-5. Set up file path configurations:
+4. Set up file path configurations:
 
-> cp config/filepaths_template.yaml config/filepaths.yaml
+```bash
+cp config/filepaths_template.yaml config/filepaths.yaml
+```
 
 Edit `config/filepaths.yaml` with the paths to relevant data on your machine
 
-6. Set up regional description(s)
+5. Set up regional description(s):
 
-> cp config/regions/region_template.yaml config/regions/my_new_region.yaml
+```bash
+cp config/regions/region_template.yaml config/regions/my_new_region.yaml
+```
 
 Edit `config/regions/my_new_region.yaml` with information about your region of interest
 
 ## Documentation
 
 Comprehensive documentation is available in the `docs/` directory:
+
+> **Warning:** The documentation pages listed below are planned and may not yet exist.
 
 - [Installation Guide](docs/installation.md)
 - [User Guide](docs/user_guide.md)
@@ -81,6 +94,8 @@ Comprehensive documentation is available in the `docs/` directory:
 ### Example Notebooks
 
 Interactive Jupyter notebooks demonstrating key workflows:
+
+> **Warning:** These workflow-specific notebooks are planned examples. The currently available demonstrations are under `docs/examples/deepsensor_demo/` and `docs/examples/deepsensor_run/`.
 
 - [Data Acquisition](docs/examples/01_data_acquisition.ipynb)
 - [Model Training](docs/examples/02_model_training.ipynb)

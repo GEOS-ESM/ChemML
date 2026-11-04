@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- vOct2025 Added several notebooks and codes related to running the Deepsensor package in Discover for analysis fo data from the ASIA-AQ campaign.
+- **1 October 2025**: Added several notebooks and scripts related to running the DeepSensor workflow on Discover for analysis of data from the ASIA-AQ campaign.
 
 ### Changed
 
