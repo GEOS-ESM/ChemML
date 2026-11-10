@@ -6,16 +6,22 @@ This repository is under active development as a set of codes implementing a mac
 
 - `docs/examples/deepsensor_demo/` contains progressively refined Jupyter demonstrations and the Conda environment specification (`deepsensor_cenv.yml`).
 - `docs/examples/deepsensor_run/` contains the Discover batch runner (`ASIAAQ_Deepsensor_Run.py`) and notebooks for configuring and interpreting batches.
+- `config/` contains the master configuration and component YAML files.
+- `aqforecast/config_management/` contains reusable configuration validation and interactive setup utilities.
+- `tests/` contains the initial pytest regression tests.
 - `README.md`, the folder READMEs, `CHANGELOG.md`, and `CONTRIBUTING.md` document usage, history, and contribution policy.
-- `.github/workflows/` contains CI checks; there is currently no dedicated `tests/` directory.
+- `.github/workflows/` contains CI checks.
 
 Large input and output datasets are external to the repository. Do not commit generated NetCDF files, model outputs, or local environment directories.
 
 ## Build, Test, and Development Commands
 
-There is no project build or automated Python test command. For local checks:
+There is no project build command. For local checks:
 
-- `yamllint -d relaxed --no-warnings .github/workflows/*.yml .yamllint.yml` validates YAML in the same style as CI.
+- `yamllint -d relaxed --no-warnings .github/workflows/*.yml .yamllint.yml config/default_config.yaml config/*/*.yaml` validates YAML in the same style as CI.
+- `python -m pytest tests/` runs the Python regression tests.
+- `python aqforecast/config_management/configuration.py config/default_config.yaml` checks the referenced configuration files.
+- `python aqforecast/config_management/configuration.py config/default_config.yaml --interactive` interactively fills fixable missing or invalid configuration values.
 - Open notebooks with Jupyter in the environment described by `docs/examples/deepsensor_demo/deepsensor_cenv.yml`; run cells incrementally and confirm referenced data paths are available.
 - On NCCS Discover, run a configured batch entry with `python docs/examples/deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
 
@@ -25,7 +31,7 @@ Use LF line endings, trim trailing whitespace, and keep a final newline. Follow 
 
 ## Testing Guidelines
 
-No unit-test framework or coverage threshold is configured. For changes to analysis code, perform a representative notebook or Discover run and record the data/configuration assumptions in the PR. Validate changed YAML with `yamllint`; check that notebooks open and execute through the affected cells.
+An initial pytest test structure exists, but no coverage threshold or comprehensive test coverage is configured yet. Run `python -m pytest tests/` for Python changes. For changes to analysis code, perform a representative notebook or Discover run and record the data/configuration assumptions in the PR. Validate changed YAML with `yamllint`; check that notebooks open and execute through the affected cells.
 
 ## Commit & Pull Request Guidelines
 

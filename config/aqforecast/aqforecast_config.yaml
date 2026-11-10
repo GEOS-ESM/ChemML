@@ -1,0 +1,27 @@
+# Air-quality forecasting behavior. Dataset variables and file names belong in input_data_config.yaml.
+
+inputs:
+  ground_monitors:
+    enabled: true
+    use_as_context: true
+    training_fraction: 0.8
+  geos_cf:
+    enabled: true
+  tropomi:
+    enabled: true
+  gems:
+    enabled: false
+  gcas:
+    enabled: false
+  land_cover:
+    enabled: true
+
+forecast:
+  lead_times_hours: [1, 3, 6, 12, 24, 48, 72]
+  output_variables: ["pm25", "o3", "no2"]
+  confidence_levels: [0.5, 0.9]
+
+feature_engineering:
+  input_lags_hours: {}
+  additional_features:
+    - "time_of_day"

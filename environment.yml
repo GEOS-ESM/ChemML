@@ -17,6 +17,7 @@ dependencies:
     - earthaccess>=0.8
     - deepsensor
     - torch>=2.0
+    # Required by aqforecast/config_management/configuration.py and its tests.
     - pyyaml
     - requests
     - pytest

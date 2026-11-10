@@ -1,0 +1,17 @@
+# ChemML master configuration.
+# Paths are relative to this file unless they are absolute paths.
+# A configuration loader should resolve these files and merge them into one
+# run configuration. Settings are owned by the referenced file, not repeated here.
+
+config_version: 1
+experiment_name_template: "region_{region_code}_experiment_{experiment_code}"
+experiment_code: "baseline"
+
+configuration_files:
+  region: "regions/example_region.yaml"
+  credentials: "credentials/credentials.yaml"
+  filepaths: "filepaths/filepaths.yaml"
+  deepsensor: "deepsensor/deepsensor_config.yaml"
+  aqforecast: "aqforecast/aqforecast_config.yaml"
+  validation: "validation/validation_config.yaml"
+  input_data: "inputs/input_data_config.yaml"

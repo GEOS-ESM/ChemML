@@ -39,14 +39,18 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - [x] Create configuration system design.
 - [x] Set up GitHub repository and branch.
 - [ ] Implement package structure.
-- [ ] Create configuration management system.
-- [ ] Create `config/credentials_template.yaml`.
-- [ ] Create `config/filepaths_template.yaml`.
-- [ ] Create `config/regions/region_template.yaml`.
+- [x] Define configuration file layout and ownership.
+- [x] Implement configuration validation/checking utility.
+- [ ] Implement a runtime loader that resolves and merges component configurations.
+- [ ] Integrate configuration loading and checking with the forecasting runner.
+- [x] Create `config/credentials/credentials_template.yaml`.
+- [x] Create `config/filepaths/filepaths_template.yaml`.
+- [x] Create `config/regions/region_template.yaml`.
 - [ ] Implement credentials management.
 - [ ] Set up logging utilities.
 - [ ] Create database manager framework.
-- [ ] Write initial documentation.
+- [x] Write initial configuration documentation.
+- [x] Add an initial configuration regression test.
 
 **Deliverables**:
 
@@ -59,14 +63,15 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 **Current status**:
 
 - Project objectives and high-level structure defined.
-- Ready to begin implementation.
+- Configuration file layout, templates, validation utility, documentation, and an initial regression test are in place.
+- Runtime configuration loading and integration with the forecasting workflow remain to be implemented.
 
 **Next steps**:
 
-1. Create initial package structure.
-2. Implement configuration manager.
-3. Implement credentials manager.
-4. Create database manager.
+1. Implement the runtime configuration loader and integrate configuration checking with the forecasting workflow.
+2. Create the remaining package structure.
+3. Implement credentials management.
+4. Create the database manager.
 
 ### Phase 2: Data Acquisition — Planned
 
@@ -86,6 +91,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   - [ ] OpenAQ API integration.
 - [ ] Implement data quality control.
 - [ ] Create data download scripts.
+- [ ] Keep `config/inputs/input_data_config.yaml` aligned with the settings required to download and preprocess each data source as ingest codes are developed.
 - [ ] Test data acquisition on NCCS.
 - [ ] Schedule ongoing data ingest:
   - [ ] Create scripts to update the database in NCCS on a regular (daily) cadence.
@@ -146,6 +152,8 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - [ ] Implement a cross-validation framework.
 - [ ] Create the DeepSensor forecasting system.
 - [ ] Implement the inference pipeline.
+- [ ] Update `config/deepsensor/deepsensor_config.yaml` once the Phase 4 DeepSensor implementation defines the required configuration settings.
+- [ ] Keep `config/aqforecast/aqforecast_config.yaml` up to date as the forecasting model and its required settings are developed.
 - [ ] Optimize GPU training on NCCS.
 - [ ] Create model-training scripts.
 - [ ] Develop a model-versioning system.
@@ -181,6 +189,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   - [ ] By region.
 - [ ] Implement confidence-interval coverage analysis.
 - [ ] Create sensitivity analysis for data outages.
+- [ ] Keep `config/validation/validation_config.yaml` up to date as the validation system and its supported analyses are developed.
 - [ ] Implement visualization tools.
 - [ ] Create a validation reporting system.
 - [ ] Develop validation scripts.
@@ -238,21 +247,19 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 
 **Tasks**:
 
-- [ ] Write a comprehensive user guide.
 - [ ] Create `docs/installation.md`.
 - [ ] Create `docs/user_guide.md`.
-- [ ] Create `docs/configuration.md`.
+- [x] Create `docs/configuration.md`.
 - [ ] Create `docs/data_sources.md`.
 - [ ] Create `docs/nccs_deployment.md`.
 - [ ] Create `docs/api_reference.md`.
-- [ ] Create API reference documentation.
 - [ ] Develop example Jupyter notebooks.
 - [ ] Create `docs/examples/01_data_acquisition.ipynb`.
 - [ ] Create `docs/examples/02_model_training.ipynb`.
 - [ ] Create `docs/examples/03_retrospective_forecast.ipynb`.
 - [ ] Create `docs/examples/04_realtime_forecast.ipynb`.
 - [ ] Create `docs/examples/05_validation_analysis.ipynb`.
-- [ ] Write an NCCS deployment guide.
+- [x] Set up the initial pytest test structure.
 - [ ] Complete unit-test coverage.
 - [ ] Perform integration testing.
 - [ ] Conduct a security review.
@@ -280,17 +287,20 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - ✅ Project structure design.
 - ✅ Development roadmap.
 - ✅ GitHub repository setup.
+- ✅ Configuration file layout and templates.
+- ✅ Configuration validation utility.
+- ✅ Configuration reference documentation.
+- ✅ Initial configuration regression test.
 
 ### In Progress
 
+- 🚧 Runtime configuration loading and integration with the forecasting workflow.
 - 🚧 Initial package implementation.
 
 ### Upcoming
 
-- Configuration manager.
 - Credentials manager.
 - Database manager.
-- Unit-test framework setup.
 - Data acquisition modules.
 
 ## Technical Decisions

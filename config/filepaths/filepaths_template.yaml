@@ -1,0 +1,27 @@
+# File-path configuration template. Copy to config/filepaths/filepaths.yaml and replace placeholders.
+# Path templates may use {region_code} and {experiment_name}.
+
+roots:
+  input: "<absolute path to input data>"
+  output: "<absolute path to output data>"
+
+working:
+  experiment_directory: "{output}/{region_code}/{experiment_name}"
+  logs_directory: "{experiment_directory}/logs"
+  models_directory: "{experiment_directory}/models"
+  forecasts_directory: "{experiment_directory}/forecasts"
+  validation_directory: "{experiment_directory}/validation"
+
+data_sources:
+  # Source roots only; file names are owned by input_data_config.yaml.
+  # Each source uses its fixed name as the subfolder below the region code.
+  ground_monitors: "{input}/{region_code}/ground_monitors"
+  GEOS-CF: "{input}/{region_code}/GEOS-CF"
+  TEMPO: "{input}/{region_code}/TEMPO"
+  GEMS: "{input}/{region_code}/GEMS"
+  TROPOMI: "{input}/{region_code}/TROPOMI"
+  PACE: "{input}/{region_code}/PACE"
+  VIIRS: "{input}/{region_code}/VIIRS"
+  land_cover: "{input}/{region_code}/land_cover"
+  GCAS: "{input}/{region_code}/GCAS"
+  GOES-ABI: "{input}/{region_code}/GOES-ABI"

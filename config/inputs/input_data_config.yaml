@@ -1,0 +1,74 @@
+# Dataset-specific loading and alignment rules. Source selection is owned by aqforecast_config.yaml.
+
+datasets:
+  ground_monitors:
+    source_key: "ground_monitors"
+    file_template: "{provider}_{region_code}_{month_string}_point_h.csv"
+    variables: ["lat", "lon", "time", "PM2.5", "NO2", "O3", "CO", "SO2", "PM10"]
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time:
+      type: "datetime"
+      frequency: "1h"
+      alignment: "reference_times"
+      tolerance: "30m"
+    regridding:
+      method: "none"
+
+  GEOS-CF:
+    source_key: "GEOS-CF"
+    file_template: "GEOS-CF_{region_code}_{month_string}_grid_025_h.nc"
+    variables: ["no2", "tropcol_no2", "totcol_no2", "u2m", "v2m", "wndspd_2m", "t2m", "q2m", "rh", "cldtt", "tprec", "troppb", "zl", "zpbl"]
+    variable_prefix: "GEOS-CF_"
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", frequency: "1h", alignment: "reference_times", tolerance: "30m"}
+    regridding: {method: "none", latlon_resolution: 0.25}
+
+  TROPOMI:
+    source_key: "TROPOMI"
+    file_template: "TROPOMI_{region_code}_{month_string}_grid_005_d.nc"
+    variables: ["no2", "o3"]
+    variable_prefix: "TROPOMI_"
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", aggregation: "daily_mean", alignment: "reference_times", tolerance: "12h"}
+    regridding: {method: "target_grid", latlon_resolution: 0.05}
+
+  GEMS:
+    source_key: "GEMS"
+    file_template: "GEMS_{region_code}_{month_string}_grid_008_h.nc"
+    variables: ["ColumnAmountNO2Trop", "ColumnAmountNO2"]
+    variable_prefix: "GEMS_"
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", frequency: "1h", alignment: "reference_times", tolerance: "30m"}
+    regridding: {method: "target_grid", latlon_resolution: 0.08}
+
+  GCAS:
+    source_key: "GCAS"
+    file_template: "GCAS_{region_code}_{date_string}_grid_001_hourly.nc"
+    variables: ["no2_vertical_column_below_aircraft", "model_no2_vertical_column_below_aircraft"]
+    variable_prefix: "GCAS_"
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", frequency: "1h", alignment: "reference_times", tolerance: "30m"}
+    regridding: {method: "target_grid", latlon_resolution: 0.01}
+
+  land_cover:
+    source_key: "land_cover"
+    file_template: "MCD12Q1_{region_code}_{year_string}_grid_0005_a.nc"
+    variables: ["LC_Type1"]
+    variable_prefix: "MCD12Q1_"
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {aggregation: "mean_over_time", alignment: "expand_to_reference_times"}
+    regridding: {method: "none", latlon_resolution: 0.005}
+
+  # Complete these definitions as the corresponding data-ingest and
+  # preprocessing codes are developed.
+  TEMPO:
+    source_key: "TEMPO"
+
+  PACE:
+    source_key: "PACE"
+
+  VIIRS:
+    source_key: "VIIRS"
+
+  GOES-ABI:
+    source_key: "GOES-ABI"

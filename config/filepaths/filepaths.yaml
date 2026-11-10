@@ -1,0 +1,24 @@
+# Default Discover-oriented paths. Update these for a different machine.
+
+roots:
+  input: "/discover/nobackup/cmalings/input"
+  output: "/discover/nobackup/cmalings/output/ASIA-AQ/deepsensor_working_data"
+
+working:
+  experiment_directory: "{output}/{region_code}/{experiment_name}"
+  logs_directory: "{experiment_directory}/logs"
+  models_directory: "{experiment_directory}/models"
+  forecasts_directory: "{experiment_directory}/forecasts"
+  validation_directory: "{experiment_directory}/validation"
+
+data_sources:
+  ground_monitors: "{input}/{region_code}/ground_monitors"
+  GEOS-CF: "{input}/{region_code}/GEOS-CF"
+  TEMPO: "{input}/{region_code}/TEMPO"
+  GEMS: "{input}/{region_code}/GEMS"
+  TROPOMI: "{input}/{region_code}/TROPOMI"
+  PACE: "{input}/{region_code}/PACE"
+  VIIRS: "{input}/{region_code}/VIIRS"
+  land_cover: "{input}/{region_code}/land_cover"
+  GCAS: "{input}/{region_code}/GCAS"
+  GOES-ABI: "{input}/{region_code}/GOES-ABI"

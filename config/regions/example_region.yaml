@@ -1,0 +1,15 @@
+# Example region definition. Copy regions/region_template.yaml to create a region-specific file.
+
+region_code: "Seoul"
+name: "Seoul metropolitan area"
+bounds:
+  latitude: [36.0, 38.0]
+  longitude: [126.0, 128.0]
+
+output_grid:
+  resolution_degrees: 0.01
+
+ground_monitoring:
+  provider: "AirKorea"
+
+timezone: "Asia/Seoul"

@@ -1,0 +1,19 @@
+# Region configuration template.
+# Copy this file to regions/<your_region_code>.yaml, then replace every placeholder.
+
+region_code: "<short_unique_code>"
+name: "<human-readable region name>"
+
+# Inclusive decimal-degree bounds: [minimum, maximum].
+bounds:
+  latitude: [<minimum_latitude>, <maximum_latitude>]
+  longitude: [<minimum_longitude>, <maximum_longitude>]
+
+output_grid:
+  resolution_degrees: <target_resolution_degrees>
+
+ground_monitoring:
+  # Examples: AirKorea, AirNow, OpenAQ.
+  provider: "<monitoring_provider>"
+
+timezone: "<IANA timezone, for example Asia/Seoul>"

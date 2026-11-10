@@ -6,7 +6,7 @@
 
 ChemML is a developing set of Python codes for high-resolution air quality estimation and forecasting. It combines satellite observations, numerical model outputs, and ground-based measurements using deep learning techniques, and leverages the DeepSensor framework to produce probabilistic forecasts of PM2.5, ozone (O₃), and nitrogen dioxide (NO₂) at fine spatial resolution (e.g., 1 km).
 
-> **Warning:** ChemML is still under development. The structure and capabilities described below are the intended workflow, and some components, configuration files, documentation pages, and example notebooks have not yet been built out.
+> **Warning:** ChemML is still under development. The configuration system, forecasting workflow, and validation system are being built incrementally. Several data-ingest modules, documentation pages, and example notebooks remain planned.
 
 ## Overview
 
@@ -25,6 +25,13 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - **Flexible Architecture**: Supports both retrospective analysis and near-real-time operational forecasting
 - **Comprehensive Validation**: Built-in cross-validation, sensitivity analysis, and performance metrics
 - **NCCS Integration**: Optimized for deployment on NASA's High-Performance Computing systems
+
+### Current Repository Components
+
+- `config/` contains the master configuration and component YAML files.
+- `aqforecast/config_management/` contains the configuration checker and interactive configuration utility.
+- `tests/` contains the initial pytest regression tests.
+- `docs/configuration.md` documents the current configuration structure and ownership boundaries.
 
 ## Quick Start
 
@@ -57,18 +64,18 @@ conda activate chemml
 3. Set up credentials:
 
 ```bash
-cp config/credentials_template.yaml config/credentials.yaml
+cp config/credentials/credentials_template.yaml config/credentials/credentials.yaml
 ```
 
-Edit `config/credentials.yaml` with your API keys and credentials
+Edit `config/credentials/credentials.yaml` with your API keys and credentials
 
 4. Set up file path configurations:
 
 ```bash
-cp config/filepaths_template.yaml config/filepaths.yaml
+cp config/filepaths/filepaths_template.yaml config/filepaths/filepaths.yaml
 ```
 
-Edit `config/filepaths.yaml` with the paths to relevant data on your machine
+Edit `config/filepaths/filepaths.yaml` with the paths to relevant data on your machine
 
 5. Set up regional description(s):
 
@@ -78,15 +85,24 @@ cp config/regions/region_template.yaml config/regions/my_new_region.yaml
 
 Edit `config/regions/my_new_region.yaml` with information about your region of interest
 
+6. Check the selected configuration:
+
+```bash
+python aqforecast/config_management/configuration.py config/default_config.yaml
+```
+
+Use `--interactive` to prompt for fixable missing or invalid values. The checker currently validates the YAML configuration files but is not yet integrated with the legacy forecasting runner.
+
 ## Documentation
 
-Comprehensive documentation is available in the `docs/` directory:
+Available and planned documentation is listed in the `docs/` directory. The configuration reference is currently available:
 
-> **Warning:** The documentation pages listed below are planned and may not yet exist.
+- [Configuration Reference](docs/configuration.md)
+
+The following documentation pages are planned:
 
 - [Installation Guide](docs/installation.md)
 - [User Guide](docs/user_guide.md)
-- [Configuration Reference](docs/configuration.md)
 - [Data Sources](docs/data_sources.md)
 - [NCCS Deployment](docs/nccs_deployment.md)
 - [API Reference](docs/api_reference.md)
@@ -112,6 +128,8 @@ Interactive Jupyter notebooks demonstrating key workflows:
   - `earthaccess >= 0.8`
   - `deepsensor`
   - `pytorch >= 2.0` (for GPU acceleration)
+  - `pyyaml` (configuration parsing)
+  - `pytest` (regression tests)
 
 See `environment.yml` for complete dependency list.
 
