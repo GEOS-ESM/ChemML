@@ -62,7 +62,7 @@ python aqforecast/config_management/configuration.py config/default_config.yaml 
 The Python API returns a `ConfigurationReport` with `errors`, `warnings`, `changed_files`, and an `is_valid` property:
 
 ```python
-from aqforecast.config_management.configuration import check_configuration
+from aqforecast.config_management.configuration import check_configuration, load_configuration
 
 report = check_configuration("config/default_config.yaml", mode="check")
 if not report.is_valid:
@@ -76,6 +76,22 @@ The repository regression test runs the default configuration through the checke
 ```bash
 pytest tests/test_configuration.py
 ```
+
+## Loading configuration at runtime
+
+`load_configuration()` uses the same validation rules and returns a single dictionary containing the component configurations:
+
+```python
+from aqforecast.config_management.configuration import load_configuration
+
+configuration = load_configuration("config/default_config.yaml")
+experiment_name = configuration["experiment_name"]
+tropomi_path = configuration["filepaths"]["data_sources"]["TROPOMI"]
+```
+
+The loader resolves `{region_code}`, `{experiment_code}`, `{experiment_name}`, `{input}`, and `{output}` where those values are known. Dataset filename placeholders such as `{month_string}` remain unresolved for the ingest code to fill later.
+
+Missing credentials and nonexistent configured paths are returned in `configuration["warnings"]` and do not stop loading. Structural errors, missing non-credential references, malformed values, and conflicting source definitions raise `ConfigurationError`. The loader does not create directories; a separate setup utility will own that responsibility.
 
 ## Region configuration
 
@@ -204,7 +220,7 @@ Keep each setting in its owning file rather than duplicating it across configura
 
 ## Current limitations
 
-- A general runtime configuration loader is not yet implemented; the current validator checks the known schema without merging files.
+- The new runtime loader is not yet integrated with the legacy example runner; new runners will consume the loaded dictionary directly.
 - `ASIAAQ_Deepsensor_Run.py` still reads legacy JSON settings and hard-coded paths.
 - Several source definitions and model settings are placeholders.
 - File templates must be reconciled with the actual outputs of future ingest codes.

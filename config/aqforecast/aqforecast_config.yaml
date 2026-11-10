@@ -5,13 +5,13 @@ inputs:
     enabled: true
     use_as_context: true
     training_fraction: 0.8
-  geos_cf:
+  GEOS-CF:
     enabled: true
-  tropomi:
+  TROPOMI:
     enabled: true
-  gems:
+  GEMS:
     enabled: false
-  gcas:
+  GCAS:
     enabled: false
   land_cover:
     enabled: true

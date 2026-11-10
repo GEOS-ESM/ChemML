@@ -51,6 +51,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - [ ] Create database manager framework.
 - [x] Write initial configuration documentation.
 - [x] Add an initial configuration regression test.
+- [x] Create the initial AQ-forecast runner skeleton that loads configuration and returns run status.
 
 **Deliverables**:
 
@@ -247,8 +248,8 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 
 **Tasks**:
 
-- [ ] Create `docs/installation.md`.
-- [ ] Create `docs/user_guide.md`.
+- [x] Create `docs/installation.md`.
+- [x] Create `docs/user_guide.md`.
 - [x] Create `docs/configuration.md`.
 - [ ] Create `docs/data_sources.md`.
 - [ ] Create `docs/nccs_deployment.md`.
@@ -291,6 +292,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - ✅ Configuration validation utility.
 - ✅ Configuration reference documentation.
 - ✅ Initial configuration regression test.
+- ✅ Initial AQ-forecast runner skeleton.
 
 ### In Progress
 

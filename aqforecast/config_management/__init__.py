@@ -1,5 +1,17 @@
 """Configuration validation utilities for ChemML forecasting workflows."""
 
-from .configuration import ConfigurationIssue, ConfigurationReport, check_configuration
+from .configuration import (
+    ConfigurationError,
+    ConfigurationIssue,
+    ConfigurationReport,
+    check_configuration,
+    load_configuration,
+)
 
-__all__ = ["ConfigurationIssue", "ConfigurationReport", "check_configuration"]
+__all__ = [
+    "ConfigurationError",
+    "ConfigurationIssue",
+    "ConfigurationReport",
+    "check_configuration",
+    "load_configuration",
+]

@@ -17,6 +17,7 @@ import DeepSensor, access remote data, or create output directories.
 from __future__ import annotations
 
 import argparse
+import copy
 import getpass
 import json
 import re
@@ -67,6 +68,14 @@ class ConfigurationIssue:
             "message": self.message,
             "fixable": self.fixable,
         }
+
+
+class ConfigurationError(ValueError):
+    """Raised when a configuration cannot be used at runtime."""
+
+    def __init__(self, report: "ConfigurationReport") -> None:
+        self.report = report
+        super().__init__(report.format())
 
 
 @dataclass
@@ -449,6 +458,47 @@ def _validate_input_data(loaded: _LoadedConfiguration, report: ConfigurationRepo
             _add_required(report, component, loaded, ("datasets", str(dataset_name), field_name), expected)
 
 
+def _validate_source_consistency(loaded: _LoadedConfiguration, report: ConfigurationReport) -> None:
+    """Ensure dataset, filepath, and forecast source names do not conflict."""
+
+    filepaths = loaded.data.get("filepaths", {}).get("data_sources", {})
+    input_datasets = loaded.data.get("input_data", {}).get("datasets", {})
+    forecast_inputs = loaded.data.get("aqforecast", {}).get("inputs", {})
+    if not isinstance(filepaths, Mapping) or not isinstance(input_datasets, Mapping):
+        return
+
+    filepath_names = set(filepaths)
+    dataset_names = set(input_datasets)
+    if filepath_names != dataset_names:
+        missing = sorted(filepath_names - dataset_names)
+        extra = sorted(dataset_names - filepath_names)
+        details = []
+        if missing:
+            details.append(f"missing input datasets: {', '.join(missing)}")
+        if extra:
+            details.append(f"missing filepath sources: {', '.join(extra)}")
+        report.issues.append(
+            ConfigurationIssue(
+                "error",
+                loaded.files.get("input_data"),
+                "datasets",
+                "; ".join(details),
+            )
+        )
+
+    if isinstance(forecast_inputs, Mapping):
+        unknown_forecast_sources = set(forecast_inputs) - filepath_names
+        if unknown_forecast_sources:
+            report.issues.append(
+                ConfigurationIssue(
+                    "error",
+                    loaded.files.get("aqforecast"),
+                    "inputs",
+                    f"unknown forecast input sources: {', '.join(sorted(unknown_forecast_sources))}",
+                )
+            )
+
+
 def _validate_aqforecast(loaded: _LoadedConfiguration, report: ConfigurationReport) -> None:
     component = "aqforecast"
     if component not in loaded.data:
@@ -530,6 +580,7 @@ def _validate(
     _validate_credentials(loaded, report, require_credentials=require_credentials)
     _validate_filepaths(loaded, report, check_paths)
     _validate_input_data(loaded, report)
+    _validate_source_consistency(loaded, report)
     _validate_aqforecast(loaded, report)
     _validate_deepsensor(loaded, report)
     _validate_validation(loaded, report)
@@ -682,6 +733,143 @@ def check_configuration(
         report.changed_files = sorted(changed)
 
     return report
+
+
+def _resolve_known_templates(value: Any, context: Mapping[str, Any]) -> Any:
+    """Replace known ``{field}`` templates while preserving unknown ones."""
+
+    if isinstance(value, str):
+        def replace(match: re.Match[str]) -> str:
+            key = match.group(1)
+            return str(context[key]) if key in context else match.group(0)
+
+        return PATH_TEMPLATE_PATTERN.sub(replace, value)
+    if isinstance(value, dict):
+        return {key: _resolve_known_templates(item, context) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_resolve_known_templates(item, context) for item in value]
+    return value
+
+
+def _resolve_filepaths(filepaths: Mapping[str, Any], context: Mapping[str, Any]) -> Dict[str, Any]:
+    """Resolve filepath templates in dependency order."""
+
+    resolved = copy.deepcopy(dict(filepaths))
+    roots = resolved.get("roots", {})
+    if isinstance(roots, dict):
+        roots = _resolve_known_templates(roots, context)
+        resolved["roots"] = roots
+
+    filepath_context = dict(context)
+    if isinstance(roots, Mapping):
+        filepath_context.update(roots)
+
+    working = resolved.get("working", {})
+    if isinstance(working, dict):
+        resolved_working: Dict[str, Any] = {}
+        for key, value in working.items():
+            resolved_value = _resolve_known_templates(value, filepath_context)
+            resolved_working[key] = resolved_value
+            filepath_context[key] = resolved_value
+        resolved["working"] = resolved_working
+
+    sources = resolved.get("data_sources", {})
+    if isinstance(sources, dict):
+        resolved["data_sources"] = _resolve_known_templates(sources, filepath_context)
+    return resolved
+
+
+def _path_warnings(filepaths: Mapping[str, Any]) -> List[str]:
+    """Return warnings for resolved paths that do not currently exist."""
+
+    warnings: List[str] = []
+    for section_name in ("roots", "working", "data_sources"):
+        section = filepaths.get(section_name, {})
+        if not isinstance(section, Mapping):
+            continue
+        for path_name, value in section.items():
+            if not isinstance(value, str) or PATH_TEMPLATE_PATTERN.search(value):
+                continue
+            if not Path(value).exists():
+                warnings.append(f"filepath {section_name}.{path_name} does not exist: {value}")
+    return warnings
+
+
+def load_configuration(
+    config_path: Union[str, Path],
+    *,
+    require_credentials: bool = False,
+) -> Dict[str, Any]:
+    """Load, validate, merge, and resolve a ChemML configuration.
+
+    The returned dictionary contains the component configurations under their
+    component names, plus ``experiment_name``, resolved ``configuration_files``,
+    and a ``warnings`` list. Missing credentials and nonexistent configured
+    paths produce warnings and do not prevent loading. Structural errors,
+    malformed values, missing non-credential references, and conflicting source
+    definitions raise :class:`ConfigurationError`.
+
+    Parameters
+    ----------
+    config_path:
+        Master configuration such as ``config/default_config.yaml``.
+    require_credentials:
+        Require the credentials file and required credential values. Leave this
+        false for runs that do not use credential-dependent data sources.
+    """
+
+    root_file = Path(config_path).expanduser().resolve()
+    report = ConfigurationReport(root_file)
+    loaded = _load_referenced_files(
+        root_file,
+        report,
+        allow_missing_credentials=not require_credentials,
+    )
+    report.issues.extend(
+        _validate(loaded, require_credentials=require_credentials).issues
+    )
+    if report.errors:
+        raise ConfigurationError(report)
+
+    default = loaded.data.get("default", {})
+    region = copy.deepcopy(loaded.data.get("region", {}))
+    region_code = region.get("region_code")
+    experiment_code = default.get("experiment_code")
+    template = default.get("experiment_name_template")
+    context = {
+        "region_code": region_code,
+        "experiment_code": experiment_code,
+    }
+    experiment_name = _resolve_known_templates(template, context)
+    context["experiment_name"] = experiment_name
+
+    filepaths = _resolve_filepaths(loaded.data.get("filepaths", {}), context)
+    resolved_components: Dict[str, Any] = {}
+    for component, component_data in loaded.data.items():
+        if component == "default":
+            continue
+        if component == "filepaths":
+            resolved_components[component] = filepaths
+        else:
+            resolved_components[component] = _resolve_known_templates(component_data, context)
+
+    warnings = [
+        f"{issue.file}: {issue.setting} - {issue.message}"
+        for issue in report.warnings
+    ]
+    warnings.extend(_path_warnings(filepaths))
+    resolved_components.update(
+        {
+            "config_version": default.get("config_version"),
+            "experiment_code": experiment_code,
+            "experiment_name": experiment_name,
+            "configuration_files": {
+                component: str(path) for component, path in loaded.files.items() if component != "default"
+            },
+            "warnings": warnings,
+        }
+    )
+    return resolved_components
 
 
 def _build_parser() -> argparse.ArgumentParser:

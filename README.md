@@ -30,6 +30,7 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 
 - `config/` contains the master configuration and component YAML files.
 - `aqforecast/config_management/` contains the configuration checker and interactive configuration utility.
+- `aqforecast/aqforecast.py` contains the initial `run_aqforecast()` workflow entry point; it currently loads configuration only.
 - `tests/` contains the initial pytest regression tests.
 - `docs/configuration.md` documents the current configuration structure and ownership boundaries.
 
@@ -93,16 +94,26 @@ python aqforecast/config_management/configuration.py config/default_config.yaml
 
 Use `--interactive` to prompt for fixable missing or invalid values. The checker currently validates the YAML configuration files but is not yet integrated with the legacy forecasting runner.
 
+The initial AQ-forecast runner can be called from Python:
+
+```python
+from aqforecast import run_aqforecast
+
+result = run_aqforecast("config/default_config.yaml")
+```
+
+At present, this loads the configuration and returns a status summary. Data access, preprocessing, model training, forecasting, and evaluation will be added later.
+
 ## Documentation
 
-Available and planned documentation is listed in the `docs/` directory. The configuration reference is currently available:
+Available and planned documentation is listed in the `docs/` directory. The installation guide, configuration reference, and initial user guide are currently available:
 
+- [Installation Guide](docs/installation.md)
 - [Configuration Reference](docs/configuration.md)
+- [User Guide](docs/user_guide.md)
 
 The following documentation pages are planned:
 
-- [Installation Guide](docs/installation.md)
-- [User Guide](docs/user_guide.md)
 - [Data Sources](docs/data_sources.md)
 - [NCCS Deployment](docs/nccs_deployment.md)
 - [API Reference](docs/api_reference.md)
