@@ -47,7 +47,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - [x] Create `config/filepaths/filepaths_template.yaml`.
 - [x] Create `config/regions/region_template.yaml`.
 - [x] Implement credentials management and optional remote verification.
-- [ ] Set up logging utilities.
+- [x] Set up logging utilities.
 - [ ] Create database manager framework.
 - [x] Write initial configuration documentation.
 - [x] Add an initial configuration regression test.
@@ -298,6 +298,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - ✅ Runtime configuration loader and runner integration.
 - ✅ Credential management with optional remote verification.
 - ✅ Credential-management tests.
+- ✅ Shared logging utility with credential redaction.
 
 ### In Progress
 

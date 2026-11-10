@@ -9,6 +9,7 @@ This repository is under active development as a set of codes implementing a mac
 - `config/` contains the master configuration and component YAML files.
 - `aqforecast/config_management/` contains reusable configuration validation and interactive setup utilities.
 - `aqforecast/config_management/credentials.py` contains local credential collection and optional remote verification.
+- `aqforecast/utils/logging.py` contains shared console/file logging and credential redaction.
 - `aqforecast/aqforecast.py` contains the initial configuration-only `run_aqforecast()` entry point.
 - `tests/` contains the initial pytest regression tests.
 - `README.md`, the folder READMEs, `CHANGELOG.md`, and `CONTRIBUTING.md` document usage, history, and contribution policy.
