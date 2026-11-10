@@ -10,6 +10,14 @@ This repository is under active development as a set of codes implementing a mac
 - `aqforecast/config_management/` contains reusable configuration validation and interactive setup utilities.
 - `aqforecast/config_management/credentials.py` contains local credential collection and optional remote verification.
 - `aqforecast/utils/logging.py` contains shared console/file logging and credential redaction.
+- `aqforecast/contracts.py` contains the shared data contracts (`DataRequest`,
+  `DatasetBundle`, `ForecastRequest`, `ForecastResult`, `ValidationResult`,
+  and `WorkflowContext`) used to keep future stages composable.
+- `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`,
+  `aqforecast/forecasting/`, `aqforecast/validation/`, and
+  `aqforecast/orchestration/` contain interface-only package scaffolds. Their
+  `base.py` modules define the boundaries between stages; substantive
+  implementations are still planned.
 - `aqforecast/aqforecast.py` contains the initial configuration-only `run_aqforecast()` entry point.
 - `tests/` contains the initial pytest regression tests.
 - `README.md`, the folder READMEs, `CHANGELOG.md`, and `CONTRIBUTING.md` document usage, history, and contribution policy.
@@ -31,6 +39,34 @@ There is no project build command. For local checks:
 ## Coding Style & Naming Conventions
 
 Use LF line endings, trim trailing whitespace, and keep a final newline. Follow `.editorconfig`: four spaces for Python, two spaces for YAML and CMake, and no tabs. Use descriptive `snake_case` for new Python variables and functions; retain existing uppercase-style names when editing the legacy runner unless a focused cleanup is intended. Keep notebooks readable and explain non-obvious scientific assumptions in Markdown cells. Specific Python and dependency versions are provisional; check and update them as the workflow is built out and its compatibility is established.
+
+### Workflow module design
+
+Keep the stage boundaries consistent as the package is implemented:
+
+- Data-acquisition implementations should accept a `DataRequest` and resolved
+  configuration, and return a `DatasetBundle` keyed by the configured source.
+  Source-specific downloading and parsing belongs in this layer; orchestration
+  should not contain source-specific API logic.
+- Preprocessors should accept and return `DatasetBundle` objects. Keep quality
+  control, timestamp/coordinate normalization, regridding, and feature
+  preparation here rather than duplicating them in models or runners.
+- Forecasting models should implement `fit()` and `predict()` using
+  `ForecastRequest` and `ForecastResult`. Model-specific settings belong in
+  the forecasting configuration files, while workflow control belongs in
+  orchestration.
+- Validators should accept forecast results plus observations and return a
+  `ValidationResult`; metrics and plots should be selected from validation
+  configuration rather than hard-coded in the runner.
+- Orchestration stages should pass a `WorkflowContext` and coordinate the
+  stages without reimplementing their scientific logic. Preserve warnings and
+  metadata so later logging can report provenance and partial failures.
+
+When adding a stage, update the relevant `base.py` interface and shared
+contract first, then add a focused implementation and tests. Keep the current
+configuration-only `run_aqforecast()` behavior intact until a complete stage
+is ready to be integrated. Do not make package imports perform downloads,
+create directories, train models, or require credentials.
 
 ## Testing Guidelines
 

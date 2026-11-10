@@ -41,11 +41,11 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - [ ] Implement package structure.
   - [x] Add the configuration-management package.
   - [x] Add shared utility modules, including logging.
-  - [ ] Add data-acquisition modules.
-  - [ ] Add preprocessing modules.
-  - [ ] Add forecasting-model modules.
-  - [ ] Add validation modules.
-  - [ ] Add workflow-orchestration modules.
+  - [x] Add data-acquisition interfaces and package scaffold.
+  - [x] Add preprocessing interfaces and package scaffold.
+  - [x] Add forecasting-model interfaces and package scaffold.
+  - [x] Add validation interfaces and package scaffold.
+  - [x] Add workflow-orchestration interfaces and package scaffold.
 - [x] Define configuration file layout and ownership.
 - [x] Implement configuration validation/checking utility.
 - [x] Implement a runtime loader that resolves and merges component configurations.
@@ -64,7 +64,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 
 **Deliverables**:
 
-- Package skeleton with all directories.
+- ~~Package skeleton with all directories and shared stage interfaces.~~
 - ~~Configuration file templates.~~
 - ~~Credentials management system.~~
 - ~~Basic logging infrastructure.~~
@@ -79,12 +79,15 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - Project objectives and high-level structure defined.
 - Configuration file layout, templates, validation utility, documentation, and regression tests are in place.
 - Runtime configuration loading, credential management, and the initial runner integration are in place.
+- Package directories and shared data contracts for acquisition, preprocessing,
+  forecasting, validation, and orchestration are in place; substantive
+  implementations remain future work.
 - Data acquisition, preprocessing, model execution, and evaluation remain to be implemented.
 
 **Next steps**:
 
-1. Create the remaining package structure.
-2. Create the database manager.
+1. Create the database manager.
+2. Implement the startup/install function for first-time setup.
 
 ### Phase 2: Data Acquisition — Planned
 
