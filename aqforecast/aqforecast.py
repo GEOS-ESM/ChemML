@@ -14,6 +14,7 @@ from aqforecast.config_management.configuration import (
     ConfigurationError,
     load_configuration,
 )
+from aqforecast.config_management.credentials import manage_credentials
 
 
 def run_aqforecast(
@@ -40,10 +41,9 @@ def run_aqforecast(
     """
 
     try:
-        configuration = load_configuration(
-            config_path,
-            require_credentials=require_credentials,
-        )
+        # Load first without requiring credentials so that manage_credentials()
+        # can locate the credentials file and prompt for missing values.
+        configuration = load_configuration(config_path, require_credentials=False)
     except ConfigurationError as error:
         return {
             "status": "configuration_failed",
@@ -53,14 +53,60 @@ def run_aqforecast(
             "errors": [issue.as_dict() for issue in error.report.errors],
         }
 
+    credential_check = None
+    if require_credentials:
+        try:
+            credential_check = manage_credentials(
+                config_path,
+                verify_remote=True,
+            )
+        except (ConfigurationError, OSError, ValueError) as error:
+            return {
+                "status": "credentials_failed",
+                "message": "Credentials could not be collected or verified.",
+                "configuration": configuration,
+                "warnings": configuration.get("warnings", []),
+                "errors": [str(error)],
+            }
+
+        if credential_check.get("status") == "invalid":
+            return {
+                "status": "credentials_failed",
+                "message": credential_check.get("message", "Credentials are invalid."),
+                "configuration": configuration,
+                "warnings": configuration.get("warnings", [])
+                + credential_check.get("warnings", []),
+                "credentials": credential_check,
+                "errors": credential_check.get("errors", []),
+            }
+
+        try:
+            # Confirm that the saved credentials now satisfy the required
+            # credential fields before allowing the run to continue.
+            configuration = load_configuration(config_path, require_credentials=True)
+        except ConfigurationError as error:
+            return {
+                "status": "credentials_failed",
+                "message": "Saved credentials did not pass configuration validation.",
+                "configuration": configuration,
+                "warnings": configuration.get("warnings", []),
+                "credentials": credential_check,
+                "errors": [issue.as_dict() for issue in error.report.errors],
+            }
+
     return {
-        "status": "configuration_loaded",
+        "status": "credentials_checked" if require_credentials else "configuration_loaded",
         "message": (
-            "Configuration loaded successfully. No other AQ-forecast "
+            "Configuration and required credentials loaded successfully. "
+            "No other AQ-forecast workflow functions have been implemented yet."
+            if require_credentials
+            else "Configuration loaded successfully. No other AQ-forecast "
             "workflow functions have been implemented yet."
         ),
         "configuration": configuration,
-        "warnings": configuration.get("warnings", []),
+        "warnings": configuration.get("warnings", [])
+        + (credential_check or {}).get("warnings", []),
+        **({"credentials": credential_check} if credential_check is not None else {}),
     }
 
 

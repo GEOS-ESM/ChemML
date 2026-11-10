@@ -24,6 +24,10 @@ python aqforecast/config_management/configuration.py \
     config/default_config.yaml --interactive
 ```
 
+If credentials are needed, collect them separately with
+`manage_credentials()` as described in the configuration reference. Credential
+verification is optional and remote verification requires internet access.
+
 ## Run the current AQ-forecast skeleton
 
 The runner is exposed as `run_aqforecast()`:
@@ -36,16 +40,36 @@ print(result["status"])
 print(result["message"])
 ```
 
-For a valid configuration, the current result contains:
+When a run needs credentials, request credential collection and verification:
+
+```python
+result = run_aqforecast(
+    "config/default_config.yaml",
+    require_credentials=True,
+)
+```
+
+This prompts for missing required credentials, performs the configured remote
+checks, reloads the configuration with credentials required, and returns
+`credentials_checked` or `credentials_failed`.
+
+Use `require_credentials=False` for runs that do not need credential-dependent
+data. Missing credentials then remain warnings rather than stopping the run.
+
+For a valid configuration without credential checking, the current result contains:
 
 - `status`: currently `configuration_loaded`.
 - `message`: explains that the remaining workflow functions are not implemented.
 - `configuration`: the resolved configuration dictionary.
 - `warnings`: missing credentials, unavailable paths, and other non-fatal warnings.
 
-If the configuration cannot be loaded, the runner returns
-`configuration_failed` with an `errors` list. It does not start data access,
-preprocessing, training, forecasting, or evaluation yet.
+When `require_credentials=True`, a successful run returns `credentials_checked`.
+If credential collection fails or a remote check reports invalid credentials,
+it returns `credentials_failed` with an `errors` list. Network failures that
+prevent verification are reported as warnings. If the configuration itself
+cannot be loaded, it returns `configuration_failed` with an `errors` list. It
+does not start data access, preprocessing, training, forecasting, or
+evaluation yet.
 
 ## Current limitations
 
@@ -65,7 +89,7 @@ creation will be handled by a separate setup utility.
 
 ## Tests
 
-Run the configuration and runner tests with:
+Run the configuration, credential-management, and runner tests with:
 
 ```bash
 python -m pytest tests/

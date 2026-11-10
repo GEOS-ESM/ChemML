@@ -41,17 +41,18 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - [ ] Implement package structure.
 - [x] Define configuration file layout and ownership.
 - [x] Implement configuration validation/checking utility.
-- [ ] Implement a runtime loader that resolves and merges component configurations.
-- [ ] Integrate configuration loading and checking with the forecasting runner.
+- [x] Implement a runtime loader that resolves and merges component configurations.
+- [x] Integrate configuration loading and checking with the new forecasting runner.
 - [x] Create `config/credentials/credentials_template.yaml`.
 - [x] Create `config/filepaths/filepaths_template.yaml`.
 - [x] Create `config/regions/region_template.yaml`.
-- [ ] Implement credentials management.
+- [x] Implement credentials management and optional remote verification.
 - [ ] Set up logging utilities.
 - [ ] Create database manager framework.
 - [x] Write initial configuration documentation.
 - [x] Add an initial configuration regression test.
 - [x] Create the initial AQ-forecast runner skeleton that loads configuration and returns run status.
+- [x] Add credential-management tests.
 
 **Deliverables**:
 
@@ -64,15 +65,16 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 **Current status**:
 
 - Project objectives and high-level structure defined.
-- Configuration file layout, templates, validation utility, documentation, and an initial regression test are in place.
-- Runtime configuration loading and integration with the forecasting workflow remain to be implemented.
+- Configuration file layout, templates, validation utility, documentation, and regression tests are in place.
+- Runtime configuration loading, credential management, and the initial runner integration are in place.
+- Data acquisition, preprocessing, model execution, and evaluation remain to be implemented.
 
 **Next steps**:
 
-1. Implement the runtime configuration loader and integrate configuration checking with the forecasting workflow.
-2. Create the remaining package structure.
-3. Implement credentials management.
-4. Create the database manager.
+1. Create the remaining package structure.
+2. Create the database manager.
+3. Implement data acquisition modules.
+4. Integrate the future forecasting stages with `run_aqforecast()`.
 
 ### Phase 2: Data Acquisition — Planned
 
@@ -293,15 +295,17 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - ✅ Configuration reference documentation.
 - ✅ Initial configuration regression test.
 - ✅ Initial AQ-forecast runner skeleton.
+- ✅ Runtime configuration loader and runner integration.
+- ✅ Credential management with optional remote verification.
+- ✅ Credential-management tests.
 
 ### In Progress
 
-- 🚧 Runtime configuration loading and integration with the forecasting workflow.
 - 🚧 Initial package implementation.
+- 🚧 Data acquisition, preprocessing, and forecasting workflow implementation.
 
 ### Upcoming
 
-- Credentials manager.
 - Database manager.
 - Data acquisition modules.
 

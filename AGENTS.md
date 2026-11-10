@@ -8,6 +8,7 @@ This repository is under active development as a set of codes implementing a mac
 - `docs/examples/deepsensor_run/` contains the Discover batch runner (`ASIAAQ_Deepsensor_Run.py`) and notebooks for configuring and interpreting batches.
 - `config/` contains the master configuration and component YAML files.
 - `aqforecast/config_management/` contains reusable configuration validation and interactive setup utilities.
+- `aqforecast/config_management/credentials.py` contains local credential collection and optional remote verification.
 - `aqforecast/aqforecast.py` contains the initial configuration-only `run_aqforecast()` entry point.
 - `tests/` contains the initial pytest regression tests.
 - `README.md`, the folder READMEs, `CHANGELOG.md`, and `CONTRIBUTING.md` document usage, history, and contribution policy.
@@ -32,7 +33,7 @@ Use LF line endings, trim trailing whitespace, and keep a final newline. Follow 
 
 ## Testing Guidelines
 
-An initial pytest test structure exists, including a test for the configuration-only `run_aqforecast()` entry point, but no coverage threshold or comprehensive test coverage is configured yet. Run `python -m pytest tests/` for Python changes. For changes to analysis code, perform a representative notebook or Discover run and record the data/configuration assumptions in the PR. Validate changed YAML with `yamllint`; check that notebooks open and execute through the affected cells.
+An initial pytest test structure exists, including tests for configuration loading, credential collection, and the configuration-only `run_aqforecast()` entry point, but no coverage threshold or comprehensive test coverage is configured yet. Remote credential verification is opt-in and should not be required for the network-free test suite. Run `python -m pytest tests/` for Python changes. For changes to analysis code, perform a representative notebook or Discover run and record the data/configuration assumptions in the PR. Validate changed YAML with `yamllint`; check that notebooks open and execute through the affected cells.
 
 ## Commit & Pull Request Guidelines
 

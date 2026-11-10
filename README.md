@@ -30,7 +30,8 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 
 - `config/` contains the master configuration and component YAML files.
 - `aqforecast/config_management/` contains the configuration checker and interactive configuration utility.
-- `aqforecast/aqforecast.py` contains the initial `run_aqforecast()` workflow entry point; it currently loads configuration only.
+- `aqforecast/config_management/credentials.py` manages local credentials and optional remote verification.
+- `aqforecast/aqforecast.py` contains the initial `run_aqforecast()` workflow entry point; it loads configuration and can optionally check credentials.
 - `tests/` contains the initial pytest regression tests.
 - `docs/configuration.md` documents the current configuration structure and ownership boundaries.
 
@@ -44,6 +45,7 @@ You will need:
 1. NASA Earthdata Login account ([register here](https://urs.earthdata.nasa.gov/users/new))
 2. EPA AirNow API key ([request here](https://docs.airnowapi.org/account/request/))
 3. OpenAQ API key (optional, for higher rate limits, [request here](https://explore.openaq.org/register))
+4. NCCS username and project/account for Discover workflows
 
 ### Installation
 
@@ -69,6 +71,19 @@ cp config/credentials/credentials_template.yaml config/credentials/credentials.y
 ```
 
 Edit `config/credentials/credentials.yaml` with your API keys and credentials
+
+Credentials can also be collected and optionally checked from Python:
+
+```python
+from aqforecast.config_management import manage_credentials
+
+result = manage_credentials(
+    "config/default_config.yaml",
+    verify_remote=True,
+)
+```
+
+Remote verification requires internet access. Missing credentials do not prevent configuration loading when they are not needed by a run.
 
 4. Set up file path configurations:
 
@@ -102,7 +117,7 @@ from aqforecast import run_aqforecast
 result = run_aqforecast("config/default_config.yaml")
 ```
 
-At present, this loads the configuration and returns a status summary. Data access, preprocessing, model training, forecasting, and evaluation will be added later.
+At present, this loads the configuration and returns a status summary. Pass `require_credentials=True` when the run requires credential collection and verification. Data access, preprocessing, model training, forecasting, and evaluation will be added later.
 
 ## Documentation
 

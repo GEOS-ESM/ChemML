@@ -45,6 +45,21 @@ The local credentials file is ignored by Git and must not be committed or
 included in logs. Runs that do not use credential-dependent data may load the
 configuration without credentials.
 
+Credentials can also be collected and optionally verified from Python:
+
+```python
+from aqforecast.config_management import manage_credentials
+
+result = manage_credentials(
+    "config/default_config.yaml",
+    verify_remote=True,
+)
+```
+
+Remote verification requires internet access. Earthdata, OpenAQ, and AirNow
+are checked when corresponding credentials are configured; NCCS access must be
+verified from the NCCS environment.
+
 ## Configure paths
 
 Copy the filepath template:

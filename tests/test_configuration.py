@@ -10,6 +10,7 @@ from aqforecast.config_management.configuration import ConfigurationError
 from aqforecast.config_management.configuration import check_configuration
 from aqforecast.config_management.configuration import load_configuration
 from aqforecast import run_aqforecast
+import aqforecast.aqforecast as aqforecast_runner
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -38,6 +39,28 @@ def test_aqforecast_runner_loads_configuration() -> None:
     assert result["status"] == "configuration_loaded"
     assert "not been implemented yet" in result["message"]
     assert result["configuration"]["experiment_name"] == "region_Seoul_experiment_baseline"
+
+
+def test_aqforecast_runner_checks_credentials_when_required(monkeypatch) -> None:
+    calls = {}
+
+    def fake_manage_credentials(config_path, *, verify_remote):
+        calls["config_path"] = config_path
+        calls["verify_remote"] = verify_remote
+        return {
+            "status": "invalid",
+            "message": "test credential failure",
+            "warnings": [],
+            "errors": ["test credential failure"],
+        }
+
+    monkeypatch.setattr(aqforecast_runner, "manage_credentials", fake_manage_credentials)
+    result = run_aqforecast(DEFAULT_CONFIGURATION, require_credentials=True)
+
+    assert result["status"] == "credentials_failed"
+    assert result["errors"] == ["test credential failure"]
+    assert calls["config_path"] == DEFAULT_CONFIGURATION
+    assert calls["verify_remote"] is True
 
 
 def test_resolve_experiment_name() -> None:

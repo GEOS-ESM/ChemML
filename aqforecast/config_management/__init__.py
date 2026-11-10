@@ -7,6 +7,7 @@ from .configuration import (
     check_configuration,
     load_configuration,
 )
+from .credentials import manage_credentials
 
 __all__ = [
     "ConfigurationError",
@@ -14,4 +15,5 @@ __all__ = [
     "ConfigurationReport",
     "check_configuration",
     "load_configuration",
+    "manage_credentials",
 ]

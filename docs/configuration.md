@@ -2,28 +2,30 @@
 
 ChemML uses `config/default_config.yaml` as the entry point for a collection of component configuration files. This organization keeps region definitions, data locations, model settings, forecasting choices, and validation choices independent and reusable.
 
-> The configuration system is currently a draft. A general loader that resolves references into one runtime configuration is planned. The repository now includes a validator for the current schema, but several settings will be refined as the ingest, DeepSensor, forecasting, and validation systems are developed.
+> The configuration system includes a validator and runtime loader that resolve the master configuration into a dictionary. The schemas and downstream consumers remain provisional as the ingest, DeepSensor, forecasting, and validation systems are developed.
 
 ## Configuration layout
 
 ```text
 config/
 ├── default_config.yaml
-├── aqforecast/aqforecast_config.yaml
-├── credentials/credentials.yaml
-├── credentials/credentials_template.yaml
-├── deepsensor/deepsensor_config.yaml
-├── filepaths/filepaths.yaml
-├── filepaths/filepaths_template.yaml
-├── inputs/input_data_config.yaml
-├── regions/example_region.yaml
-├── regions/region_template.yaml
-└── validation/validation_config.yaml
-
-aqforecast/
-└── config_management/
-    ├── __init__.py
-    └── configuration.py
+├── aqforecast/
+│   └── aqforecast_config.yaml
+├── credentials/
+│   ├── credentials.yaml
+│   └── credentials_template.yaml
+├── deepsensor/
+│   └── deepsensor_config.yaml
+├── filepaths/
+│   ├── filepaths.yaml
+│   └── filepaths_template.yaml
+├── inputs/
+│   └── input_data_config.yaml
+├── regions/
+│   ├── example_region.yaml
+│   └── region_template.yaml
+└── validation/
+    └── validation_config.yaml
 ```
 
 Only `default_config.yaml` is the master entry point. Its `configuration_files` mapping references files relative to the `config` directory:
@@ -93,6 +95,15 @@ The loader resolves `{region_code}`, `{experiment_code}`, `{experiment_name}`, `
 
 Missing credentials and nonexistent configured paths are returned in `configuration["warnings"]` and do not stop loading. Structural errors, missing non-credential references, malformed values, and conflicting source definitions raise `ConfigurationError`. The loader does not create directories; a separate setup utility will own that responsibility.
 
+The high-level `run_aqforecast()` function can request credential checking by
+passing `require_credentials=True`. It loads the configuration first so the
+credential manager can locate the configured credentials file, then saves and
+revalidates the credentials before continuing.
+
+The runtime loader is integrated with `run_aqforecast()`. The new runner uses
+the resolved configuration dictionary; the older example runner remains a
+separate legacy workflow that uses JSON settings and hard-coded paths.
+
 ## Region configuration
 
 Region files live in `config/regions/`. Copy `region_template.yaml` to create a new region. A region file owns:
@@ -129,6 +140,32 @@ cp config/credentials/credentials_template.yaml config/credentials/credentials.y
 ```
 
 The template contains NASA Earthdata, OpenAQ, AirNow, and NCCS credential fields. `credentials.yaml` is ignored by Git and must never be committed or written to logs.
+
+Credential collection is available through `manage_credentials()`:
+
+```python
+from aqforecast.config_management import manage_credentials
+
+result = manage_credentials("config/default_config.yaml")
+```
+
+The function uses `load_configuration()` to locate the credentials file,
+prompts for missing required values, performs local validation, and writes the
+accepted values with restrictive file permissions. OpenAQ and AirNow are
+optional unless `prompt_optional=True` is used. Remote verification is opt-in:
+
+```python
+result = manage_credentials(
+    "config/default_config.yaml",
+    verify_remote=True,
+)
+```
+
+Remote verification requires internet access. Earthdata is checked with
+`earthaccess` when available, with a direct HTTPS fallback; OpenAQ and AirNow
+are checked through authenticated requests. Transiently unverified checks are
+retried. NCCS access is reported as not checked because it must be verified
+from the NCCS environment.
 
 ## Filepaths
 
