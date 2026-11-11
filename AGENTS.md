@@ -7,9 +7,10 @@ This repository is under active development as a set of codes implementing a mac
 - `docs/examples/deepsensor_demo/` contains progressively refined Jupyter demonstrations and the Conda environment specification (`deepsensor_cenv.yml`).
 - `docs/examples/deepsensor_run/` contains the Discover batch runner (`ASIAAQ_Deepsensor_Run.py`) and notebooks for configuring and interpreting batches.
 - `config/` contains the master configuration and component YAML files.
-- `aqforecast/config_management/` contains reusable configuration validation and interactive setup utilities.
+- `aqforecast/config_management/` contains reusable configuration validation and configuration-loading utilities.
 - `aqforecast/config_management/credentials.py` contains local credential collection and optional remote verification.
 - `aqforecast/utils/logging.py` contains shared console/file logging and credential redaction.
+- `aqforecast/utils/setup.py` contains the explicit first-time setup flow for copying configuration files, collecting paths and credentials, creating configured directories, and verifying configuration.
 - `aqforecast/contracts.py` contains the shared data contracts (`DataRequest`,
   `DatasetBundle`, `ForecastRequest`, `ForecastResult`, `ValidationResult`,
   and `WorkflowContext`) used to keep future stages composable.
@@ -33,6 +34,7 @@ There is no project build command. For local checks:
 - `python -m pytest tests/` runs the Python regression tests.
 - `python aqforecast/config_management/configuration.py config/default_config.yaml` checks the referenced configuration files.
 - `python aqforecast/config_management/configuration.py config/default_config.yaml --interactive` interactively fills fixable missing or invalid configuration values.
+- `python -m aqforecast.utils.setup` runs the guided first-time setup flow after the conda environment is activated.
 - Open notebooks with Jupyter in the environment described by `docs/examples/deepsensor_demo/deepsensor_cenv.yml`; run cells incrementally and confirm referenced data paths are available.
 - On NCCS Discover, run a configured batch entry with `python docs/examples/deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
 
@@ -70,7 +72,7 @@ create directories, train models, or require credentials.
 
 ## Testing Guidelines
 
-An initial pytest test structure exists, including tests for configuration loading, credential collection, and the configuration-only `run_aqforecast()` entry point, but no coverage threshold or comprehensive test coverage is configured yet. Remote credential verification is opt-in and should not be required for the network-free test suite. Run `python -m pytest tests/` for Python changes. For changes to analysis code, perform a representative notebook or Discover run and record the data/configuration assumptions in the PR. Validate changed YAML with `yamllint`; check that notebooks open and execute through the affected cells.
+An initial pytest test structure exists, including tests for configuration loading, credential collection, the guided setup flow, and the configuration-only `run_aqforecast()` entry point, but no coverage threshold or comprehensive test coverage is configured yet. Remote credential verification is opt-in and should not be required for the network-free test suite. Run `python -m pytest tests/` for Python changes. For changes to analysis code, perform a representative notebook or Discover run and record the data/configuration assumptions in the PR. Validate changed YAML with `yamllint`; check that notebooks open and execute through the affected cells.
 
 ## Commit & Pull Request Guidelines
 

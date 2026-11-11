@@ -32,6 +32,7 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/config_management/` contains the configuration checker and interactive configuration utility.
 - `aqforecast/config_management/credentials.py` manages local credentials and optional remote verification.
 - `aqforecast/utils/logging.py` provides shared console/file logging with credential redaction.
+- `aqforecast/utils/setup.py` provides a guided first-time setup flow that copies configuration files, collects paths and credentials, creates configured directories, and verifies the result.
 - `aqforecast/contracts.py` defines the shared request, result, and workflow-context data contracts.
 - `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`, `aqforecast/forecasting/`, `aqforecast/validation/`, and `aqforecast/orchestration/` contain the initial typed interfaces for future workflow stages; their implementations are not yet complete.
 - `aqforecast/aqforecast.py` contains the initial `run_aqforecast()` workflow entry point; it loads configuration and can optionally check credentials.
@@ -40,7 +41,8 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 
 ## Quick Start
 
-The setup steps below are a development guide and may not yet be fully executable.
+The guided setup below is available after the conda environment is activated;
+the forecasting workflow itself remains under development.
 
 ### Required Credentials
 
@@ -67,60 +69,19 @@ conda env create -f environment.yml
 conda activate chemml
 ```
 
-3. Set up credentials:
+3. Run the guided first-time setup (recommended):
 
 ```bash
-cp config/credentials/credentials_template.yaml config/credentials/credentials.yaml
+python -m aqforecast.utils.setup
 ```
 
-Edit `config/credentials/credentials.yaml` with your API keys and credentials
+This copies missing configuration files, prompts for input and output roots,
+collects required credentials, creates configured directories, and verifies the
+configuration. Use `--verify-remote` to request remote credential checks or
+`--prompt-optional-credentials` to enter OpenAQ and AirNow credentials.
 
-Credentials can also be collected and optionally checked from Python:
-
-```python
-from aqforecast.config_management import manage_credentials
-
-result = manage_credentials(
-    "config/default_config.yaml",
-    verify_remote=True,
-)
-```
-
-Remote verification requires internet access. Missing credentials do not prevent configuration loading when they are not needed by a run.
-
-4. Set up file path configurations:
-
-```bash
-cp config/filepaths/filepaths_template.yaml config/filepaths/filepaths.yaml
-```
-
-Edit `config/filepaths/filepaths.yaml` with the paths to relevant data on your machine
-
-5. Set up regional description(s):
-
-```bash
-cp config/regions/region_template.yaml config/regions/my_new_region.yaml
-```
-
-Edit `config/regions/my_new_region.yaml` with information about your region of interest
-
-6. Check the selected configuration:
-
-```bash
-python aqforecast/config_management/configuration.py config/default_config.yaml
-```
-
-Use `--interactive` to prompt for fixable missing or invalid values. The checker validates the YAML configuration files and is integrated with the new `run_aqforecast()` runner; it is not yet integrated with the legacy forecasting runner.
-
-The initial AQ-forecast runner can be called from Python:
-
-```python
-from aqforecast import run_aqforecast
-
-result = run_aqforecast("config/default_config.yaml")
-```
-
-At present, this loads the configuration and returns a status summary. Pass `require_credentials=True` when the run requires credential collection and verification. Data access, preprocessing, model training, forecasting, and evaluation will be added later.
+For the manual setup alternative and configuration details, see the
+[Installation Guide](docs/installation.md).
 
 ## Documentation
 

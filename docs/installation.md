@@ -31,6 +31,32 @@ conda activate chemml
 The configuration checker requires PyYAML, and the regression tests require
 pytest. Both are included in `environment.yml`.
 
+## Automated first-time setup
+
+After activating the environment, the recommended setup path is the guided
+setup function. It copies any missing configuration files, prompts for input
+and output roots, collects the required credentials, creates the configured
+directories, and verifies the result with the configuration checker:
+
+```bash
+python -m aqforecast.utils.setup
+```
+
+The same flow can be started from Python:
+
+```python
+from aqforecast.utils import setup_aqforecast
+
+result = setup_aqforecast()
+if result["status"] != "configured":
+    result["configuration_report"].format()
+```
+
+Use `--verify-remote` when internet access is available and credentials should
+also be checked against their services. Use
+`--prompt-optional-credentials` to enter OpenAQ and AirNow credentials during
+setup. The remaining sections document the equivalent manual process.
+
 ## Configure credentials
 
 Copy the credentials template:
@@ -77,7 +103,8 @@ are organized below the region-code directory, for example:
 ```
 
 The loader reports nonexistent paths as warnings. It does not create output
-directories; a separate setup utility will handle directory creation later.
+directories; the automated setup function creates the configured roots,
+working directories, and source directories.
 
 ## Configure a region
 
