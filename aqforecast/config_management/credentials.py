@@ -340,7 +340,10 @@ def manage_credentials(
             "errors": sorted(set(local_errors)),
         }
 
-    credentials_path.parent.mkdir(parents=True, exist_ok=True)
+    if not credentials_path.parent.is_dir():
+        raise FileNotFoundError(
+            f"credentials directory does not exist: {credentials_path.parent}"
+        )
     with credentials_path.open("w", encoding="utf-8") as stream:
         yaml.safe_dump(credentials, stream, sort_keys=False, default_flow_style=False)
     try:

@@ -46,9 +46,9 @@ The setup steps below are a development guide and may not yet be fully executabl
 
 You will need:
 1. NASA Earthdata Login account ([register here](https://urs.earthdata.nasa.gov/users/new))
-2. EPA AirNow API key ([request here](https://docs.airnowapi.org/account/request/))
-3. OpenAQ API key (optional, for higher rate limits, [request here](https://explore.openaq.org/register))
-4. NCCS username and project/account for Discover workflows
+2. NCCS username and project/account for Discover workflows
+3. EPA AirNow API key (optional, for AirNow-based workflows; [request here](https://docs.airnowapi.org/account/request/))
+4. OpenAQ API key (optional, for higher rate limits, [request here](https://explore.openaq.org/register))
 
 ### Installation
 
@@ -110,7 +110,7 @@ Edit `config/regions/my_new_region.yaml` with information about your region of i
 python aqforecast/config_management/configuration.py config/default_config.yaml
 ```
 
-Use `--interactive` to prompt for fixable missing or invalid values. The checker currently validates the YAML configuration files but is not yet integrated with the legacy forecasting runner.
+Use `--interactive` to prompt for fixable missing or invalid values. The checker validates the YAML configuration files and is integrated with the new `run_aqforecast()` runner; it is not yet integrated with the legacy forecasting runner.
 
 The initial AQ-forecast runner can be called from Python:
 
@@ -140,7 +140,7 @@ The following documentation pages are planned:
 
 Interactive Jupyter notebooks demonstrating key workflows:
 
-> **Warning:** These workflow-specific notebooks are planned examples. The currently available demonstrations are under `docs/examples/deepsensor_demo/` and `docs/examples/deepsensor_run/`.
+> **Warning:** These workflow-specific notebooks are planned examples and the links below intentionally point to files that have not yet been created. The currently available demonstrations are under `docs/examples/deepsensor_demo/` and `docs/examples/deepsensor_run/`.
 
 - [Data Acquisition](docs/examples/01_data_acquisition.ipynb)
 - [Model Training](docs/examples/02_model_training.ipynb)

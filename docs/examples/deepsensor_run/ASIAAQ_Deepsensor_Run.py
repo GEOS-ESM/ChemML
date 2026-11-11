@@ -93,7 +93,7 @@ f_data_airkorea = f_data_airkorea_raw[['lat','lon','time','NO2']].set_index(['ti
 
 print(f'AirKorea Data Loaded: {len(f_data_airkorea)} records')
 
-# Load GOES-CF Data
+# Load GEOS-CF Data
 if Use_GEOSCF:
     a_data_GEOSCF_raw = xr.open_dataset(os.path.join(s_data_folder,'GEOS-CF_AsiaAQ_Seoul_Grid_025_h.nc'))
     

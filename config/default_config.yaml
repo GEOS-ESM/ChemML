@@ -1,7 +1,10 @@
 # ChemML master configuration.
-# Paths are relative to this file unless they are absolute paths.
-# A configuration loader should resolve these files and merge them into one
-# run configuration. Settings are owned by the referenced file, not repeated here.
+# References to component configuration files are relative to this file unless
+# they are absolute paths. User-configured filesystem paths in the filepaths
+# configuration are interpreted according to that configuration's path settings
+# (currently relative to the process working directory unless absolute).
+# A configuration loader should resolve the component files and merge them into
+# one run configuration. Settings are owned by the referenced file, not repeated here.
 
 config_version: 1
 experiment_name_template: "region_{region_code}_experiment_{experiment_code}"
