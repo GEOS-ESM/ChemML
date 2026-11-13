@@ -29,7 +29,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 
 ## Development Phases
 
-### Phase 1: Foundation — In progress
+### Phase 1: Foundation — Complete
 
 **Objective**: Establish project infrastructure and core utilities.
 
@@ -91,15 +91,10 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   adapters remain future work.
 - Model execution, forecasting, and evaluation remain to be implemented.
 
-**Next steps**:
-
-1. Implement source-specific data acquisition and preprocessing adapters.
-2. Add database-manager regression and integration tests using representative
-   CSV and NetCDF fixtures.
-
 ### Phase 2: Data Acquisition — Planned
 
-**Objective**: Implement data acquisition modules for all sources.
+**Objective**: Acquire, quality-control, standardize, and maintain local
+databases for all configured input sources.
 
 **Tasks**:
 
@@ -114,8 +109,25 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   - [ ] EPA AirNow API integration.
   - [ ] OpenAQ API integration.
 - [ ] Implement data quality control.
+- [ ] Convert each source from its original format into the configured
+  standardized database format during acquisition.
+- [ ] Apply source-specific fill-value handling, bounds checks, quality flags,
+  cloud filters, and other quality-control rules.
+- [ ] Subset data to the requested region, period, variables, and desired
+  spatial and temporal resolution wherever possible at ingest time.
+- [ ] Regrid and aggregate acquired data according to the input-data
+  configuration before writing database partitions.
+- [ ] Implement post-update database integrity verification, including
+  timestamp completeness, required variables, coordinate/grid structure,
+  duplicate detection, partition/catalog consistency, and explicit reporting
+  of any remaining gaps.
 - [ ] Create data download scripts.
 - [ ] Implement data-acquisition modules for the configured sources.
+- [ ] Add source-specific acquisition adapters for the database manager.
+- [ ] Add source-specific tests using mocked API/filesystem responses and
+  representative raw-data fixtures.
+- [ ] Add tests for missing intervals, partial updates, retries/failures, and
+  output database fixtures.
 - [ ] Keep `config/inputs/input_data_config.yaml` aligned with the settings required to download and preprocess each data source as ingest codes are developed.
 - [ ] Test data acquisition on NCCS.
 - [ ] Schedule ongoing data ingest:
@@ -123,12 +135,22 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   - [ ] Schedule scripts to run automatically using `cron`.
   - [ ] Verify that data are being ingested as intended.
 
+Land-cover data are part of this acquisition workflow, but require a special
+time-offset provision. The acquisition process must support requesting a
+reference period from an earlier source period (for example, using land-cover
+data from the preceding year) rather than assuming that all sources cover the
+same dates.
+
 **Deliverables**:
 
 - Functional data acquisition modules for all sources.
 - Data quality control procedures.
 - Download scripts for historical data.
 - Unit tests for data modules.
+- Network-free adapter tests with mocked API/filesystem responses.
+- Representative raw-data and standardized database fixtures.
+- Tests for partial updates, retry/failure behavior, and remaining-gap
+  reporting.
 - Automated database updating script.
 - Database integrity verification.
 - Documentation for data sources.
@@ -140,24 +162,25 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - AirNow and OpenAQ API keys.
 - NCCS access.
 
-### Phase 3: Preprocessing — Planned
+### Phase 3: Data Conditioning — Planned
 
-**Objective**: Develop a preprocessing pipeline for model inputs.
+**Objective**: Convert the standardized acquired databases into
+DeepSensor-compatible data structures and apply DeepSensor normalization.
 
 **Tasks**:
 
-- [ ] Ingest all data sources into DeepSensor-compatible formats.
-- [ ] Create quality-control procedures.
-- [ ] Implement feature engineering for DeepSensor.
-- [ ] Create preprocessing scripts.
-- [ ] Optimize for NCCS performance.
+- [ ] Convert standardized database records into DeepSensor-compatible
+  structures.
+- [ ] Configure DeepSensor coordinate names and data-processor inputs.
+- [ ] Apply normalization using DeepSensor functions.
+- [ ] Create data-conditioning scripts.
+- [ ] Optimize data conditioning for NCCS performance.
 
 **Deliverables**:
 
-- DeepSensor data-preparation modules.
-- Quality-control procedures.
-- Feature-engineering pipeline.
-- Preprocessing scripts.
+- DeepSensor-compatible data-preparation modules.
+- DeepSensor normalization configuration and workflow.
+- Data-conditioning scripts.
 - Unit tests.
 - Documentation.
 
@@ -287,6 +310,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - [ ] Create `docs/examples/05_validation_analysis.ipynb`.
 - [x] Set up the initial pytest test structure.
 - [ ] Complete unit-test coverage.
+- [ ] Add database-manager regression and integration tests using representative CSV and NetCDF fixtures.
 - [ ] Perform integration testing.
 - [ ] Conduct a security review.
 - [ ] Create tutorial videos and materials.

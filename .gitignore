@@ -65,6 +65,7 @@ Thumbs.db
 docs/_build/
 docs/_static/
 docs/_templates/
+docs/implementation_insutructions_for_agents/
 
 # Internal project notes
 TO_DO.md
