@@ -456,6 +456,18 @@ def _validate_input_data(loaded: _LoadedConfiguration, report: ConfigurationRepo
             continue
         for field_name, expected in (("file_template", "string"), ("variables", "non-empty list"), ("coordinate_names", "mapping"), ("time", "mapping"), ("regridding", "mapping")):
             _add_required(report, component, loaded, ("datasets", str(dataset_name), field_name), expected)
+        storage = dataset.get("storage")
+        if storage is not None:
+            if not isinstance(storage, Mapping):
+                _add_type_error(report, component, loaded, ("datasets", str(dataset_name), "storage"), "must be a mapping")
+            else:
+                if storage.get("partition") not in {"daily", "monthly", "yearly"}:
+                    _add_type_error(report, component, loaded, ("datasets", str(dataset_name), "storage.partition"), "must be daily, monthly, or yearly")
+                if storage.get("format") not in {"csv", "netcdf"}:
+                    _add_type_error(report, component, loaded, ("datasets", str(dataset_name), "storage.format"), "must be csv or netcdf")
+        access = dataset.get("access")
+        if access is not None and not isinstance(access, Mapping):
+            _add_type_error(report, component, loaded, ("datasets", str(dataset_name), "access"), "must be a mapping")
 
 
 def _validate_source_consistency(loaded: _LoadedConfiguration, report: ConfigurationReport) -> None:

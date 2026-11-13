@@ -11,8 +11,12 @@ datasets:
       frequency: "1h"
       alignment: "reference_times"
       tolerance: "30m"
+      timestamp_convention: "center"
+      availability: {mode: "continuous"}
     regridding:
       method: "none"
+    storage: {partition: "monthly", format: "csv", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp"}
 
   GEOS-CF:
     source_key: "GEOS-CF"
@@ -20,8 +24,10 @@ datasets:
     variables: ["no2", "tropcol_no2", "totcol_no2", "u2m", "v2m", "wndspd_2m", "t2m", "q2m", "rh", "cldtt", "tprec", "troppb", "zl", "zpbl"]
     variable_prefix: "GEOS-CF_"
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
-    time: {type: "datetime", frequency: "1h", alignment: "reference_times", tolerance: "30m"}
+    time: {type: "datetime", frequency: "1h", alignment: "reference_times", tolerance: "30m", timestamp_convention: "center", availability: {mode: "continuous"}}
     regridding: {method: "none", latlon_resolution: 0.25}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "local", temporary_directory: ".tmp"}
 
   TROPOMI:
     source_key: "TROPOMI"
@@ -29,8 +35,10 @@ datasets:
     variables: ["no2", "o3"]
     variable_prefix: "TROPOMI_"
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
-    time: {type: "datetime", aggregation: "daily_mean", alignment: "reference_times", tolerance: "12h"}
+    time: {type: "datetime", aggregation: "daily_mean", alignment: "reference_times", tolerance: "12h", timestamp_convention: "median", availability: {mode: "continuous"}}
     regridding: {method: "target_grid", latlon_resolution: 0.05}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp"}
 
   GEMS:
     source_key: "GEMS"
@@ -38,8 +46,16 @@ datasets:
     variables: ["ColumnAmountNO2Trop", "ColumnAmountNO2"]
     variable_prefix: "GEMS_"
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
-    time: {type: "datetime", frequency: "1h", alignment: "reference_times", tolerance: "30m"}
+    time:
+      type: "datetime"
+      frequency: "1h"
+      alignment: "reference_times"
+      tolerance: "30m"
+      timestamp_convention: "center"
+      availability: {mode: "daily_window", start: "08:00", end: "17:00", timezone: "Asia/Seoul"}
     regridding: {method: "target_grid", latlon_resolution: 0.08}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp"}
 
   GCAS:
     source_key: "GCAS"
@@ -47,8 +63,16 @@ datasets:
     variables: ["no2_vertical_column_below_aircraft", "model_no2_vertical_column_below_aircraft"]
     variable_prefix: "GCAS_"
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
-    time: {type: "datetime", frequency: "1h", alignment: "reference_times", tolerance: "30m"}
+    time:
+      type: "datetime"
+      frequency: "1h"
+      alignment: "reference_times"
+      tolerance: "30m"
+      timestamp_convention: "center"
+      availability: {mode: "daily_window", start: "08:00", end: "17:00", timezone: "Asia/Seoul"}
     regridding: {method: "target_grid", latlon_resolution: 0.01}
+    storage: {partition: "daily", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp"}
 
   land_cover:
     source_key: "land_cover"
@@ -56,8 +80,10 @@ datasets:
     variables: ["LC_Type1"]
     variable_prefix: "MCD12Q1_"
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
-    time: {aggregation: "mean_over_time", alignment: "expand_to_reference_times"}
+    time: {aggregation: "mean_over_time", alignment: "expand_to_reference_times", availability: {mode: "continuous"}}
     regridding: {method: "none", latlon_resolution: 0.005}
+    storage: {partition: "yearly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp"}
 
   # Complete these definitions as the corresponding data-ingest and
   # preprocessing codes are developed.

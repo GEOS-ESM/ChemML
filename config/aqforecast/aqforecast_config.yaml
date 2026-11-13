@@ -25,3 +25,7 @@ feature_engineering:
   input_lags_hours: {}
   additional_features:
     - "time_of_day"
+
+database:
+  default_conflict_policy: "fill_missing"
+  update_enabled_inputs_by_default: true

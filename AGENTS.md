@@ -11,15 +11,19 @@ This repository is under active development as a set of codes implementing a mac
 - `aqforecast/config_management/credentials.py` contains local credential collection and optional remote verification.
 - `aqforecast/utils/logging.py` contains shared console/file logging and credential redaction.
 - `aqforecast/utils/setup.py` contains the explicit first-time setup flow for copying configuration files, collecting paths and credentials, creating configured directories, and verifying configuration.
+- `aqforecast/data_management/` contains the incremental partitioned input-data database manager and regenerable per-source catalogs.
+- `aqforecast/data_acquisition/generic.py` contains local and remote acquisition adapter wrappers; source-specific download implementations belong in this layer.
+- `aqforecast/preprocessing/generic.py` contains shared fill-value and basic quality-control preprocessing.
 - `aqforecast/contracts.py` contains the shared data contracts (`DataRequest`,
   `DatasetBundle`, `ForecastRequest`, `ForecastResult`, `ValidationResult`,
   and `WorkflowContext`) used to keep future stages composable.
 - `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`,
   `aqforecast/forecasting/`, `aqforecast/validation/`, and
-  `aqforecast/orchestration/` contain interface-only package scaffolds. Their
-  `base.py` modules define the boundaries between stages; substantive
-  implementations are still planned.
+  `aqforecast/orchestration/` contain the stage interfaces. Database updating
+  is the first implemented orchestration workflow; most source-specific and
+  forecasting implementations remain planned.
 - `aqforecast/aqforecast.py` contains the initial configuration-only `run_aqforecast()` entry point.
+- `aqforecast/orchestration/database_update.py` contains the standalone `run_database_update()` mode and `DatabaseUpdateStage`.
 - `tests/` contains the initial pytest regression tests.
 - `README.md`, the folder READMEs, `CHANGELOG.md`, and `CONTRIBUTING.md` document usage, history, and contribution policy.
 - `.github/workflows/` contains CI checks.
@@ -37,6 +41,7 @@ There is no project build command. For local checks:
 - `python -m aqforecast.utils.setup` runs the guided first-time setup flow after the conda environment is activated.
 - Open notebooks with Jupyter in the environment described by `docs/examples/deepsensor_demo/deepsensor_cenv.yml`; run cells incrementally and confirm referenced data paths are available.
 - On NCCS Discover, run a configured batch entry with `python docs/examples/deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
+- Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`; source-specific adapters are injected when implemented.
 
 ## Coding Style & Naming Conventions
 
@@ -67,12 +72,13 @@ Keep the stage boundaries consistent as the package is implemented:
 When adding a stage, update the relevant `base.py` interface and shared
 contract first, then add a focused implementation and tests. Keep the current
 configuration-only `run_aqforecast()` behavior intact until a complete stage
-is ready to be integrated. Do not make package imports perform downloads,
-create directories, train models, or require credentials.
+is ready to be integrated. The database-update mode is a separate explicit
+operation and must not run during package import. Do not make package imports
+perform downloads, create directories, train models, or require credentials.
 
 ## Testing Guidelines
 
-An initial pytest test structure exists, including tests for configuration loading, credential collection, the guided setup flow, and the configuration-only `run_aqforecast()` entry point, but no coverage threshold or comprehensive test coverage is configured yet. Remote credential verification is opt-in and should not be required for the network-free test suite. Run `python -m pytest tests/` for Python changes. For changes to analysis code, perform a representative notebook or Discover run and record the data/configuration assumptions in the PR. Validate changed YAML with `yamllint`; check that notebooks open and execute through the affected cells.
+An initial pytest test structure exists, including tests for configuration loading, credential collection, the guided setup flow, and the configuration-only `run_aqforecast()` entry point. Database-manager regression and integration tests are still needed; no coverage threshold is configured yet. Remote credential verification is opt-in and should not be required for the network-free test suite. Run `python -m pytest tests/` for Python changes. For changes to analysis code, perform a representative notebook or Discover run and record the data/configuration assumptions in the PR. Validate changed YAML with `yamllint`; check that notebooks open and execute through the affected cells.
 
 ## Commit & Pull Request Guidelines
 

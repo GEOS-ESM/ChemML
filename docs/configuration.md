@@ -198,6 +198,21 @@ Source names are case-sensitive and must match `source_key` values in `input_dat
 - Variables to load and an optional `variable_prefix`.
 - Source coordinate names and timestamp handling.
 - Regridding method and source resolution.
+- `storage.partition` (`daily`, `monthly`, or `yearly`) and `storage.format`
+  (`csv` for point data or `netcdf` for gridded data).
+- `access.mode` (`local` or `remote`) and a per-source `.tmp` staging folder.
+- `time.availability`, which supports continuous timestamps or configured
+  daily observation windows. The initial GEMS and GCAS defaults assume 08:00
+  through 17:00 in the configured local region timezone and can be revised by
+  their source adapters.
+
+The database manager stores timestamps in UTC and treats update intervals as
+half-open (`[start_time, end_time)`). Existing files are checked for expected
+timestamps before acquisition. Missing timestamps trigger a registered source
+adapter, after which processed data are merged using the default
+`fill_missing` policy. A regenerated `catalog.json` in each source directory
+records the files found, time coverage, variables, dimensions, and spatial
+extent; configuration remains authoritative.
 
 Detailed definitions currently exist for `ground_monitors`, `GEOS-CF`, `TROPOMI`, `GEMS`, `GCAS`, and `land_cover`. `TEMPO`, `PACE`, `VIIRS`, and `GOES-ABI` are placeholder categories to be completed as their data-ingest and preprocessing code is developed.
 
@@ -211,6 +226,7 @@ Detailed definitions currently exist for `ground_monitors`, `GEOS-CF`, `TROPOMI`
 - Output variables `pm25`, `o3`, and `no2`.
 - Confidence levels of 50% and 90%.
 - Optional input lags and additional features, currently including `time_of_day`.
+- Database update defaults, including the `fill_missing` conflict policy.
 
 This file should be kept synchronized with the forecasting implementation as its required settings are defined.
 

@@ -6,7 +6,11 @@
 
 ChemML is a developing set of Python codes for high-resolution air quality estimation and forecasting. It combines satellite observations, numerical model outputs, and ground-based measurements using deep learning techniques, and leverages the DeepSensor framework to produce probabilistic forecasts of PM2.5, ozone (O₃), and nitrogen dioxide (NO₂) at fine spatial resolution (e.g., 1 km).
 
-> **Warning:** ChemML is still under development. The configuration system, forecasting workflow, and validation system are being built incrementally. Several data-ingest modules, documentation pages, and example notebooks remain planned.
+> **Warning:** ChemML is still under development. The configuration system and
+> incremental input-data database manager are available, while source-specific
+> ingest, forecasting, and validation workflows are being built incrementally.
+> Several data-ingest modules, documentation pages, and example notebooks
+> remain planned.
 
 ## Overview
 
@@ -34,7 +38,11 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/utils/logging.py` provides shared console/file logging with credential redaction.
 - `aqforecast/utils/setup.py` provides a guided first-time setup flow that copies configuration files, collects paths and credentials, creates configured directories, and verifies the result.
 - `aqforecast/contracts.py` defines the shared request, result, and workflow-context data contracts.
+- `aqforecast/data_management/` provides the incremental partitioned database manager and regenerable per-source catalogs.
+- `aqforecast/data_acquisition/generic.py` provides local and remote acquisition adapter contracts for source-specific ingest implementations.
+- `aqforecast/preprocessing/generic.py` provides shared fill-value and basic quality-control preprocessing.
 - `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`, `aqforecast/forecasting/`, `aqforecast/validation/`, and `aqforecast/orchestration/` contain the initial typed interfaces for future workflow stages; their implementations are not yet complete.
+- `aqforecast/orchestration/database_update.py` provides the standalone database-update mode.
 - `aqforecast/aqforecast.py` contains the initial `run_aqforecast()` workflow entry point; it loads configuration and can optionally check credentials.
 - `tests/` contains the initial pytest regression tests.
 - `docs/configuration.md` documents the current configuration structure and ownership boundaries.
@@ -83,6 +91,13 @@ configuration. Use `--verify-remote` to request remote credential checks or
 For the manual setup alternative and configuration details, see the
 [Installation Guide](docs/installation.md).
 
+### Update the input database
+
+After configuration, use `run_database_update()` to check and incrementally
+extend the enabled input datasets. The requested interval is interpreted as a
+half-open UTC interval. See the [User Guide](docs/user_guide.md#update-the-input-data-database)
+for examples, source selection, override behavior, and adapter registration.
+
 ## Documentation
 
 Available and planned documentation is listed in the `docs/` directory. The installation guide, configuration reference, and initial user guide are currently available:
@@ -114,7 +129,9 @@ Interactive Jupyter notebooks demonstrating key workflows:
 - Python 3.9 or higher
 - Key packages:
   - `numpy >= 1.24`
+  - `pandas >= 2.0`
   - `xarray >= 2023.1`
+  - `netcdf4 >= 1.6`
   - `earthaccess >= 0.8`
   - `deepsensor`
   - `pytorch >= 2.0` (for GPU acceleration)

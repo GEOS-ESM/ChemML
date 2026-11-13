@@ -24,4 +24,17 @@ class DataSource(Protocol):
         """Acquire data for ``request`` using the resolved configuration."""
 
 
-__all__ = ["DataSource"]
+class UnavailableDataSource:
+    """Default adapter used until a source-specific ingest is registered."""
+
+    def __init__(self, source_key: str):
+        self.source_key = source_key
+
+    def acquire(self, request: DataRequest, configuration: Mapping[str, Any]) -> DatasetBundle:
+        raise RuntimeError(
+            f"no acquisition adapter is registered for {self.source_key}; "
+            "register a local or remote DataSource implementation"
+        )
+
+
+__all__ = ["DataSource", "UnavailableDataSource"]

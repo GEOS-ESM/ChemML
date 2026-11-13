@@ -55,7 +55,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - [x] Create `config/regions/region_template.yaml`.
 - [x] Implement credentials management and optional remote verification.
 - [x] Set up logging utilities.
-- [ ] Create database manager framework.
+- [x] Create database manager framework with partitioned storage, completeness checks, incremental merging, and catalog regeneration.
 - [x] Implement a startup/install function that guides users through creating configuration files, entering credentials, creating configured directories, and verifying the setup.
 - [x] Write initial configuration documentation.
 - [x] Add an initial configuration regression test.
@@ -68,7 +68,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - ~~Configuration file templates.~~
 - ~~Credentials management system.~~
 - ~~Basic logging infrastructure.~~
-- Database manager with incremental update support.
+- ~~Database manager with incremental update support.~~
 - ~~A startup/install function for first-time configuration and credential setup.~~
 - ~~First draft of the Installation Guide.~~
 - ~~First draft of the Configuration Reference.~~
@@ -81,13 +81,21 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - Runtime configuration loading, credential management, and the initial runner integration are in place.
 - The guided `aqforecast.utils.setup_aqforecast()` setup flow copies missing configuration files, collects paths and credentials, creates configured directories, and verifies the completed setup.
 - Package directories and shared data contracts for acquisition, preprocessing,
-  forecasting, validation, and orchestration are in place; substantive
-  implementations remain future work.
-- Data acquisition, preprocessing, model execution, and evaluation remain to be implemented.
+  forecasting, validation, orchestration, and database management are in place.
+- The database manager can inspect partitioned CSV/NetCDF files, identify
+  missing expected timestamps, merge acquired data with `fill_missing`
+  semantics, use per-run temporary staging, and regenerate per-source JSON
+  catalogs.
+- Generic local/remote acquisition adapters and shared preprocessing are in
+  place; dataset-specific download, quality-control, regridding, and source
+  adapters remain future work.
+- Model execution, forecasting, and evaluation remain to be implemented.
 
 **Next steps**:
 
-1. Create the database manager.
+1. Implement source-specific data acquisition and preprocessing adapters.
+2. Add database-manager regression and integration tests using representative
+   CSV and NetCDF fixtures.
 
 ### Phase 2: Data Acquisition — Planned
 
@@ -314,16 +322,20 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - ✅ Credential management with optional remote verification.
 - ✅ Credential-management tests.
 - ✅ Shared logging utility with credential redaction.
+- ✅ Incremental partitioned database manager with UTC completeness checking.
+- ✅ Per-source catalog generation and update reporting.
+- ✅ Standalone database-update orchestration mode.
 
 ### In Progress
 
-- 🚧 Initial package implementation.
-- 🚧 Data acquisition, preprocessing, and forecasting workflow implementation.
+- 🚧 Dataset-specific data acquisition and preprocessing implementations.
+- 🚧 Forecasting and validation workflow implementation.
 
 ### Upcoming
 
-- Database manager.
-- Data acquisition modules.
+- Source-specific acquisition adapters for satellite, model, and ground data.
+- Dataset-specific quality control, regridding, and aggregation.
+- Database-manager regression and integration tests.
 
 ## Technical Decisions
 
