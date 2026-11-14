@@ -9,6 +9,10 @@ inputs:
     enabled: true
   TROPOMI:
     enabled: true
+  TEMPO_NO2:
+    enabled: false
+  TEMPO_O3:
+    enabled: false
   GEMS:
     enabled: false
   GCAS:

@@ -1,6 +1,8 @@
 # ChemML specific
 config/credentials.yaml
 config/credentials/credentials.yaml
+config/regions/ATL.yaml
+config/testing_config.yaml
 *.nc
 *.nc4
 data/

@@ -57,6 +57,40 @@ datasets:
     storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
     access: {mode: "remote", temporary_directory: ".tmp"}
 
+  TEMPO_NO2:
+    source_key: "TEMPO_NO2"
+    file_template: "TEMPO_NO2_{region_code}_{month_string}_grid_002_h.nc"
+    variables: ["vertical_column_troposphere", "main_data_quality_flag", "eff_cloud_fraction", "solar_zenith_angle", "viewing_zenith_angle"]
+    variable_prefix: "TEMPO_NO2_"
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time:
+      type: "datetime"
+      frequency: "1h"
+      alignment: "reference_times"
+      tolerance: "30m"
+      timestamp_convention: "center"
+      availability: {mode: "daily_window", start: "07:00", end: "19:00", timezone: "US/Eastern"}
+    regridding: {method: "none", latlon_resolution: 0.02}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp"}
+
+  TEMPO_O3:
+    source_key: "TEMPO_O3"
+    file_template: "TEMPO_O3_{region_code}_{month_string}_grid_004_h.nc"
+    variables: ["troposphere_ozone_column", "ozone_profile_layer_24", "eff_cloud_fraction", "solar_zenith_angle", "viewing_zenith_angle"]
+    variable_prefix: "TEMPO_O3_"
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time:
+      type: "datetime"
+      frequency: "1h"
+      alignment: "reference_times"
+      tolerance: "30m"
+      timestamp_convention: "center"
+      availability: {mode: "daily_window", start: "07:00", end: "19:00", timezone: "US/Eastern"}
+    regridding: {method: "none", latlon_resolution: 0.04}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp"}
+
   GCAS:
     source_key: "GCAS"
     file_template: "GCAS_{region_code}_{date_string}_grid_001_hourly.nc"
@@ -87,9 +121,6 @@ datasets:
 
   # Complete these definitions as the corresponding data-ingest and
   # preprocessing codes are developed.
-  TEMPO:
-    source_key: "TEMPO"
-
   PACE:
     source_key: "PACE"
 

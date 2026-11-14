@@ -177,7 +177,8 @@ Each data source is stored below its region-code directory, using the source nam
 data_sources:
   ground_monitors: "{input}/{region_code}/ground_monitors"
   GEOS-CF: "{input}/{region_code}/GEOS-CF"
-  TEMPO: "{input}/{region_code}/TEMPO"
+  TEMPO_NO2: "{input}/{region_code}/TEMPO_NO2"
+  TEMPO_O3: "{input}/{region_code}/TEMPO_O3"
   GEMS: "{input}/{region_code}/GEMS"
   TROPOMI: "{input}/{region_code}/TROPOMI"
   PACE: "{input}/{region_code}/PACE"
@@ -214,7 +215,7 @@ adapter, after which processed data are merged using the default
 records the files found, time coverage, variables, dimensions, and spatial
 extent; configuration remains authoritative.
 
-Detailed definitions currently exist for `ground_monitors`, `GEOS-CF`, `TROPOMI`, `GEMS`, `GCAS`, and `land_cover`. `TEMPO`, `PACE`, `VIIRS`, and `GOES-ABI` are placeholder categories to be completed as their data-ingest and preprocessing code is developed.
+Detailed definitions currently exist for `ground_monitors`, `GEOS-CF`, `TROPOMI`, `GEMS`, `TEMPO_NO2`, `TEMPO_O3`, `GCAS`, and `land_cover`. `PACE`, `VIIRS`, and `GOES-ABI` are placeholder categories to be completed as their data-ingest and preprocessing code is developed.
 
 ## Air-quality forecasting configuration
 

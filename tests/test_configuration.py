@@ -88,6 +88,18 @@ def test_resolve_filepaths() -> None:
     assert filepaths["data_sources"]["TROPOMI"].endswith("/Seoul/TROPOMI")
 
 
+def test_tempo_products_use_separate_input_datasets_and_archive_paths() -> None:
+    configuration = load_configuration(DEFAULT_CONFIGURATION)
+    datasets = configuration["input_data"]["datasets"]
+    data_sources = configuration["filepaths"]["data_sources"]
+
+    assert "TEMPO" not in datasets
+    assert {"TEMPO_NO2", "TEMPO_O3"} <= set(datasets)
+    assert data_sources["TEMPO_NO2"].endswith("/Seoul/TEMPO_NO2")
+    assert data_sources["TEMPO_O3"].endswith("/Seoul/TEMPO_O3")
+    assert data_sources["TEMPO_NO2"] != data_sources["TEMPO_O3"]
+
+
 def _copy_configuration_tree(tmp_path: Path) -> Path:
     temporary_config = tmp_path / "config"
     shutil.copytree(REPOSITORY_ROOT / "config", temporary_config)

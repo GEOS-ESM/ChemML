@@ -17,7 +17,8 @@ data_sources:
   # Each source uses its fixed name as the subfolder below the region code.
   ground_monitors: "{input}/{region_code}/ground_monitors"
   GEOS-CF: "{input}/{region_code}/GEOS-CF"
-  TEMPO: "{input}/{region_code}/TEMPO"
+  TEMPO_NO2: "{input}/{region_code}/TEMPO_NO2"
+  TEMPO_O3: "{input}/{region_code}/TEMPO_O3"
   GEMS: "{input}/{region_code}/GEMS"
   TROPOMI: "{input}/{region_code}/TROPOMI"
   PACE: "{input}/{region_code}/PACE"

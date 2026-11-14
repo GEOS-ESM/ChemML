@@ -33,7 +33,8 @@ import yaml
 DEFAULT_SOURCE_NAMES = (
     "ground_monitors",
     "GEOS-CF",
-    "TEMPO",
+    "TEMPO_NO2",
+    "TEMPO_O3",
     "GEMS",
     "TROPOMI",
     "PACE",
@@ -43,7 +44,7 @@ DEFAULT_SOURCE_NAMES = (
     "GOES-ABI",
 )
 
-DEFERRED_SOURCES = {"TEMPO", "PACE", "VIIRS", "GOES-ABI"}
+DEFERRED_SOURCES = {"PACE", "VIIRS", "GOES-ABI"}
 PLACEHOLDER_PATTERN = re.compile(r"<[^>]+>")
 PATH_TEMPLATE_PATTERN = re.compile(r"\{([^{}]+)\}")
 
