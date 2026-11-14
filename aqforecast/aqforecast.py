@@ -98,10 +98,10 @@ def run_aqforecast(
         "status": "credentials_checked" if require_credentials else "configuration_loaded",
         "message": (
             "Configuration and required credentials loaded successfully. "
-            "No other AQ-forecast workflow functions have been implemented yet."
+            "Other AQ-forecast workflow functions have not been implemented yet."
             if require_credentials
-            else "Configuration loaded successfully. No other AQ-forecast "
-            "workflow functions have been implemented yet."
+            else "Configuration loaded successfully. Other AQ-forecast "
+            "workflow functions have not been implemented yet."
         ),
         "configuration": configuration,
         "warnings": configuration.get("warnings", [])

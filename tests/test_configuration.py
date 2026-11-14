@@ -9,6 +9,7 @@ import yaml
 from aqforecast.config_management.configuration import ConfigurationError
 from aqforecast.config_management.configuration import check_configuration
 from aqforecast.config_management.configuration import load_configuration
+from aqforecast.config_management.configuration import _resolve_known_templates
 from aqforecast import run_aqforecast
 import aqforecast.aqforecast as aqforecast_runner
 
@@ -67,6 +68,14 @@ def test_resolve_experiment_name() -> None:
     configuration = load_configuration(DEFAULT_CONFIGURATION)
 
     assert configuration["experiment_name"] == "region_Seoul_experiment_baseline"
+
+
+def test_resolve_known_templates_preserves_unknown_templates() -> None:
+    value = "{region_code}/{provider}/{month_string}"
+
+    resolved = _resolve_known_templates(value, {"region_code": "Seoul"})
+
+    assert resolved == "Seoul/{provider}/{month_string}"
 
 
 def test_resolve_filepaths() -> None:

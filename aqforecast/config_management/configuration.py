@@ -45,7 +45,7 @@ DEFAULT_SOURCE_NAMES = (
 
 DEFERRED_SOURCES = {"TEMPO", "PACE", "VIIRS", "GOES-ABI"}
 PLACEHOLDER_PATTERN = re.compile(r"<[^>]+>")
-PATH_TEMPLATE_PATTERN = re.compile(r"\{[^{}]+\}")
+PATH_TEMPLATE_PATTERN = re.compile(r"\{([^{}]+)\}")
 
 
 @dataclass
