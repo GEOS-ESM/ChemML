@@ -13,6 +13,11 @@ This repository is under active development as a set of codes implementing a mac
 - `aqforecast/config_management/` contains reusable configuration validation and configuration-loading utilities.
 - `aqforecast/config_management/credentials.py` contains local credential collection and optional remote verification.
 - `aqforecast/utils/logging.py` contains shared console/file logging and credential redaction.
+- `aqforecast/utils/regridding.py` contains the generic irregular-point to
+  latitude/longitude-grid regridder. Future source preprocessors should use
+  this utility for regridding rather than duplicating source-specific binning
+  logic; it uses each dataset's configured `regridding.latlon_resolution` and
+  preserves non-spatial dimensions.
 - `aqforecast/utils/setup.py` contains the explicit first-time setup flow for copying configuration files, collecting paths and credentials, creating configured directories, and verifying configuration.
 - `aqforecast/data_management/` contains the incremental partitioned input-data database manager and regenerable per-source catalogs.
 - `aqforecast/data_acquisition/generic.py` contains local and remote acquisition adapter wrappers and shared acquisition behavior. Source-specific acquisition implementations belong in new modules under `aqforecast/data_acquisition/`, with corresponding preprocessing implementations in new modules under `aqforecast/preprocessing/`.
