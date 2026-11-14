@@ -2,5 +2,6 @@
 
 from .base import DataPreprocessor
 from .generic import GenericPreprocessor
+from .airnow import AirNowPreprocessor
 
-__all__ = ["DataPreprocessor", "GenericPreprocessor"]
+__all__ = ["DataPreprocessor", "GenericPreprocessor", "AirNowPreprocessor"]

@@ -3,7 +3,8 @@
 ChemML is under active development. The current public workflow entry point is
 an initial runner that loads and validates the selected configuration. The
 incremental input-data database update mode is available as a standalone
-orchestration operation; source-specific acquisition, model training,
+orchestration operation. AirNow ground-monitor acquisition and preprocessing
+are implemented; other source-specific acquisition, model training,
 forecasting, and result evaluation remain under development.
 
 ## Validate a configuration
@@ -93,13 +94,53 @@ report = run_database_update(
 )
 ```
 
+### Update an AirNow database
+
+For a region whose configuration sets
+`region.ground_monitoring.provider: AirNow`, the database manager registers the
+AirNow acquisition and preprocessing implementations automatically. Use the
+local credentials file and select only `ground_monitors` while testing:
+
+```python
+from aqforecast.config_management.configuration import load_configuration
+from aqforecast.orchestration import run_database_update
+
+configuration = load_configuration(
+    "config/testing_config.yaml",
+    require_credentials=True,
+)
+report = run_database_update(
+    configuration,
+    "2026-08-04T00:00:00Z",
+    "2026-08-08T00:00:00Z",
+    source_keys=["ground_monitors"],
+    conflict_policy="fill_missing",
+)
+print(report)
+```
+
+Database-update intervals are half-open: `[start_time, end_time)`. The example
+therefore includes August 4–7. The AirNow adapter translates this interval to
+the API's inclusive hourly `endDate`, uses the configured region bounds, and
+retrieves the verified historical response format (`dataType=C`,
+`monitorType=2`). It returns preliminary AQS site identifiers and temporary
+unit columns; the AirNow preprocessor converts gaseous PPM to PPB, applies
+source-specific QC, maps the AQS identifier to ChemML's `site_id`, and removes
+temporary unit columns before archiving.
+
+The testing configuration writes point-data CSV partitions beneath its
+configured `ground_monitors` path. Existing valid values are preserved and a
+later `fill_missing` run can back-fill observations returned by a repeat API
+query. An empty source directory is treated as an empty database and is
+initialized by the first update.
+
 The default behavior fills missing timestamps and values while preserving
 existing data. Use `conflict_policy="replace_partition"` or
-`override=True` only when an affected partition should be replaced. Dataset-
-specific `LocalDataSource` or `RemoteDataSource` adapters must be registered
-with `DatabaseManager`/`run_database_update` as those ingest implementations
-are developed. Until then, the manager can inspect existing files and report
-unavailable acquisition adapters without silently fabricating data.
+`override=True` only when an affected partition should be replaced. AirNow is
+registered automatically for AirNow regions. Other dataset-specific
+`LocalDataSource` or `RemoteDataSource` adapters must be registered with
+`DatabaseManager`/`run_database_update` until their implementations are
+completed; unavailable sources are reported without silently fabricating data.
 
 Database files are stored using the partition and format configured in
 `config/inputs/input_data_config.yaml`: NetCDF for gridded data and CSV for
@@ -107,7 +148,8 @@ point data. Temporary downloads and staged writes use a per-run `.tmp`
 directory, which is cleaned after the update. A regenerated `catalog.json` is
 written in each source directory as a confirmation of the files on disk.
 
-For a valid configuration without credential checking, the current result contains:
+For a valid configuration without credential checking, the current
+`run_aqforecast()` result contains:
 
 - `status`: currently `configuration_loaded`.
 - `message`: explains that the remaining workflow functions are not implemented.
@@ -124,9 +166,10 @@ evaluation yet.
 
 ## Current limitations
 
-The runner does not currently:
+The high-level `run_aqforecast()` runner does not currently:
 
-- Download or discover input data.
+- Start the database-update operation automatically.
+- Download or discover input data as part of `run_aqforecast()`.
 - Preprocess data for DeepSensor.
 - Train or load a forecasting model.
 - Generate forecast outputs.
@@ -143,6 +186,12 @@ runner will remain the high-level orchestration entry point, while directory
 creation will be handled by a separate setup utility.
 
 ## Tests
+
+Activate the project environment before running tests:
+
+```bash
+conda activate chemml
+```
 
 Run the configuration, credential-management, and runner tests with:
 

@@ -87,11 +87,13 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   semantics, use per-run temporary staging, and regenerate per-source JSON
   catalogs.
 - Generic local/remote acquisition adapters and shared preprocessing are in
-  place; dataset-specific download, quality-control, regridding, and source
+  place. AirNow is the first complete source-specific implementation, with
+  acquisition, preprocessing, retries, QC, AQS site-ID handling, and database
+  registration; other dataset-specific download, regridding, and source
   adapters remain future work.
 - Model execution, forecasting, and evaluation remain to be implemented.
 
-### Phase 2: Data Acquisition — Planned
+### Phase 2: Data Acquisition — In Progress
 
 **Objective**: Acquire, quality-control, standardize, and maintain local
 databases for all configured input sources.
@@ -106,9 +108,10 @@ databases for all configured input sources.
   - [ ] TEMPO NO₂ and O₃ profiles.
 - [ ] Implement GEOS-CF model data acquisition.
 - [ ] Implement ground-station data acquisition:
-  - [ ] EPA AirNow API integration.
+  - [x] EPA AirNow API integration.
   - [ ] OpenAQ API integration.
-- [ ] Implement data quality control.
+- [ ] Implement data quality control for all configured sources.
+- [x] Implement AirNow source-specific quality control and PPM-to-PPB conversion.
 - [ ] Convert each source from its original format into the configured
   standardized database format during acquisition.
 - [ ] Apply source-specific fill-value handling, bounds checks, quality flags,
@@ -121,13 +124,29 @@ databases for all configured input sources.
   timestamp completeness, required variables, coordinate/grid structure,
   duplicate detection, partition/catalog consistency, and explicit reporting
   of any remaining gaps.
+- [ ] Modify `run_aqforecast()` to expose a database-update mode now that a
+  complete source-specific ingestion path exists.
+- [ ] Add generic site-coordinate verification at both acquisition-output and
+  database-management boundaries, using configured site IDs and tolerances
+  rather than duplicating the checks in each dataset adapter.
+- [ ] Replace the hard-coded provider-to-adapter mapping in `DatabaseManager`
+  with a configurable or registry-based source-adapter mechanism.
+- [ ] Extend the generic acquisition contract so source adapters can pass
+  structured API/file error messages to the logging and update-report systems.
+- [ ] Add an end-to-end database-update test covering acquisition,
+  preprocessing, merging, partition writing, and catalog generation.
+- [ ] Handle empty source files, including CSV files containing only headers,
+  as empty databases or explicit, actionable input errors.
 - [ ] Create data download scripts.
-- [ ] Implement data-acquisition modules for the configured sources.
-- [ ] Add source-specific acquisition adapters for the database manager.
-- [ ] Add source-specific tests using mocked API/filesystem responses and
+- [ ] Implement data-acquisition modules for the remaining configured sources.
+- [x] Add the AirNow source-specific acquisition and preprocessing adapters to
+  the database manager.
+- [x] Add AirNow source-specific tests using mocked API responses and
   representative raw-data fixtures.
-- [ ] Add tests for missing intervals, partial updates, retries/failures, and
-  output database fixtures.
+- [x] Add database-manager tests for missing intervals, site identity,
+  coordinate consistency, empty databases, and timestamp normalization.
+- [ ] Add broader tests for partial updates, retries/failures, and output
+  database fixtures across all sources.
 - [ ] Keep `config/inputs/input_data_config.yaml` aligned with the settings required to download and preprocess each data source as ingest codes are developed.
 - [ ] Test data acquisition on NCCS.
 - [ ] Schedule ongoing data ingest:
@@ -349,17 +368,27 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 - ✅ Incremental partitioned database manager with UTC completeness checking.
 - ✅ Per-source catalog generation and update reporting.
 - ✅ Standalone database-update orchestration mode.
+- ✅ AirNow acquisition adapter using the verified historical API query format.
+- ✅ AirNow preprocessing with PPM-to-PPB conversion, QC, and AQS-based site IDs.
+- ✅ Site-aware database merging, coordinate validation, gap detection, and
+  empty-database initialization.
+
+AirNow is currently the only source for which acquisition and preprocessing
+are complete. All other configured satellite, model, and ground-data sources
+remain planned or require further implementation and integration testing.
 
 ### In Progress
 
-- 🚧 Dataset-specific data acquisition and preprocessing implementations.
+- 🚧 Dataset-specific data acquisition and preprocessing implementations beyond
+  AirNow, plus broader database integration fixtures.
 - 🚧 Forecasting and validation workflow implementation.
 
 ### Upcoming
 
-- Source-specific acquisition adapters for satellite, model, and ground data.
+- Source-specific acquisition adapters for satellite, model, and remaining
+  ground-data sources.
 - Dataset-specific quality control, regridding, and aggregation.
-- Database-manager regression and integration tests.
+- Integration fixtures and broader database-manager coverage.
 
 ## Technical Decisions
 
@@ -377,9 +406,11 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 ### Technology Stack
 
 - **Language**: Python 3.9+
-- **Core libraries**: NumPy, xarray, and PyTorch
+- **Core libraries**: NumPy, pandas, xarray, and PyTorch
 - **Data access**: earthaccess
+- **Ground-data access**: AirNow API through `requests`
 - **ML framework**: DeepSensor
+- **Developer tools**: pytest, yamllint, Black, and Flake8
 - **Deployment**: NASA NCCS (Discover/ADAPT)
 - **Version control**: Git (GitHub)
 
@@ -405,7 +436,7 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 
 | Source | Variables | Temporal resolution | Coverage |
 | --- | --- | --- | --- |
-| AirNow | PM2.5, O₃, NO₂ | Hourly | U.S. |
+| AirNow | PM2.5, PM10, NO₂, O₃, SO₂, CO | Hourly | U.S. |
 | OpenAQ | PM2.5, O₃, NO₂ | Hourly | Global |
 
 ## Resource Requirements

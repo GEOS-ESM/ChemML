@@ -7,8 +7,10 @@
 ChemML is a developing set of Python codes for high-resolution air quality estimation and forecasting. It combines satellite observations, numerical model outputs, and ground-based measurements using deep learning techniques, and leverages the DeepSensor framework to produce probabilistic forecasts of PM2.5, ozone (O₃), and nitrogen dioxide (NO₂) at fine spatial resolution (e.g., 1 km).
 
 > **Warning:** ChemML is still under development. The configuration system and
-> incremental input-data database manager are available, while source-specific
-> ingest, forecasting, and validation workflows are being built incrementally.
+> incremental input-data database manager are available. AirNow ground-monitor
+> acquisition and preprocessing are implemented as the first complete
+> source-specific ingest; other source ingest, forecasting, and validation
+> workflows are being built incrementally.
 > Several data-ingest modules, documentation pages, and example notebooks
 > remain planned.
 
@@ -40,8 +42,10 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/contracts.py` defines the shared request, result, and workflow-context data contracts.
 - `aqforecast/data_management/` provides the incremental partitioned database manager and regenerable per-source catalogs.
 - `aqforecast/data_acquisition/generic.py` provides local and remote acquisition adapter contracts for source-specific ingest implementations.
+- `aqforecast/data_acquisition/airnow.py` implements the AirNow historical monitor acquisition adapter.
 - `aqforecast/preprocessing/generic.py` provides shared fill-value and basic quality-control preprocessing.
-- `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`, `aqforecast/forecasting/`, `aqforecast/validation/`, and `aqforecast/orchestration/` contain the initial typed interfaces for future workflow stages; their implementations are not yet complete.
+- `aqforecast/preprocessing/airnow.py` implements AirNow unit conversion, quality control, and site-ID standardization.
+- `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`, `aqforecast/forecasting/`, `aqforecast/validation/`, and `aqforecast/orchestration/` contain the stage interfaces; most source-specific and forecasting implementations remain planned.
 - `aqforecast/orchestration/database_update.py` provides the standalone database-update mode.
 - `aqforecast/aqforecast.py` contains the initial `run_aqforecast()` workflow entry point; it loads configuration and can optionally check credentials.
 - `tests/` contains the initial pytest regression tests.
@@ -98,6 +102,35 @@ extend the enabled input datasets. The requested interval is interpreted as a
 half-open UTC interval. See the [User Guide](docs/user_guide.md#update-the-input-data-database)
 for examples, source selection, override behavior, and adapter registration.
 
+For an AirNow region, the database manager automatically registers the AirNow
+adapter and preprocessor. For example, using the ATL testing configuration:
+
+```bash
+conda activate chemml
+python - <<'PY'
+from aqforecast.config_management.configuration import load_configuration
+from aqforecast.orchestration import run_database_update
+
+configuration = load_configuration(
+    "config/testing_config.yaml",
+    require_credentials=True,
+)
+report = run_database_update(
+    configuration,
+    "2026-08-04T00:00:00Z",
+    "2026-08-08T00:00:00Z",
+    source_keys=["ground_monitors"],
+    conflict_policy="fill_missing",
+)
+print(report)
+PY
+```
+
+This requests August 4–7 inclusive. The AirNow implementation uses the
+configured region bounds, preserves AQS identifiers as ChemML `site_id`
+values, converts gaseous PPM to PPB, applies source-specific QC, and stores
+monthly point-data CSV partitions.
+
 ## Documentation
 
 Available and planned documentation is listed in the `docs/` directory. The installation guide, configuration reference, and initial user guide are currently available:
@@ -136,7 +169,9 @@ Interactive Jupyter notebooks demonstrating key workflows:
   - `deepsensor`
   - `pytorch >= 2.0` (for GPU acceleration)
   - `pyyaml` (configuration parsing)
+  - `requests` (remote data acquisition)
   - `pytest` (regression tests)
+  - `yamllint` (YAML validation)
 
 See `environment.yml` for complete dependency list.
 
@@ -155,7 +190,7 @@ ChemML accesses data from multiple sources:
 - **[GEOS-CF](https://gmao.gsfc.nasa.gov/gmao-products/geos-cf/)**: NASA's atmospheric composition forecast system
 
 ### Ground-Based Observations
-- **EPA AirNow**: U.S. air quality monitoring network
+- **EPA AirNow**: U.S. air quality monitoring network; acquisition and preprocessing are implemented
 - **[OpenAQ](https://openaq.org/)**: Global air quality data platform
 
 

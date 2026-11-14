@@ -2,5 +2,6 @@
 
 from .base import DataSource, UnavailableDataSource
 from .generic import LocalDataSource, RemoteDataSource
+from .airnow import AirNowDataSource
 
-__all__ = ["DataSource", "UnavailableDataSource", "LocalDataSource", "RemoteDataSource"]
+__all__ = ["DataSource", "UnavailableDataSource", "LocalDataSource", "RemoteDataSource", "AirNowDataSource"]

@@ -15,7 +15,8 @@ This repository is under active development as a set of codes implementing a mac
 - `aqforecast/utils/logging.py` contains shared console/file logging and credential redaction.
 - `aqforecast/utils/setup.py` contains the explicit first-time setup flow for copying configuration files, collecting paths and credentials, creating configured directories, and verifying configuration.
 - `aqforecast/data_management/` contains the incremental partitioned input-data database manager and regenerable per-source catalogs.
-- `aqforecast/data_acquisition/generic.py` contains local and remote acquisition adapter wrappers; source-specific download implementations belong in this layer.
+- `aqforecast/data_acquisition/generic.py` contains local and remote acquisition adapter wrappers and shared acquisition behavior. Source-specific acquisition implementations belong in new modules under `aqforecast/data_acquisition/`, with corresponding preprocessing implementations in new modules under `aqforecast/preprocessing/`.
+- `aqforecast/data_acquisition/airnow.py` and `aqforecast/preprocessing/airnow.py` provide the first complete source-specific acquisition and preprocessing implementation. Use AirNow as the reference example for adding other datasets.
 - `aqforecast/preprocessing/generic.py` contains shared fill-value and basic quality-control preprocessing.
 - `aqforecast/contracts.py` contains the shared data contracts (`DataRequest`,
   `DatasetBundle`, `ForecastRequest`, `ForecastResult`, `ValidationResult`,
@@ -45,7 +46,7 @@ There is no project build command. For local checks:
 - `python -m aqforecast.utils.setup` runs the guided first-time setup flow after the conda environment is activated.
 - Open notebooks with Jupyter in the environment described by `docs/examples/deepsensor_demo/deepsensor_cenv.yml`; run cells incrementally and confirm referenced data paths are available.
 - On NCCS Discover, run a configured batch entry with `python docs/examples/deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
-- Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`; source-specific adapters are injected when implemented.
+- Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`. AirNow is automatically registered for regions whose `ground_monitoring.provider` is `AirNow`; other source-specific adapters may still be injected explicitly.
 
 ## Coding Style & Naming Conventions
 
@@ -74,15 +75,49 @@ Keep the stage boundaries consistent as the package is implemented:
   metadata so later logging can report provenance and partial failures.
 
 When adding a stage, update the relevant `base.py` interface and shared
-contract first, then add a focused implementation and tests. Keep the current
+contract first, then add a focused implementation and tests. Follow the
+AirNow acquisition/preprocessing modules as the concrete example of this
+boundary: acquisition returns a preliminary `DatasetBundle`, preprocessing
+applies source-specific normalization and QC, and the database manager owns
+merging and partitioning. Keep the current
 configuration-only `run_aqforecast()` behavior intact until a complete stage
 is ready to be integrated. The database-update mode is a separate explicit
 operation and must not run during package import. Do not make package imports
 perform downloads, create directories, train models, or require credentials.
 
+### Recommended data-ingest pattern
+
+Use the AirNow implementation as the model for future source integrations:
+
+```text
+resolved configuration + DataRequest
+    → source-specific acquisition module
+        → remote/local access, retries, response parsing, preliminary schema
+    → source-specific preprocessing module
+        → unit/timestamp normalization, QC, canonical names and site IDs
+    → generic DatasetBundle contract
+    → generic DatabaseManager
+        → completeness checks, coordinate validation, merge policy,
+          partitioning, and catalog generation
+```
+
+Keep source-specific API or file-format logic out of orchestration and the
+generic manager. Generic ingest/database functions should provide reusable
+coordinate validation, structured error propagation to logging, and schema
+checks; each source module should supply only its source-specific request,
+parsing, and scientific normalization behavior.
+
 ## Testing Guidelines
 
-An initial pytest test structure exists, including tests for configuration loading, credential collection, the guided setup flow, and the configuration-only `run_aqforecast()` entry point. Database-manager regression and integration tests are still needed; no coverage threshold is configured yet. Remote credential verification is opt-in and should not be required for the network-free test suite. Run `python -m pytest tests/` for Python changes. For changes to analysis code, perform a representative notebook or Discover run and record the data/configuration assumptions in the PR. Validate changed YAML with `yamllint`; check that notebooks open and execute through the affected cells.
+The pytest suite covers configuration loading, credential collection, setup,
+database-manager site identity and timestamp handling, and the AirNow adapter
+and preprocessor using mocked responses. No coverage threshold is configured
+yet. Remote credential verification and live API access are opt-in and should
+not be required for the network-free test suite. Run `python -m pytest tests/`
+for Python changes. For changes to analysis code, perform a representative
+notebook or Discover run and record the data/configuration assumptions in the
+PR. Validate changed YAML with `yamllint`; check that notebooks open and
+execute through the affected cells.
 
 ## Commit & Pull Request Guidelines
 
