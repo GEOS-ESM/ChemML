@@ -11,16 +11,6 @@ from aqforecast.contracts import DatasetBundle
 
 POLLUTANTS = ("PM2.5", "PM10", "NO2", "O3", "SO2", "CO")
 GASES = {"NO2", "O3", "SO2", "CO"}
-UPPER_BOUNDS = {
-    "PM2.5": 500.0,
-    "PM10": 1000.0,
-    "O3": 500.0,
-    "NO2": 1000.0,
-    "SO2": 1000.0,
-    "CO": 50000.0,
-}
-
-
 class AirNowPreprocessor:
     """Convert, quality-control, and standardize an AirNow bundle."""
 
@@ -49,6 +39,13 @@ class AirNowPreprocessor:
         data["time"] = pd.to_datetime(data["time"], utc=True, errors="coerce")
         conversion_counts: dict[str, int] = {}
         invalid_counts: dict[str, int] = {}
+        bounds = (
+            configuration.get("input_data", {})
+            .get("datasets", {})
+            .get(self.source_key, {})
+            .get("quality_control", {})
+            .get("bounds", {})
+        )
         for pollutant in POLLUTANTS:
             if pollutant not in data.columns:
                 data[pollutant] = np.nan
@@ -62,11 +59,13 @@ class AirNowPreprocessor:
             conversion_counts[pollutant] = int(ppm.sum())
             values = values.where(~ppm, values * 1000.0)
 
-            invalid = (
-                values.isna()
-                | (values < 0)
-                | (values > UPPER_BOUNDS[pollutant])
-            )
+            limits = bounds.get(pollutant, [0, None])
+            invalid = values.isna()
+            if isinstance(limits, (list, tuple)) and limits:
+                if limits[0] is not None:
+                    invalid |= values < float(limits[0])
+                if len(limits) > 1 and limits[1] is not None:
+                    invalid |= values > float(limits[1])
             invalid_counts[pollutant] = int(invalid.sum())
             data[pollutant] = values.mask(invalid, np.nan)
 
@@ -87,7 +86,7 @@ class AirNowPreprocessor:
             "qa_status_retained": False,
             "temporary_unit_columns_removed": True,
         }
-        return DatasetBundle(self.source_key, data, metadata)
+        return DatasetBundle(self.source_key, data, metadata, list(dataset.errors))
 
 
 __all__ = ["AirNowPreprocessor"]

@@ -10,6 +10,7 @@ import pandas as pd
 import requests
 
 from aqforecast.contracts import DataRequest, DatasetBundle
+from aqforecast.data_acquisition.base import AcquisitionError
 
 AIRNOW_URL = "https://www.airnowapi.org/aq/data/"
 POLLUTANTS = ("PM2.5", "PM10", "NO2", "O3", "SO2", "CO")
@@ -229,9 +230,12 @@ class AirNowDataSource:
                         attempt,
                         public_query,
                     )
-                    raise RuntimeError(
+                    raise AcquisitionError(
                         f"AirNow request failed after {attempt} attempts: "
-                        f"{error}"
+                        f"{error}",
+                        kind="api_request",
+                        retryable=False,
+                        details={"query": public_query, "attempts": attempt},
                     ) from error
                 delay = min(60.0, 2 ** (attempt - 1))
                 self.logger.warning(

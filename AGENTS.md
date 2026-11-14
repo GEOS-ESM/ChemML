@@ -6,7 +6,7 @@ This repository is under active development as a set of codes implementing a mac
 
 - `docs/examples/deepsensor_demo/` contains progressively refined Jupyter demonstrations and the Conda environment specification (`deepsensor_cenv.yml`).
 - `docs/examples/deepsensor_run/` contains the Discover batch runner (`ASIAAQ_Deepsensor_Run.py`) and notebooks for configuring and interpreting batches.
-- `docs/implementation_insutructions_for_agents/` is an agent-only working area
+- `docs/implementation_instructions_for_agents/` is an agent-only working area
   for implementation guidance, including dataset/API access instructions. Its
   contents are local notes and must not be committed.
 - `config/` contains the master configuration and component YAML files.

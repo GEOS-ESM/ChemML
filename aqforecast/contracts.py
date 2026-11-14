@@ -32,6 +32,7 @@ class DatasetBundle:
     source_key: str
     data: Any
     metadata: Dict[str, Any] = field(default_factory=dict)
+    errors: list[Dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass

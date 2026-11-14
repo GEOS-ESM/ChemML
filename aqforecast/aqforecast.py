@@ -8,7 +8,7 @@ loads and validates the selected configuration and returns a status summary.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Union
+from typing import Any, Dict, Optional, Sequence, Union
 
 from aqforecast.config_management.configuration import (
     ConfigurationError,
@@ -21,6 +21,12 @@ def run_aqforecast(
     config_path: Union[str, Path] = "config/default_config.yaml",
     *,
     require_credentials: bool = False,
+    mode: str = "forecast",
+    start_time: Optional[Any] = None,
+    end_time: Optional[Any] = None,
+    source_keys: Optional[Sequence[str]] = None,
+    conflict_policy: str = "fill_missing",
+    override: bool = False,
 ) -> Dict[str, Any]:
     """Run the currently implemented portion of the AQ-forecast workflow.
 
@@ -31,6 +37,11 @@ def run_aqforecast(
     require_credentials:
         Require the local credentials file and required credential values while
         loading the configuration. Leave false for runs that do not need them.
+    mode:
+        ``"forecast"`` preserves the configuration-only runner; use
+        ``"database_update"`` to run the implemented incremental ingest.
+    start_time, end_time, source_keys, conflict_policy, override:
+        Options passed to database-update mode.
 
     Returns
     -------
@@ -39,6 +50,23 @@ def run_aqforecast(
         and ``warnings``. Configuration errors are returned in the dictionary
         rather than raised so callers can handle run status uniformly.
     """
+
+    if mode not in {"forecast", "database_update"}:
+        return {
+            "status": "invalid_mode",
+            "message": f"Unsupported AQ-forecast mode: {mode!r}.",
+            "configuration": None,
+            "warnings": [],
+            "errors": ["mode must be 'forecast' or 'database_update'"],
+        }
+    if mode == "database_update" and (start_time is None or end_time is None):
+        return {
+            "status": "database_update_failed",
+            "message": "Database-update mode requires start_time and end_time.",
+            "configuration": None,
+            "warnings": [],
+            "errors": ["start_time and end_time are required"],
+        }
 
     try:
         # Load first without requiring credentials so that manage_credentials()
@@ -93,6 +121,40 @@ def run_aqforecast(
                 "credentials": credential_check,
                 "errors": [issue.as_dict() for issue in error.report.errors],
             }
+
+    if mode == "database_update":
+        from aqforecast.orchestration import run_database_update
+
+        try:
+            report = run_database_update(
+                configuration,
+                start_time,
+                end_time,
+                source_keys=source_keys,
+                conflict_policy=conflict_policy,
+                override=override,
+            )
+        except (OSError, ValueError, RuntimeError) as error:
+            return {
+                "status": "database_update_failed",
+                "message": "The input-data database update failed.",
+                "configuration": configuration,
+                "warnings": configuration.get("warnings", []),
+                "errors": [str(error)],
+            }
+        failed = [
+            key for key, value in report.get("sources", {}).items()
+            if value.get("status") == "failed"
+        ]
+        return {
+            "status": "database_update_failed" if failed else "database_updated",
+            "message": "Input-data database update completed."
+            if not failed
+            else "Input-data database update completed with source failures.",
+            "configuration": configuration,
+            "warnings": configuration.get("warnings", []) + report.get("warnings", []),
+            "report": report,
+        }
 
     return {
         "status": "credentials_checked" if require_credentials else "configuration_loaded",

@@ -10,6 +10,16 @@ from __future__ import annotations
 from typing import Any, Callable, Mapping
 
 from aqforecast.contracts import DataRequest, DatasetBundle
+from aqforecast.data_management.validation import validate_site_coordinates
+
+
+def _validate_bundle(bundle: DatasetBundle, configuration: Mapping[str, Any]) -> DatasetBundle:
+    if bundle is None:
+        return bundle
+    settings = configuration.get("input_data", {}).get("datasets", {}).get(bundle.source_key, {})
+    site_column = bundle.metadata.get("preliminary_site_column")
+    validate_site_coordinates(bundle.data, settings, "acquisition output", site_id_name=site_column)
+    return bundle
 
 
 class LocalDataSource:
@@ -20,7 +30,7 @@ class LocalDataSource:
         self.loader = loader
 
     def acquire(self, request: DataRequest, configuration: Mapping[str, Any]) -> DatasetBundle:
-        return self.loader(request, configuration)
+        return _validate_bundle(self.loader(request, configuration), configuration)
 
 
 class RemoteDataSource:
@@ -36,7 +46,7 @@ class RemoteDataSource:
         self.downloader = downloader
 
     def acquire(self, request: DataRequest, configuration: Mapping[str, Any]) -> DatasetBundle:
-        return self.downloader(request, configuration)
+        return _validate_bundle(self.downloader(request, configuration), configuration)
 
 
 __all__ = ["LocalDataSource", "RemoteDataSource"]

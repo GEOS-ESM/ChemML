@@ -18,9 +18,11 @@ import pandas as pd
 from aqforecast.contracts import DataRequest, DatasetBundle
 from aqforecast.data_acquisition.airnow import AirNowDataSource
 from aqforecast.data_acquisition.base import UnavailableDataSource
+from aqforecast.data_acquisition.base import AcquisitionError
 from aqforecast.data_management.catalog import DatasetCatalog
 from aqforecast.preprocessing.airnow import AirNowPreprocessor
 from aqforecast.preprocessing.generic import GenericPreprocessor
+from aqforecast.data_management.validation import validate_site_coordinates
 
 
 @dataclass
@@ -152,7 +154,17 @@ class DatabaseManager:
         if not files:
             return pd.DataFrame() if file_format == "csv" else None
         if file_format == "csv":
-            return pd.concat((pd.read_csv(path) for path in files), ignore_index=True)
+            frames = []
+            for path in files:
+                try:
+                    frame = pd.read_csv(path)
+                except pd.errors.EmptyDataError as error:
+                    raise ValueError(
+                        f"input CSV file {path} is empty; provide a header-only "
+                        "file or remove it before retrying"
+                    ) from error
+                frames.append(frame)
+            return pd.concat(frames, ignore_index=True)
         import xarray as xr
 
         return xr.open_mfdataset(files, combine="by_coords")
@@ -182,44 +194,7 @@ class DatabaseManager:
     ) -> None:
         """Ensure each site identifier has one stable coordinate pair."""
 
-        if not isinstance(data, pd.DataFrame) or data.empty:
-            return
-        site_id_name = self._site_id_name(source)
-        if site_id_name is None:
-            return
-        coordinate_names = source.get("coordinate_names", {})
-        latitude_name = coordinate_names.get("latitude", "lat")
-        longitude_name = coordinate_names.get("longitude", "lon")
-        required = [site_id_name, latitude_name, longitude_name]
-        missing = [name for name in required if name not in data.columns]
-        if missing:
-            raise ValueError(
-                f"{label} is missing site coordinate columns: {', '.join(missing)}"
-            )
-
-        incomplete = data[required].isna().any(axis=1)
-        if incomplete.any():
-            raise ValueError(
-                f"{label} contains rows with missing site ID or site coordinates"
-            )
-
-        site_coordinates = data[required]
-        tolerance = float(source.get("site_coordinate_tolerance", 1e-6))
-        grouped = site_coordinates.groupby(site_id_name)[
-            [latitude_name, longitude_name]
-        ].agg(["min", "max"])
-        for site_id, values in grouped.iterrows():
-            latitude_delta = float(
-                values[(latitude_name, "max")] - values[(latitude_name, "min")]
-            )
-            longitude_delta = float(
-                values[(longitude_name, "max")] - values[(longitude_name, "min")]
-            )
-            if latitude_delta > tolerance or longitude_delta > tolerance:
-                raise ValueError(
-                    f"{label} site {site_id!r} has inconsistent coordinates; "
-                    f"maximum allowed difference is {tolerance} degrees"
-                )
+        validate_site_coordinates(data, source, label)
 
     def _validate_site_coordinate_match(
         self,
@@ -385,6 +360,8 @@ class DatabaseManager:
             incoming = incoming.data
         if isinstance(incoming, pd.DataFrame):
             incoming = incoming.copy()
+            if incoming.empty:
+                return existing if existing is not None else incoming
             self._validate_site_coordinates(existing, source, "existing data")
             self._validate_site_coordinates(incoming, source, "incoming data")
             self._validate_site_coordinate_match(existing, incoming, source)
@@ -575,16 +552,38 @@ class DatabaseManager:
                     )
                     incoming = adapter.acquire(request, self.configuration)
                     if incoming is not None:
+                        if isinstance(incoming, DatasetBundle):
+                            preliminary_site = incoming.metadata.get("preliminary_site_column")
+                            validate_site_coordinates(
+                                incoming.data,
+                                source,
+                                "acquisition output",
+                                site_id_name=preliminary_site,
+                            )
+                            source_report["errors"] = list(incoming.errors)
+                            for issue in incoming.errors:
+                                self.logger.warning(
+                                    "%s acquisition issue: %s", source_key, issue
+                                )
                         preprocessor = self.preprocessors.get(
                             source_key, GenericPreprocessor(source_key)
                         )
                         incoming = preprocessor.preprocess(incoming, self.configuration)
+                        if isinstance(incoming, DatasetBundle):
+                            source_report["errors"] = list(incoming.errors)
                 if incoming is not None:
                     merged = self._merge(existing, incoming, source, conflict_policy)
-                    source_report["written_files"] = self._write(
-                        source_key, source, merged, temp
-                    )
-                    source_report["status"] = "updated"
+                    if isinstance(incoming, DatasetBundle):
+                        incoming_data = incoming.data
+                    else:
+                        incoming_data = incoming
+                    if isinstance(incoming_data, pd.DataFrame) and incoming_data.empty:
+                        source_report["status"] = "no_data"
+                    else:
+                        source_report["written_files"] = self._write(
+                            source_key, source, merged, temp
+                        )
+                        source_report["status"] = "updated"
                 catalog = DatasetCatalog(
                     source_key,
                     directory,
@@ -596,6 +595,12 @@ class DatabaseManager:
                     },
                 ).rebuild()
                 source_report["catalog_files"] = len(catalog["files"])
+            except AcquisitionError as error:
+                source_report["status"] = "failed"
+                source_report["errors"] = [error.issue]
+                source_report["error"] = str(error)
+                report.warnings.append(f"{source_key}: {error}")
+                self.logger.error("Database acquisition failed for %s: %s", source_key, error)
             except (
                 FileNotFoundError,
                 OSError,
@@ -605,6 +610,7 @@ class DatabaseManager:
             ) as error:
                 source_report["status"] = "failed"
                 source_report["error"] = str(error)
+                source_report["errors"] = [{"kind": "input_or_processing", "message": str(error), "retryable": False}]
                 report.warnings.append(f"{source_key}: {error}")
                 self.logger.exception("Database update failed for %s", source_key)
             finally:

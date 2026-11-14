@@ -58,6 +58,21 @@ checks, reloads the configuration with credentials required, and returns
 Use `require_credentials=False` for runs that do not need credential-dependent
 data. Missing credentials then remain warnings rather than stopping the run.
 
+The implemented database-update mode is also available through the same
+runner:
+
+```python
+result = run_aqforecast(
+    "config/default_config.yaml",
+    mode="database_update",
+    start_time="2026-08-04T00:00:00Z",
+    end_time="2026-08-08T00:00:00Z",
+    source_keys=["ground_monitors"],
+    require_credentials=True,
+)
+print(result["report"])
+```
+
 ## Update the input-data database
 
 Database updates use a half-open UTC interval, `[start_time, end_time)`. By

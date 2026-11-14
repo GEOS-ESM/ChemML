@@ -141,7 +141,7 @@ Available and planned documentation is listed in the `docs/` directory. The inst
 
 The following documentation pages are planned:
 
-- [Data Sources](docs/data_sources.md)
+- [Data Sources](docs/data_sources.md) (AirNow currently implemented)
 - [NCCS Deployment](docs/nccs_deployment.md)
 - [API Reference](docs/api_reference.md)
 
@@ -184,7 +184,7 @@ ChemML accesses data from multiple sources:
 - **TROPOMI**: NO₂ and total column O₃
 - **PACE**: NO₂ and O₃
 - **GOES-ABI**: AOD
-- **TEMPO**: NO₂ and O₃ profiles
+- **TEMPO**: NO₂, O₃ profiles, and PM2.5 (planned)
 
 ### Numerical Models
 - **[GEOS-CF](https://gmao.gsfc.nasa.gov/gmao-products/geos-cf/)**: NASA's atmospheric composition forecast system

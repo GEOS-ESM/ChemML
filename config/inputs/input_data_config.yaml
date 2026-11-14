@@ -8,6 +8,14 @@ datasets:
     site_id: "site_id"
     site_coordinate_tolerance: 1.0e-6
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    quality_control:
+      bounds:
+        PM2.5: [0.0, 500.0]
+        PM10: [0.0, 1000.0]
+        NO2: [0.0, 1000.0]
+        O3: [0.0, 500.0]
+        SO2: [0.0, 1000.0]
+        CO: [0.0, 50000.0]
     time:
       type: "datetime"
       frequency: "1h"

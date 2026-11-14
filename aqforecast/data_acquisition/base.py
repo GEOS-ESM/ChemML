@@ -7,6 +7,19 @@ from typing import Any, Mapping, Protocol
 from aqforecast.contracts import DataRequest, DatasetBundle
 
 
+class AcquisitionError(RuntimeError):
+    """Actionable source error that can be included in an update report."""
+
+    def __init__(self, message: str, *, kind: str = "source", retryable: bool = False, details: Any = None):
+        super().__init__(message)
+        self.issue = {
+            "kind": kind,
+            "message": message,
+            "retryable": retryable,
+            **({"details": details} if details is not None else {}),
+        }
+
+
 class DataSource(Protocol):
     """A configured source capable of returning a normalized data bundle.
 
@@ -37,4 +50,4 @@ class UnavailableDataSource:
         )
 
 
-__all__ = ["DataSource", "UnavailableDataSource"]
+__all__ = ["AcquisitionError", "DataSource", "UnavailableDataSource"]

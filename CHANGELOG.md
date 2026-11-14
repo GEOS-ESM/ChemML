@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- **14 November 2026**: Expose database updates through `run_aqforecast()`, add generic point-site
+  coordinate validation and structured acquisition diagnostics, and make
+  AirNow concentration bounds configurable.
+- Document the AirNow ingest and correct the agent implementation-notes path.
+
 ### Added
 - **13 November 2026**: Added the incremental input-data database manager,
   regenerable per-source catalogs, local/remote acquisition adapter contracts,

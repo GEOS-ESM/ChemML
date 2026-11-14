@@ -100,42 +100,115 @@ databases for all configured input sources.
 
 **Tasks**:
 
-- [ ] Implement satellite data acquisition:
-  - [ ] VIIRS MAIAC AOD.
-  - [ ] TROPOMI NO₂ and O₃.
-  - [ ] PACE NO₂ and O₃.
-  - [ ] GOES-ABI AOD.
-  - [ ] TEMPO NO₂ and O₃ profiles.
-- [ ] Implement GEOS-CF model data acquisition.
-- [ ] Implement ground-station data acquisition:
-  - [x] EPA AirNow API integration.
-  - [ ] OpenAQ API integration.
-- [ ] Implement data quality control for all configured sources.
-- [x] Implement AirNow source-specific quality control and PPM-to-PPB conversion.
-- [ ] Convert each source from its original format into the configured
-  standardized database format during acquisition.
-- [ ] Apply source-specific fill-value handling, bounds checks, quality flags,
-  cloud filters, and other quality-control rules.
-- [ ] Subset data to the requested region, period, variables, and desired
-  spatial and temporal resolution wherever possible at ingest time.
-- [ ] Regrid and aggregate acquired data according to the input-data
-  configuration before writing database partitions.
+- [ ] AirNow:
+  - [x] Acquire data through the AirNow API.
+  - [x] Subset requests by configured region, period, and pollutants.
+  - [x] Convert source responses to the standardized point-data format.
+  - [x] Apply quality control, concentration bounds, and unit conversion.
+  - [x] Confirm site identity and coordinate consistency.
+  - [x] Confirm no regridding is required for point observations.
+  - [x] Integrate processed observations with the existing database.
+- [ ] OpenAQ:
+  - [ ] Acquire data through the OpenAQ API.
+  - [ ] Subset data by configured region, period, and pollutants.
+  - [ ] Convert source responses to the standardized point-data format.
+  - [ ] Apply quality control, fill-value handling, and unit conversion.
+  - [ ] Confirm site identity and coordinate consistency.
+  - [ ] Confirm whether regridding is required for point observations.
+  - [ ] Integrate processed observations with the existing database.
+- [ ] VIIRS MAIAC AOD:
+  - [ ] Acquire data from the configured NASA Earthdata source.
+  - [ ] Subset data by configured region, period, and variables.
+  - [ ] Convert source files to the standardized database format.
+  - [ ] Apply quality control, fill-value handling, and retrieval filters.
+  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [ ] Integrate processed data with the existing database.
+- [ ] GOES-ABI AOD:
+  - [ ] Acquire data from the configured source.
+  - [ ] Subset data by configured region, period, and variables.
+  - [ ] Convert source files to the standardized database format.
+  - [ ] Apply quality control, fill-value handling, and retrieval filters.
+  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [ ] Integrate processed data with the existing database.
+- [ ] TROPOMI NO₂:
+  - [ ] Acquire data from the configured NASA Earthdata source.
+  - [ ] Subset data by configured region, period, and variables.
+  - [ ] Convert source files to the standardized database format.
+  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
+  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [ ] Integrate processed data with the existing database.
+- [ ] TROPOMI O₃:
+  - [ ] Acquire data from the configured NASA Earthdata source.
+  - [ ] Subset data by configured region, period, and variables.
+  - [ ] Convert source files to the standardized database format.
+  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
+  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [ ] Integrate processed data with the existing database.
+- [ ] PACE NO₂:
+  - [ ] Acquire data from the configured NASA Earthdata source.
+  - [ ] Subset data by configured region, period, and variables.
+  - [ ] Convert source files to the standardized database format.
+  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
+  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [ ] Integrate processed data with the existing database.
+- [ ] PACE O₃:
+  - [ ] Acquire data from the configured NASA Earthdata source.
+  - [ ] Subset data by configured region, period, and variables.
+  - [ ] Convert source files to the standardized database format.
+  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
+  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [ ] Integrate processed data with the existing database.
+- [ ] TEMPO NO₂:
+  - [ ] Acquire data from the configured NASA Earthdata source.
+  - [ ] Subset data by configured region, time window, and variables.
+  - [ ] Convert source files to the standardized database format.
+  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
+  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [ ] Integrate processed data with the existing database.
+- [ ] TEMPO O₃ Profiles:
+  - [ ] Acquire data from the configured NASA Earthdata source.
+  - [ ] Subset data by configured region, time window, and variables.
+  - [ ] Convert source files to the standardized database format.
+  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
+  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [ ] Integrate processed data with the existing database.
+- [ ] TEMPO PM2.5:
+  - [ ] Acquire data from the configured NASA Earthdata source.
+  - [ ] Subset data by configured region, time window, and variables.
+  - [ ] Convert source files to the standardized database format.
+  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
+  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [ ] Integrate processed data with the existing database.
+- [ ] GEOS-CF:
+  - [ ] Acquire model data for the configured region and period.
+  - [ ] Subset data by configured region, period, and variables.
+  - [ ] Convert source files to the standardized database format.
+  - [ ] Apply quality control, fill-value handling, and missing-data rules.
+  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [ ] Integrate processed data with the existing database.
+- [ ] Land Cover information:
+  - [ ] Acquire the configured reference-period land-cover product.
+  - [ ] Subset data by configured region and variables.
+  - [ ] Convert source files to the standardized database format.
+  - [ ] Apply quality control, fill-value handling, and class validation.
+  - [ ] Regrid or aggregate to the configured spatial resolution.
+  - [ ] Integrate the reference-period data with the existing database.
 - [ ] Implement post-update database integrity verification, including
   timestamp completeness, required variables, coordinate/grid structure,
   duplicate detection, partition/catalog consistency, and explicit reporting
   of any remaining gaps.
-- [ ] Modify `run_aqforecast()` to expose a database-update mode now that a
+- [x] Modify `run_aqforecast()` to expose a database-update mode now that a
   complete source-specific ingestion path exists.
-- [ ] Add generic site-coordinate verification at both acquisition-output and
+- [x] Add generic site-coordinate verification at both acquisition-output and
   database-management boundaries, using configured site IDs and tolerances
   rather than duplicating the checks in each dataset adapter.
 - [ ] Replace the hard-coded provider-to-adapter mapping in `DatabaseManager`
   with a configurable or registry-based source-adapter mechanism.
-- [ ] Extend the generic acquisition contract so source adapters can pass
+- [x] Extend the generic acquisition contract so source adapters can pass
   structured API/file error messages to the logging and update-report systems.
 - [ ] Add an end-to-end database-update test covering acquisition,
   preprocessing, merging, partition writing, and catalog generation.
-- [ ] Handle empty source files, including CSV files containing only headers,
+- [x] Handle empty source files, including CSV files containing only headers,
   as empty databases or explicit, actionable input errors.
 - [ ] Create data download scripts.
 - [ ] Implement data-acquisition modules for the remaining configured sources.
@@ -424,7 +497,7 @@ remain planned or require further implementation and integration testing.
 | TROPOMI | S5P_L2 | NO₂, O₃ | 7 km | 1–2 days |
 | PACE | PACE_OCI_L2 | NO₂, O₃ | 1 km | 1–2 days |
 | GOES-ABI | ABI-L2-AOD | AOD | 2 km | 1 hour |
-| TEMPO | TEMPO_L2 | NO₂, O₃ profile | 2–8 km | 1 hour |
+| TEMPO | TEMPO_L2 | NO₂, O₃ profile, PM2.5 | 2–8 km | 1 hour |
 
 ### Model Data
 

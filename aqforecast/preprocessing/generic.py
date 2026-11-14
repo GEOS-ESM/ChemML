@@ -62,7 +62,7 @@ class GenericPreprocessor:
             "preprocessed": True,
             "timestamps_utc": True,
         }
-        return DatasetBundle(self.source_key, data, metadata)
+        return DatasetBundle(self.source_key, data, metadata, list(dataset.errors))
 
 
 __all__ = ["GenericPreprocessor"]
