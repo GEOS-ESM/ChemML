@@ -41,6 +41,8 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/utils/setup.py` provides a guided first-time setup flow that copies configuration files, collects paths and credentials, creates configured directories, and verifies the result.
 - `aqforecast/contracts.py` defines the shared request, result, and workflow-context data contracts.
 - `aqforecast/data_management/` provides the incremental partitioned database manager and regenerable per-source catalogs.
+- `aqforecast/utils/regridding.py` provides the shared irregular-point
+  regridder for dataset-specific latitude/longitude grids.
 - `aqforecast/data_acquisition/generic.py` provides local and remote acquisition adapter contracts for source-specific ingest implementations.
 - `aqforecast/data_acquisition/airnow.py` implements the AirNow historical monitor acquisition adapter.
 - `aqforecast/data_acquisition/openaq.py` implements the OpenAQ v3 sensor-based monitor acquisition adapter.
@@ -49,8 +51,11 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/preprocessing/openaq.py` implements OpenAQ unit conversion, shared quality control, sensor reconciliation, and site-ID standardization.
 - `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`, `aqforecast/forecasting/`, `aqforecast/validation/`, and `aqforecast/orchestration/` contain the stage interfaces; most source-specific and forecasting implementations remain planned.
 - `aqforecast/orchestration/database_update.py` provides the standalone database-update mode.
-- `aqforecast/aqforecast.py` contains the initial `run_aqforecast()` workflow entry point; it loads configuration and can optionally check credentials.
-- `tests/` contains the initial pytest regression tests.
+- `aqforecast/aqforecast.py` contains the `run_aqforecast()` workflow entry
+  point; it loads configuration, can optionally check credentials, and exposes
+  the explicit database-update mode.
+- `tests/` contains pytest regression tests for configuration, database
+  management, AirNow/OpenAQ ingest, and shared regridding.
 - `docs/configuration.md` documents the current configuration structure and ownership boundaries.
 
 ## Quick Start
@@ -121,7 +126,7 @@ configuration = load_configuration(
 report = run_database_update(
     configuration,
     "2026-08-04T00:00:00Z",
-    "2026-08-08T00:00:00Z",
+    "2026-08-10T00:00:00Z",
     source_keys=["ground_monitors"],
     conflict_policy="fill_missing",
 )
@@ -129,10 +134,12 @@ print(report)
 PY
 ```
 
-This requests August 4–7 inclusive. The AirNow implementation uses the
-configured region bounds, preserves AQS identifiers as ChemML `site_id`
-values, converts gaseous PPM to PPB, applies source-specific QC, and stores
-monthly point-data CSV partitions.
+This requests August 4–9 inclusive. The selected region provider determines
+whether the AirNow or OpenAQ adapter is registered. Both providers use the
+configured region bounds, standardize monitor identifiers and coordinates,
+apply the shared concentration QC limits after unit conversion, and store
+monthly point-data CSV partitions. OpenAQ additionally reconciles multiple
+sensors at a site and reports competing valid sensor values.
 
 ## Documentation
 
@@ -144,7 +151,7 @@ Available and planned documentation is listed in the `docs/` directory. The inst
 
 The following documentation pages are planned:
 
-- [Data Sources](docs/data_sources.md) (AirNow currently implemented)
+- [Data Sources](docs/data_sources.md) (AirNow and OpenAQ currently implemented)
 - [NCCS Deployment](docs/nccs_deployment.md)
 - [API Reference](docs/api_reference.md)
 
@@ -194,7 +201,8 @@ ChemML accesses data from multiple sources:
 
 ### Ground-Based Observations
 - **EPA AirNow**: U.S. air quality monitoring network; acquisition and preprocessing are implemented
-- **[OpenAQ](https://openaq.org/)**: Global air quality data platform
+- **[OpenAQ](https://openaq.org/)**: Global air quality data platform; acquisition,
+  preprocessing, and database integration are implemented for selected regions
 
 
 

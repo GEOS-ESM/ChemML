@@ -90,8 +90,13 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   place. AirNow and OpenAQ are complete point-monitor source-specific
   implementations, with acquisition, preprocessing, retries, QC, stable
   site-ID handling, sensor reconciliation where applicable, and provider-based
-  database registration; other dataset-specific download, regridding, and
-  source adapters remain future work.
+  database registration. The shared irregular-point regridder is implemented
+  in `aqforecast/utils/regridding.py`, using each dataset's configured target
+  resolution while preserving non-spatial dimensions; other dataset-specific
+  download and source adapters remain future work.
+- A live ATL database-update test using an in-memory OpenAQ provider override
+  completed for August 4–9, 2026 and produced an OpenAQ partition alongside
+  the existing AirNow partition in the external test-data directory.
 - Model execution, forecasting, and evaluation remain to be implemented.
 
 ### Phase 2: Data Acquisition — In Progress
@@ -117,6 +122,7 @@ databases for all configured input sources.
   - [x] Confirm site identity and coordinate consistency.
   - [x] Confirm no regridding is required for point observations.
   - [x] Integrate processed observations with the existing database.
+  - [x] Validate the complete database-update path with a live ATL test.
 - [ ] VIIRS MAIAC AOD:
   - [ ] Acquire data from the configured NASA Earthdata source.
   - [ ] Subset data by configured region, period, and variables.
@@ -198,6 +204,9 @@ databases for all configured input sources.
   timestamp completeness, required variables, coordinate/grid structure,
   duplicate detection, partition/catalog consistency, and explicit reporting
   of any remaining gaps.
+- [x] Implement a shared irregular-point regridder with dataset-specific
+  latitude/longitude resolution, numeric means, categorical modes, preserved
+  non-spatial dimensions, and NaN empty cells.
 - [x] Modify `run_aqforecast()` to expose a database-update mode now that a
   complete source-specific ingestion path exists.
 - [x] Add generic site-coordinate verification at both acquisition-output and

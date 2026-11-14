@@ -31,9 +31,12 @@ This repository is under active development as a set of codes implementing a mac
   `aqforecast/orchestration/` contain the stage interfaces. Database updating
   is the first implemented orchestration workflow; most source-specific and
   forecasting implementations remain planned.
-- `aqforecast/aqforecast.py` contains the initial configuration-only `run_aqforecast()` entry point.
+- `aqforecast/aqforecast.py` contains the `run_aqforecast()` entry point. Its
+  default forecast mode remains configuration-only, while its explicit
+  `database_update` mode runs the implemented incremental ingest workflow.
 - `aqforecast/orchestration/database_update.py` contains the standalone `run_database_update()` mode and `DatabaseUpdateStage`.
-- `tests/` contains the initial pytest regression tests.
+- `tests/` contains the pytest regression suite for configuration, database
+  management, AirNow/OpenAQ ingest, and shared regridding.
 - `README.md`, the folder READMEs, `CHANGELOG.md`, and `CONTRIBUTING.md` document usage, history, and contribution policy.
 - `.github/workflows/` contains CI checks.
 
@@ -115,14 +118,14 @@ parsing, and scientific normalization behavior.
 ## Testing Guidelines
 
 The pytest suite covers configuration loading, credential collection, setup,
-database-manager site identity and timestamp handling, and the AirNow adapter
-and preprocessor using mocked responses. No coverage threshold is configured
-yet. Remote credential verification and live API access are opt-in and should
-not be required for the network-free test suite. Run `python -m pytest tests/`
-for Python changes. For changes to analysis code, perform a representative
-notebook or Discover run and record the data/configuration assumptions in the
-PR. Validate changed YAML with `yamllint`; check that notebooks open and
-execute through the affected cells.
+database-manager site identity and timestamp handling, the AirNow and OpenAQ
+adapters and preprocessors using mocked responses, and the shared regridder.
+No coverage threshold is configured yet. Remote credential verification and
+live API access are opt-in and should not be required for the network-free test
+suite. Run `python -m pytest tests/` for Python changes. For changes to
+analysis code, perform a representative notebook or Discover run and record
+the data/configuration assumptions in the PR. Validate changed YAML with
+`yamllint`; check that notebooks open and execute through the affected cells.
 
 ## Commit & Pull Request Guidelines
 
