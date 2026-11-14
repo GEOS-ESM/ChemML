@@ -100,10 +100,117 @@ class DatabaseManager:
             return pd.DatetimeIndex(pd.to_datetime(data[time_name], utc=True, errors="coerce").dropna().unique())
         return pd.DatetimeIndex(pd.to_datetime(data[time_name].values, utc=True))
 
+    def _site_id_name(self, source: Mapping[str, Any]) -> Optional[str]:
+        """Return the configured point-site identifier column, if any."""
+
+        site_id = source.get("site_id")
+        return str(site_id) if site_id else None
+
+    def _validate_site_coordinates(self, data: Any, source: Mapping[str, Any], label: str) -> None:
+        """Ensure each site identifier has one stable coordinate pair."""
+
+        if not isinstance(data, pd.DataFrame) or data.empty:
+            return
+        site_id_name = self._site_id_name(source)
+        if site_id_name is None:
+            return
+        coordinate_names = source.get("coordinate_names", {})
+        latitude_name = coordinate_names.get("latitude", "lat")
+        longitude_name = coordinate_names.get("longitude", "lon")
+        required = [site_id_name, latitude_name, longitude_name]
+        missing = [name for name in required if name not in data.columns]
+        if missing:
+            raise ValueError(f"{label} is missing site coordinate columns: {', '.join(missing)}")
+
+        incomplete = data[required].isna().any(axis=1)
+        if incomplete.any():
+            raise ValueError(
+                f"{label} contains rows with missing site ID or site coordinates"
+            )
+
+        site_coordinates = data[required]
+        tolerance = float(source.get("site_coordinate_tolerance", 1e-6))
+        grouped = site_coordinates.groupby(site_id_name)[[latitude_name, longitude_name]].agg(["min", "max"])
+        for site_id, values in grouped.iterrows():
+            latitude_delta = float(values[(latitude_name, "max")] - values[(latitude_name, "min")])
+            longitude_delta = float(values[(longitude_name, "max")] - values[(longitude_name, "min")])
+            if latitude_delta > tolerance or longitude_delta > tolerance:
+                raise ValueError(
+                    f"{label} site {site_id!r} has inconsistent coordinates; "
+                    f"maximum allowed difference is {tolerance} degrees"
+                )
+
+    def _validate_site_coordinate_match(
+        self,
+        existing: Any,
+        incoming: pd.DataFrame,
+        source: Mapping[str, Any],
+    ) -> None:
+        """Ensure incoming coordinates agree with archived coordinates."""
+
+        site_id_name = self._site_id_name(source)
+        if site_id_name is None or not isinstance(existing, pd.DataFrame) or existing.empty:
+            return
+        coordinate_names = source.get("coordinate_names", {})
+        latitude_name = coordinate_names.get("latitude", "lat")
+        longitude_name = coordinate_names.get("longitude", "lon")
+        required = [site_id_name, latitude_name, longitude_name]
+        if any(name not in existing.columns or name not in incoming.columns for name in required):
+            return
+        existing_sites = existing[required].dropna(subset=required).drop_duplicates(site_id_name).set_index(site_id_name)
+        incoming_sites = incoming[required].dropna(subset=required).drop_duplicates(site_id_name).set_index(site_id_name)
+        common_sites = existing_sites.index.intersection(incoming_sites.index)
+        tolerance = float(source.get("site_coordinate_tolerance", 1e-6))
+        for site_id in common_sites:
+            latitude_delta = abs(float(existing_sites.loc[site_id, latitude_name]) - float(incoming_sites.loc[site_id, latitude_name]))
+            longitude_delta = abs(float(existing_sites.loc[site_id, longitude_name]) - float(incoming_sites.loc[site_id, longitude_name]))
+            if latitude_delta > tolerance or longitude_delta > tolerance:
+                raise ValueError(
+                    f"site {site_id!r} coordinates do not match archived data; "
+                    f"maximum allowed difference is {tolerance} degrees"
+                )
+
+    def _missing_site_times(
+        self,
+        expected: pd.DatetimeIndex,
+        data: pd.DataFrame,
+        source: Mapping[str, Any],
+        tolerance: Any,
+    ) -> tuple[pd.DatetimeIndex, list[str]]:
+        """Find missing timestamps independently for each configured site."""
+
+        site_id_name = self._site_id_name(source)
+        time_name = source.get("coordinate_names", {}).get("time", "time")
+        if site_id_name is None or site_id_name not in data.columns or time_name not in data.columns:
+            return self._missing_times(expected, self._observed_times(data, source), tolerance), []
+        if data.empty:
+            return self._missing_times(expected, pd.DatetimeIndex([]), tolerance), []
+
+        missing_by_site: list[pd.DatetimeIndex] = []
+        missing_site_ids: list[str] = []
+        for site_id, site_data in data.groupby(site_id_name, dropna=True):
+            observed = pd.DatetimeIndex(pd.to_datetime(site_data[time_name], utc=True, errors="coerce").dropna().unique())
+            missing = self._missing_times(expected, observed, tolerance)
+            if len(missing):
+                missing_by_site.append(missing)
+                missing_site_ids.append(str(site_id))
+        if not missing_by_site:
+            return pd.DatetimeIndex([]), []
+        return pd.DatetimeIndex(sorted(set(value for values in missing_by_site for value in values))), missing_site_ids
+
     def _missing_times(self, expected: pd.DatetimeIndex, observed: pd.DatetimeIndex, tolerance: Any) -> pd.DatetimeIndex:
         tolerance = pd.Timedelta(tolerance or "0s")
-        observed_values = observed.asi8
-        missing = [value for value in expected if not len(observed_values) or not bool((abs(observed_values - value.value) <= tolerance.value).any())]
+        # Normalize timestamp resolution before comparing integer values.
+        # Recent pandas versions may retain parsed input at microsecond
+        # precision while date_range commonly produces nanoseconds.
+        observed_values = observed.tz_convert("UTC").tz_localize(None).astype("datetime64[ns]").asi8
+        expected_values = expected.tz_convert("UTC").tz_localize(None).astype("datetime64[ns]").asi8
+        missing = [
+            value
+            for value, integer_value in zip(expected, expected_values)
+            if not len(observed_values)
+            or not bool((abs(observed_values - integer_value) <= tolerance.value).any())
+        ]
         return pd.DatetimeIndex(missing)
 
     def _filename(self, source_key: str, source: Mapping[str, Any], period: pd.Timestamp) -> str:
@@ -130,15 +237,24 @@ class DatabaseManager:
             incoming = incoming.data
         if isinstance(incoming, pd.DataFrame):
             incoming = incoming.copy()
+            self._validate_site_coordinates(existing, source, "existing data")
+            self._validate_site_coordinates(incoming, source, "incoming data")
+            self._validate_site_coordinate_match(existing, incoming, source)
             incoming[time_name] = pd.to_datetime(incoming[time_name], utc=True)
+            site_id_name = self._site_id_name(source)
             if existing is None or (isinstance(existing, pd.DataFrame) and existing.empty):
-                return incoming.drop_duplicates(subset=[time_name]).reset_index(drop=True)
+                identity = [site_id_name, time_name] if site_id_name else [time_name, "lat", "lon"]
+                return incoming.drop_duplicates(subset=identity).reset_index(drop=True)
             existing = existing.copy()
             existing[time_name] = pd.to_datetime(existing[time_name], utc=True)
             combined = pd.concat([existing, incoming], ignore_index=True)
-            combined = combined.drop_duplicates(subset=[time_name] + [column for column in ("lat", "lon") if column in combined], keep="last" if policy in {"replace_partition", "replace_all"} else "first")
+            if site_id_name:
+                identity = [site_id_name, time_name]
+            else:
+                identity = [time_name] + [column for column in ("lat", "lon") if column in combined]
+            combined = combined.drop_duplicates(subset=identity, keep="last" if policy in {"replace_partition", "replace_all"} else "first")
             if policy == "fill_missing":
-                combined = pd.concat([existing, incoming]).groupby([time_name] + [column for column in ("lat", "lon") if column in combined], as_index=False).first()
+                combined = pd.concat([existing, incoming]).groupby(identity, as_index=False).first()
             return combined.sort_values(time_name).reset_index(drop=True)
         import xarray as xr
 
@@ -226,12 +342,18 @@ class DatabaseManager:
                 existing = self._read_database(source_key, source)
                 expected = self._expected_times(source, start, end)
                 observed = self._observed_times(existing, source)
-                missing = self._missing_times(expected, observed, source.get("time", {}).get("tolerance", "0s"))
+                tolerance = source.get("time", {}).get("tolerance", "0s")
+                missing_site_ids: list[str] = []
+                if isinstance(existing, pd.DataFrame) and self._site_id_name(source):
+                    missing, missing_site_ids = self._missing_site_times(expected, existing, source, tolerance)
+                else:
+                    missing = self._missing_times(expected, observed, tolerance)
                 source_report["missing_timestamps"] = [value.isoformat() for value in missing]
+                source_report["missing_site_ids"] = missing_site_ids
                 incoming = None
                 if len(missing):
                     adapter = self.data_sources.get(source_key, UnavailableDataSource(source_key))
-                    request = DataRequest(source_key, self.configuration.get("region", {}).get("region_code", ""), source.get("variables", []), start.to_pydatetime(), end.to_pydatetime(), {"missing_timestamps": source_report["missing_timestamps"], "temporary_directory": str(temp)})
+                    request = DataRequest(source_key, self.configuration.get("region", {}).get("region_code", ""), source.get("variables", []), start.to_pydatetime(), end.to_pydatetime(), {"missing_timestamps": source_report["missing_timestamps"], "missing_site_ids": missing_site_ids, "temporary_directory": str(temp)})
                     incoming = adapter.acquire(request, self.configuration)
                     if incoming is not None:
                         preprocessor = self.preprocessors.get(source_key, GenericPreprocessor(source_key))

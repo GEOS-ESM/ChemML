@@ -4,7 +4,9 @@ datasets:
   ground_monitors:
     source_key: "ground_monitors"
     file_template: "{provider}_{region_code}_{month_string}_point_h.csv"
-    variables: ["lat", "lon", "time", "PM2.5", "NO2", "O3", "CO", "SO2", "PM10"]
+    variables: ["site_id", "lat", "lon", "time", "PM2.5", "NO2", "O3", "CO", "SO2", "PM10"]
+    site_id: "site_id"
+    site_coordinate_tolerance: 1.0e-6
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
     time:
       type: "datetime"
