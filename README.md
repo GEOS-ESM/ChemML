@@ -7,9 +7,9 @@
 ChemML is a developing set of Python codes for high-resolution air quality estimation and forecasting. It combines satellite observations, numerical model outputs, and ground-based measurements using deep learning techniques, and leverages the DeepSensor framework to produce probabilistic forecasts of PM2.5, ozone (O₃), and nitrogen dioxide (NO₂) at fine spatial resolution (e.g., 1 km).
 
 > **Warning:** ChemML is still under development. The configuration system and
-> incremental input-data database manager are available. AirNow ground-monitor
-> acquisition and preprocessing are implemented as the first complete
-> source-specific ingest; other source ingest, forecasting, and validation
+> incremental input-data database manager are available. AirNow and OpenAQ
+> ground-monitor acquisition and preprocessing are implemented as the first
+> complete source-specific ingest; other source ingest, forecasting, and validation
 > workflows are being built incrementally.
 > Several data-ingest modules, documentation pages, and example notebooks
 > remain planned.
@@ -43,8 +43,10 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/data_management/` provides the incremental partitioned database manager and regenerable per-source catalogs.
 - `aqforecast/data_acquisition/generic.py` provides local and remote acquisition adapter contracts for source-specific ingest implementations.
 - `aqforecast/data_acquisition/airnow.py` implements the AirNow historical monitor acquisition adapter.
+- `aqforecast/data_acquisition/openaq.py` implements the OpenAQ v3 sensor-based monitor acquisition adapter.
 - `aqforecast/preprocessing/generic.py` provides shared fill-value and basic quality-control preprocessing.
 - `aqforecast/preprocessing/airnow.py` implements AirNow unit conversion, quality control, and site-ID standardization.
+- `aqforecast/preprocessing/openaq.py` implements OpenAQ unit conversion, shared quality control, sensor reconciliation, and site-ID standardization.
 - `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`, `aqforecast/forecasting/`, `aqforecast/validation/`, and `aqforecast/orchestration/` contain the stage interfaces; most source-specific and forecasting implementations remain planned.
 - `aqforecast/orchestration/database_update.py` provides the standalone database-update mode.
 - `aqforecast/aqforecast.py` contains the initial `run_aqforecast()` workflow entry point; it loads configuration and can optionally check credentials.
@@ -102,8 +104,9 @@ extend the enabled input datasets. The requested interval is interpreted as a
 half-open UTC interval. See the [User Guide](docs/user_guide.md#update-the-input-data-database)
 for examples, source selection, override behavior, and adapter registration.
 
-For an AirNow region, the database manager automatically registers the AirNow
-adapter and preprocessor. For example, using the ATL testing configuration:
+For an AirNow or OpenAQ region, the database manager automatically registers
+the provider-specific adapter and preprocessor. For example, using the ATL
+testing configuration:
 
 ```bash
 conda activate chemml

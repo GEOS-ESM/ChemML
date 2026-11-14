@@ -17,10 +17,12 @@ import pandas as pd
 
 from aqforecast.contracts import DataRequest, DatasetBundle
 from aqforecast.data_acquisition.airnow import AirNowDataSource
+from aqforecast.data_acquisition.openaq import OpenAQDataSource
 from aqforecast.data_acquisition.base import UnavailableDataSource
 from aqforecast.data_acquisition.base import AcquisitionError
 from aqforecast.data_management.catalog import DatasetCatalog
 from aqforecast.preprocessing.airnow import AirNowPreprocessor
+from aqforecast.preprocessing.openaq import OpenAQPreprocessor
 from aqforecast.preprocessing.generic import GenericPreprocessor
 from aqforecast.data_management.validation import validate_site_coordinates
 
@@ -96,6 +98,11 @@ class DatabaseManager:
                 "ground_monitors", AirNowDataSource(logger=self.logger)
             )
             self.preprocessors.setdefault("ground_monitors", AirNowPreprocessor())
+        elif str(provider).casefold() == "openaq":
+            self.data_sources.setdefault(
+                "ground_monitors", OpenAQDataSource(logger=self.logger)
+            )
+            self.preprocessors.setdefault("ground_monitors", OpenAQPreprocessor())
 
     def _expected_times(
         self, source: Mapping[str, Any], start: pd.Timestamp, end: pd.Timestamp
@@ -561,6 +568,17 @@ class DatabaseManager:
                                 site_id_name=preliminary_site,
                             )
                             source_report["errors"] = list(incoming.errors)
+                            bundle_warnings = incoming.metadata.get("warnings", [])
+                            if isinstance(bundle_warnings, list) and bundle_warnings:
+                                source_report["warnings"] = list(bundle_warnings)
+                                for warning in bundle_warnings:
+                                    message = (
+                                        warning.get("message", str(warning))
+                                        if isinstance(warning, Mapping)
+                                        else str(warning)
+                                    )
+                                    report.warnings.append(f"{source_key}: {message}")
+                                    self.logger.warning("%s acquisition warning: %s", source_key, warning)
                             for issue in incoming.errors:
                                 self.logger.warning(
                                     "%s acquisition issue: %s", source_key, issue
@@ -571,6 +589,17 @@ class DatabaseManager:
                         incoming = preprocessor.preprocess(incoming, self.configuration)
                         if isinstance(incoming, DatasetBundle):
                             source_report["errors"] = list(incoming.errors)
+                            bundle_warnings = incoming.metadata.get("warnings", [])
+                            if isinstance(bundle_warnings, list) and bundle_warnings:
+                                source_report["warnings"] = list(bundle_warnings)
+                                for warning in bundle_warnings:
+                                    message = (
+                                        warning.get("message", str(warning))
+                                        if isinstance(warning, Mapping)
+                                        else str(warning)
+                                    )
+                                    report.warnings.append(f"{source_key}: {message}")
+                                    self.logger.warning("%s preprocessing warning: %s", source_key, warning)
                 if incoming is not None:
                     merged = self._merge(existing, incoming, source, conflict_policy)
                     if isinstance(incoming, DatasetBundle):

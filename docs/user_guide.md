@@ -3,8 +3,8 @@
 ChemML is under active development. The current public workflow entry point is
 an initial runner that loads and validates the selected configuration. The
 incremental input-data database update mode is available as a standalone
-orchestration operation. AirNow ground-monitor acquisition and preprocessing
-are implemented; other source-specific acquisition, model training,
+orchestration operation. AirNow and OpenAQ ground-monitor acquisition and
+preprocessing are implemented; other source-specific acquisition, model training,
 forecasting, and result evaluation remain under development.
 
 ## Validate a configuration
@@ -109,11 +109,12 @@ report = run_database_update(
 )
 ```
 
-### Update an AirNow database
+### Update a ground-monitor database
 
 For a region whose configuration sets
-`region.ground_monitoring.provider: AirNow`, the database manager registers the
-AirNow acquisition and preprocessing implementations automatically. Use the
+`region.ground_monitoring.provider: AirNow` or `OpenAQ`, the database manager
+registers the corresponding acquisition and preprocessing implementations
+automatically. Only one ground-monitor provider is active for a region. Use the
 local credentials file and select only `ground_monitors` while testing:
 
 ```python
@@ -148,6 +149,12 @@ configured `ground_monitors` path. Existing valid values are preserved and a
 later `fill_missing` run can back-fill observations returned by a repeat API
 query. An empty source directory is treated as an empty database and is
 initialized by the first update.
+
+For OpenAQ, the adapter discovers locations in the configured region and
+queries the sensor-specific v3 measurements endpoint. It converts PM2.5 and
+PM10 to µg/m³ and trace gases to ppb, applies the same configured bounds as
+AirNow, and reconciles multiple sensors by filling missing values and selecting
+the highest sensor ID when valid values conflict.
 
 The default behavior fills missing timestamps and values while preserving
 existing data. Use `conflict_policy="replace_partition"` or

@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **14 November 2026**: Expose database updates through `run_aqforecast()`, add generic point-site
   coordinate validation and structured acquisition diagnostics, and make
   AirNow concentration bounds configurable.
+- **14 November 2026**: Add OpenAQ v3 ground-monitor acquisition,
+  preprocessing, sensor reconciliation, provider registration, and mocked API
+  tests.
+- **14 November 2026**: Add configurable OpenAQ request pacing and select
+  OpenAQ for the example Seoul region.
 - Document the AirNow ingest and correct the agent implementation-notes path.
 
 ### Added

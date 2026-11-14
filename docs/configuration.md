@@ -210,8 +210,9 @@ Source names are case-sensitive and must match `source_key` values in `input_dat
   `site_coordinate_tolerance`. These identify the stable site column and the
   maximum allowed coordinate difference for generic site-coordinate checks.
 - `ground_monitoring.provider` selects the ground-data provider. Regions with
-  provider `AirNow` automatically use ChemML's AirNow acquisition and
-  preprocessing implementations; other providers require their own registered
+  provider `AirNow` or `OpenAQ` automatically use the corresponding ChemML
+  acquisition and preprocessing implementations. Only one ground-monitor
+  provider is active for a region; other providers require their own registered
   adapters.
 
 The database manager stores timestamps in UTC and treats update intervals as

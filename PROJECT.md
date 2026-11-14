@@ -87,10 +87,11 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   semantics, use per-run temporary staging, and regenerate per-source JSON
   catalogs.
 - Generic local/remote acquisition adapters and shared preprocessing are in
-  place. AirNow is the first complete source-specific implementation, with
-  acquisition, preprocessing, retries, QC, AQS site-ID handling, and database
-  registration; other dataset-specific download, regridding, and source
-  adapters remain future work.
+  place. AirNow and OpenAQ are complete point-monitor source-specific
+  implementations, with acquisition, preprocessing, retries, QC, stable
+  site-ID handling, sensor reconciliation where applicable, and provider-based
+  database registration; other dataset-specific download, regridding, and
+  source adapters remain future work.
 - Model execution, forecasting, and evaluation remain to be implemented.
 
 ### Phase 2: Data Acquisition — In Progress
@@ -108,14 +109,14 @@ databases for all configured input sources.
   - [x] Confirm site identity and coordinate consistency.
   - [x] Confirm no regridding is required for point observations.
   - [x] Integrate processed observations with the existing database.
-- [ ] OpenAQ:
-  - [ ] Acquire data through the OpenAQ API.
-  - [ ] Subset data by configured region, period, and pollutants.
-  - [ ] Convert source responses to the standardized point-data format.
-  - [ ] Apply quality control, fill-value handling, and unit conversion.
-  - [ ] Confirm site identity and coordinate consistency.
-  - [ ] Confirm whether regridding is required for point observations.
-  - [ ] Integrate processed observations with the existing database.
+- [x] OpenAQ:
+  - [x] Acquire data through the OpenAQ API.
+  - [x] Subset data by configured region, period, and pollutants.
+  - [x] Convert source responses to the standardized point-data format.
+  - [x] Apply quality control, fill-value handling, and unit conversion.
+  - [x] Confirm site identity and coordinate consistency.
+  - [x] Confirm no regridding is required for point observations.
+  - [x] Integrate processed observations with the existing database.
 - [ ] VIIRS MAIAC AOD:
   - [ ] Acquire data from the configured NASA Earthdata source.
   - [ ] Subset data by configured region, period, and variables.

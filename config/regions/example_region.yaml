@@ -10,6 +10,6 @@ output_grid:
   resolution_degrees: 0.01
 
 ground_monitoring:
-  provider: "AirKorea"
+  provider: "OpenAQ"
 
 timezone: "Asia/Seoul"

@@ -27,6 +27,7 @@ datasets:
       method: "none"
     storage: {partition: "monthly", format: "csv", catalog_filename: "catalog.json"}
     access: {mode: "remote", temporary_directory: ".tmp"}
+    openaq_request_pause_seconds: 2.0
 
   GEOS-CF:
     source_key: "GEOS-CF"
