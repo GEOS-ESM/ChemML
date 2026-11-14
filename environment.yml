@@ -1,7 +1,6 @@
 name: chemml
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - python>=3.9
   - numpy>=1.24
