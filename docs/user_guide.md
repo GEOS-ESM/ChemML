@@ -3,9 +3,9 @@
 ChemML is under active development. The current public workflow entry point is
 an initial runner that loads and validates the selected configuration. The
 incremental input-data database update mode is available as a standalone
-orchestration operation. AirNow and OpenAQ ground-monitor acquisition and
-preprocessing are implemented; other source-specific acquisition, model training,
-forecasting, and result evaluation remain under development.
+orchestration operation. AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂/O₃
+acquisition and preprocessing are implemented; model training, forecasting,
+and result evaluation remain under development.
 
 ## Validate a configuration
 
@@ -157,12 +157,12 @@ AirNow, and reconciles multiple sensors by filling missing values and selecting
 the highest sensor ID when valid values conflict.
 
 The default behavior fills missing timestamps and values while preserving
-existing data. Use `conflict_policy="replace_partition"` or
+existing data. Implemented dataset-specific adapters are registered
+automatically when their configured sources are selected. Use
+`conflict_policy="replace_partition"` or
 `override=True` only when an affected partition should be replaced. AirNow is
-registered automatically for AirNow regions. Other dataset-specific
-`LocalDataSource` or `RemoteDataSource` adapters must be registered with
-`DatabaseManager`/`run_database_update` until their implementations are
-completed; unavailable sources are reported without silently fabricating data.
+registered automatically for AirNow regions; unavailable or still-planned
+sources are reported without silently fabricating data.
 
 Database files are stored using the partition and format configured in
 `config/inputs/input_data_config.yaml`: NetCDF for gridded data and CSV for
@@ -170,11 +170,10 @@ point data. Temporary downloads and staged writes use a per-run `.tmp`
 directory, which is cleaned after the update. A regenerated `catalog.json` is
 written in each source directory as a confirmation of the files on disk.
 
-For a valid configuration without credential checking, the current
-`run_aqforecast()` result contains:
+For configuration-only mode, a valid `run_aqforecast()` result contains:
 
-- `status`: currently `configuration_loaded`.
-- `message`: explains that the remaining workflow functions are not implemented.
+- `status`: `configuration_loaded`.
+- `message`: explains that configuration-only mode does not start a database update.
 - `configuration`: the resolved configuration dictionary.
 - `warnings`: missing credentials, unavailable paths, and other non-fatal warnings.
 
@@ -188,10 +187,9 @@ evaluation yet.
 
 ## Current limitations
 
-The high-level `run_aqforecast()` runner does not currently:
+Configuration-only mode does not currently:
 
-- Start the database-update operation automatically.
-- Download or discover input data as part of `run_aqforecast()`.
+- Download or discover input data.
 - Preprocess data for DeepSensor.
 - Train or load a forecasting model.
 - Generate forecast outputs.
@@ -199,9 +197,9 @@ The high-level `run_aqforecast()` runner does not currently:
 - Create output directories.
 - Provide operation modes such as `train`, `forecast`, or `evaluate`.
 
-The database update mode is currently invoked through
-`aqforecast.orchestration.run_database_update()` rather than through
-`run_aqforecast()`.
+The database update mode is available through both
+`run_aqforecast(mode="database_update")` and
+`aqforecast.orchestration.run_database_update()`.
 
 These stages will be added as their respective systems are implemented. The
 runner will remain the high-level orchestration entry point, while directory

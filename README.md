@@ -165,9 +165,9 @@ Available and planned documentation is listed in the `docs/` directory. The inst
 - [Configuration Reference](docs/configuration.md)
 - [User Guide](docs/user_guide.md)
 
-The following documentation pages are planned:
+Additional documentation pages are planned:
 
-- [Data Sources](docs/data_source.md) (AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂/O₃ currently implemented)
+- [Data Sources](docs/data_sources.md) (AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂/O₃ currently implemented)
 - [NCCS Deployment](docs/nccs_deployment.md)
 - [API Reference](docs/api_reference.md)
 
@@ -213,7 +213,11 @@ ChemML accesses data from multiple sources:
 - **TEMPO NO₂**: `TEMPO_NO2_L3`; authenticated DAP4/OpenDAP regional subsets, resumable caching, moderate quality filtering, native 0.02-degree hourly aggregation, and database integration are implemented
 - **TEMPO O₃ Profile**: `TEMPO_O3PROF_L3`; configurable profile-layer selection, authenticated DAP4/OpenDAP regional subsets, cloud/angle QC, native 0.04-degree hourly aggregation, and database integration are implemented
 - **GOES-ABI**: AOD
-- **TEMPO PM2.5**: planned
+- **TEMPO PM2.5**: deferred beyond Phase 2 until April 2027 because the
+  product is not expected to be available before then
+
+GEMS and GCAS are also deferred beyond the immediate Phase 2 implementation
+scope. GOES-ABI and GEOS-CF remain planned Phase 2 sources.
 
 ### Numerical Models
 - **[GEOS-CF](https://gmao.gsfc.nasa.gov/gmao-products/geos-cf/)**: NASA's atmospheric composition forecast system

@@ -50,7 +50,7 @@ database and handled by the generic database manager.
 
 ## TROPOMI
 
-TROPOMI is the first implemented satellite-data ingest. The adapter searches
+The adapter searches
 NASA Earthdata for the version-2 high-resolution collections
 `S5P_L2__NO2____HiR` and `S5P_L2__O3_TOT_HiR`, using the configured UTC interval
 and region bounding box. Earthdata credentials are read from the resolved
@@ -72,5 +72,61 @@ Both variables are combined in the same monthly NetCDF partition and managed
 by the generic database manager. Daily completeness and merges compare
 calendar dates rather than exact overpass timestamps.
 
-The ATL integration tests ingested August 4–12, 2026, into
-`TROPOMI_ATL_202608_grid_005_d.nc` with a regenerated source catalog.
+
+## VIIRS/JPSS2 VJ219A2 aerosol optical depth
+
+ChemML acquires the VIIRS/JPSS2 Land Aerosol Optical Depth Daily L2G Global
+750 m RSIN Grid V002 product through NASA Earthdata using `earthaccess`.
+The configured collection is `VJ219A2`, version `002` (concept ID
+`C2885060488-LPCLOUD`). The adapter searches granules for the configured
+region and UTC interval, and the database manager stores monthly NetCDF output.
+
+The preprocessor reads `Optical_Depth_055`, converts granule-specific RSIN
+geolocation to latitude/longitude, and applies the configured moderate filter:
+valid AOD values from 0 through 6 and `AOD_QA & 3 <= 1`. Valid 750 m pixels
+are averaged onto the 0.01-degree target grid before daily aggregation.
+
+## PACE OCI trace gases
+
+ChemML accesses `PACE_OCI_L2_TRGAS` through `earthaccess`. The preprocessor
+reads `total_column_no2` and `total_column_o3` with their binary quality
+variables. Only quality value 0 pixels are retained; values are averaged onto
+a 0.02-degree grid before daily aggregation, with the UTC timestamp centered
+on the overpass hour containing the most valid data.
+
+## TEMPO NO₂
+
+ChemML accesses `TEMPO_NO2_L3` (`C3685896708-LARC_CLOUD`) through NASA
+Earthdata. Granules are found with `earthaccess`, while regional subsets are
+read through authenticated DAP4/OpenDAP using xarray and pydap. The product
+variables `vertical_column_troposphere` and `main_data_quality_flag` are
+loaded using coordinate-derived native index slices.
+
+Finite science values with `main_data_quality_flag <= 1` are retained,
+including negative NO₂ values. The native approximately 0.02-degree grid is
+preserved, duplicate granules in an hour are averaged, and timestamps are UTC
+and centered on the hour. Subsets are cached under the source `.tmp` directory
+for interruption recovery and removed after successful database storage.
+
+## TEMPO O₃ Profile
+
+ChemML accesses `TEMPO_O3PROF_L3` (`C3685896402-LARC_CLOUD`) through
+authenticated DAP4/OpenDAP. `ozone_profile` is read from `product`,
+`eff_cloud_fraction` from `support_data`, and the solar and viewing zenith
+angles from `geolocation`.
+
+The configurable `profile_layers` setting uses 1-indexed names while the
+source layer dimension is zero-indexed. Thus `profile_layers: [24]` selects
+source index 23, the lowest approximately 0–2 km layer, and produces
+`ozone_profile_layer_24`. Multiple configured layers produce corresponding
+variables. QC removes non-finite/fill-value data, cloud fractions above 0.5,
+and solar or viewing zenith angles above 80°. The native approximately 0.04°
+grid is preserved, duplicate hourly granules are averaged, and cached subsets
+are removed after successful storage.
+
+## Planned sources
+
+GOES-ABI AOD, GEOS-CF, and land-cover data do not yet have completed
+source-specific ingest paths and remain planned Phase 2 sources. GEMS, GCAS,
+and TEMPO PM2.5 are deferred beyond the immediate Phase 2 implementation
+scope; TEMPO PM2.5 is expected to become available around April 2027.

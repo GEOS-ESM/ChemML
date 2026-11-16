@@ -120,30 +120,12 @@ databases for all configured input sources.
 
 **Tasks**:
 
-- [ ] AirNow:
-  - [x] Acquire data through the AirNow API.
-  - [x] Subset requests by configured region, period, and pollutants.
-  - [x] Convert source responses to the standardized point-data format.
-  - [x] Apply quality control, concentration bounds, and unit conversion.
-  - [x] Confirm site identity and coordinate consistency.
-  - [x] Confirm no regridding is required for point observations.
-  - [x] Integrate processed observations with the existing database.
-- [x] OpenAQ:
-  - [x] Acquire data through the OpenAQ API.
-  - [x] Subset data by configured region, period, and pollutants.
-  - [x] Convert source responses to the standardized point-data format.
-  - [x] Apply quality control, fill-value handling, and unit conversion.
-  - [x] Confirm site identity and coordinate consistency.
-  - [x] Confirm no regridding is required for point observations.
-  - [x] Integrate processed observations with the existing database.
-  - [x] Validate the complete database-update path with a live ATL test.
-- [x] VIIRS/JPSS2 VJ219A2 AOD:
-  - [x] Acquire data from the configured NASA Earthdata source.
-  - [x] Subset data by configured region, period, and variables.
-  - [x] Convert source files to the standardized database format.
-  - [x] Apply quality control, fill-value handling, and retrieval filters.
-  - [x] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [x] Integrate processed data with the existing database.
+- [x] AirNow: acquire, subset, standardize, quality-control, validate site
+  identity, and integrate into the database.
+- [x] OpenAQ: acquire, subset, standardize, quality-control, reconcile sites,
+  and integrate into the database, including a live ATL test.
+- [x] VIIRS/JPSS2 VJ219A2 AOD: acquire, quality-control, geolocate, regrid,
+  aggregate, and integrate into the database.
 - [ ] GOES-ABI AOD:
   - [ ] Acquire data from the configured source.
   - [ ] Subset data by configured region, period, and variables.
@@ -151,45 +133,15 @@ databases for all configured input sources.
   - [ ] Apply quality control, fill-value handling, and retrieval filters.
   - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
   - [ ] Integrate processed data with the existing database.
-- [x] TROPOMI NO₂:
-  - [x] Acquire data from the configured NASA Earthdata source.
-  - [x] Subset data by configured region, period, and variables.
-  - [x] Convert source files to the standardized database format.
-  - [x] Apply quality control, fill-value handling, cloud filters, and flags.
-  - [x] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [x] Integrate processed data with the existing database.
-- [x] TROPOMI O₃:
-  - [x] Acquire data from the configured NASA Earthdata source.
-  - [x] Subset data by configured region, period, and variables.
-  - [x] Convert source files to the standardized database format.
-  - [x] Apply quality control, fill-value handling, cloud filters, and flags.
-  - [x] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [x] Integrate processed data with the existing database.
-- [x] PACE NO₂ (`total_column_no2`): acquire, subset, quality-control,
-  regrid, aggregate, and integrate with the database.
-- [x] PACE O₃ (`total_column_o3`): acquire, subset, quality-control,
-  regrid, aggregate, and integrate with the database.
-- [x] TEMPO NO₂:
-  - [x] Acquire data from the configured NASA Earthdata source through DAP4/OpenDAP.
-  - [x] Subset data by configured region, time window, and variables with resumable `.tmp` caching.
-  - [x] Convert source files to the standardized database format.
-  - [x] Apply quality control, fill-value handling, and the primary quality flag.
-  - [x] Preserve the native approximately 0.02-degree grid and aggregate hourly.
-  - [x] Integrate processed data with the existing database and clean successful temporary subsets.
-- [x] TEMPO O₃ Profiles:
-  - [x] Acquire data from the configured NASA Earthdata source through DAP4/OpenDAP.
-  - [x] Subset data by configured region, time window, and configurable profile layers.
-  - [x] Convert source files to the standardized database format.
-  - [x] Apply cloud-fraction and solar/viewing zenith-angle quality controls.
-  - [x] Preserve the native approximately 0.04-degree grid and aggregate hourly.
-  - [x] Integrate processed data with the existing database and clean successful temporary subsets.
-- [ ] TEMPO PM2.5:
-  - [ ] Acquire data from the configured NASA Earthdata source.
-  - [ ] Subset data by configured region, time window, and variables.
-  - [ ] Convert source files to the standardized database format.
-  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
-  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [ ] Integrate processed data with the existing database.
+- [x] TROPOMI NO₂/O₃: acquire, quality-control, regrid, aggregate, combine,
+  and integrate both products into the database.
+- [x] PACE NO₂/O₃: acquire, quality-control, regrid, aggregate, and integrate
+  both trace-gas variables into the database.
+- [x] TEMPO NO₂: acquire authenticated OpenDAP subsets, quality-control,
+  aggregate on the native grid, and integrate with resumable caching.
+- [x] TEMPO O₃ Profiles: acquire configurable profile layers through OpenDAP,
+  apply cloud/angle QC, aggregate on the native grid, and integrate with cache
+  cleanup.
 - [ ] GEOS-CF:
   - [ ] Acquire model data for the configured region and period.
   - [ ] Subset data by configured region, period, and variables.
@@ -225,7 +177,8 @@ databases for all configured input sources.
 - [x] Handle empty source files, including CSV files containing only headers,
   as empty databases or explicit, actionable input errors.
 - [ ] Create data download scripts.
-- [ ] Implement data-acquisition modules for the remaining configured sources.
+- [ ] Implement data-acquisition modules for the remaining Phase 2 sources
+  (GOES-ABI, GEOS-CF, and land cover).
 - [x] Add the AirNow source-specific acquisition and preprocessing adapters to
   the database manager.
 - [x] Add AirNow source-specific tests using mocked API responses and
@@ -234,6 +187,10 @@ databases for all configured input sources.
   coordinate consistency, empty databases, and timestamp normalization.
 - [ ] Add broader tests for partial updates, retries/failures, and output
   database fixtures across all sources.
+- [ ] After all intended datasets have acquisition implementations, conduct an
+  all-up database-update test covering every implemented dataset over a period
+  that crosses a month boundary. Verify multi-source downloads, database
+  merging, monthly partitioning, catalogs, and subsequent data access.
 - [ ] Keep `config/inputs/input_data_config.yaml` aligned with the settings required to download and preprocess each data source as ingest codes are developed.
 - [ ] Test data acquisition on NCCS.
 - [ ] Schedule ongoing data ingest:
@@ -249,7 +206,7 @@ same dates.
 
 **Deliverables**:
 
-- Functional data acquisition modules for all sources.
+- Functional data acquisition modules for the immediate Phase 2 sources.
 - Data quality control procedures.
 - Download scripts for historical data.
 - Unit tests for data modules.
@@ -267,6 +224,16 @@ same dates.
 - NASA Earthdata credentials.
 - AirNow and OpenAQ API keys.
 - NCCS access.
+
+### Future Dataset Work — Deferred
+
+These datasets are outside the immediate Phase 2 implementation scope and are
+deferred until their data availability and integration requirements are ready:
+
+- [ ] GEMS ingest and preprocessing.
+- [ ] GCAS ingest and preprocessing.
+- [ ] TEMPO PM2.5 ingest and preprocessing — deferred until April 2027 because
+  the product is not expected to be available before then.
 
 ### Phase 3: Data Conditioning — Planned
 
@@ -405,7 +372,7 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 - [x] Create `docs/installation.md`.
 - [x] Create `docs/user_guide.md`.
 - [x] Create `docs/configuration.md`.
-- [ ] Create `docs/data_sources.md`.
+- [x] Create and maintain `docs/data_sources.md` as the canonical data-source reference.
 - [ ] Create `docs/nccs_deployment.md`.
 - [ ] Create `docs/api_reference.md`.
 - [ ] Develop example Jupyter notebooks.
@@ -470,9 +437,9 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
   successful ATL testing through `run_aqforecast()`.
 
 AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂/O₃ Profile now have complete
-source-specific acquisition and preprocessing paths. The remaining configured
-satellite, model, and ground-data sources remain planned or require further
-implementation and integration testing.
+source-specific acquisition and preprocessing paths. GOES-ABI, GEOS-CF, and
+land cover remain planned Phase 2 sources; GEMS, GCAS, and TEMPO PM2.5 are
+deferred to future work.
 
 ### In Progress
 
@@ -482,8 +449,8 @@ implementation and integration testing.
 
 ### Upcoming
 
-- Source-specific acquisition adapters for GOES-ABI, TEMPO PM2.5, model, and
-  remaining ground-data sources.
+- Source-specific acquisition adapters for the remaining Phase 2 sources:
+  GOES-ABI, GEOS-CF, land cover, and any remaining ground-data sources.
 - Dataset-specific quality control, regridding, and aggregation.
 - Integration fixtures and broader database-manager coverage.
 
@@ -523,7 +490,7 @@ implementation and integration testing.
 | GOES-ABI | ABI-L2-AOD | AOD | 2 km | 1 hour |
 | TEMPO NO₂ | TEMPO_NO2_L3 | `vertical_column_troposphere` | native ~0.02° grid | 1 hour |
 | TEMPO O₃ Profile | TEMPO_O3PROF_L3 | configurable `ozone_profile_layer_*` | native ~0.04° grid | 1 hour |
-| TEMPO PM2.5 | TEMPO PM product | planned | 2–8 km | 1 hour |
+| TEMPO PM2.5 | TEMPO PM product | deferred beyond Phase 2 | 2–8 km | 1 hour |
 
 ### Model Data
 

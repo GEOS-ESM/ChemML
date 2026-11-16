@@ -204,8 +204,9 @@ Source names are case-sensitive and must match `source_key` values in `input_dat
 - `access.mode` (`local` or `remote`) and a per-source `.tmp` staging folder.
 - `time.availability`, which supports continuous timestamps or configured
   daily observation windows. The initial GEMS and GCAS defaults assume 08:00
-  through 17:00 in the configured local region timezone and can be revised by
-  their source adapters.
+  through 17:00 in the configured local region timezone; those sources are
+  deferred future work and their settings can be revised when adapters are
+  developed.
 - Point-data sources may define `site_id` and
   `site_coordinate_tolerance`. These identify the stable site column and the
   maximum allowed coordinate difference for generic site-coordinate checks.
@@ -223,7 +224,10 @@ adapter, after which processed data are merged using the default
 records the files found, time coverage, variables, dimensions, and spatial
 extent; configuration remains authoritative.
 
-Detailed definitions currently exist for `ground_monitors`, `GEOS-CF`, `TROPOMI`, `GEMS`, `TEMPO_NO2`, `TEMPO_O3`, `GCAS`, and `land_cover`. `PACE`, `VIIRS`, and `GOES-ABI` are placeholder categories to be completed as their data-ingest and preprocessing code is developed.
+Detailed definitions currently exist for `ground_monitors`, `GEOS-CF`,
+`TROPOMI`, `PACE`, `VIIRS`, `TEMPO_NO2`, and `TEMPO_O3`. `land_cover` and
+`GOES-ABI` remain planned Phase 2 sources. `GEMS`, `GCAS`, and TEMPO PM2.5
+are deferred future datasets.
 
 The current `ground_monitors` definition is the AirNow-compatible point-data
 example. AirNow acquisition first returns `aqs_id`, `lat`, `lon`, `time`,
