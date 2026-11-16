@@ -88,12 +88,13 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   catalogs.
 - Generic local/remote acquisition adapters and shared preprocessing are in
   place. AirNow and OpenAQ are complete point-monitor source-specific
-  implementations, and TROPOMI version-2 NO₂/O₃ acquisition and preprocessing
-  are complete, with retries, QC, daily aggregation, shared regridding, and
-  database registration. The shared irregular-point regridder is implemented
-  in `aqforecast/utils/regridding.py`, using each dataset's configured target
-  resolution while preserving non-spatial dimensions; other dataset-specific
-  download and source adapters remain future work.
+  implementations. TROPOMI version-2 NO₂/O₃ and VIIRS/JPSS2 VJ219A2 AOD
+  acquisition and preprocessing are complete, with retries, QC, daily
+  aggregation, shared regridding, and database registration. The shared
+  irregular-point regridder is implemented in `aqforecast/utils/regridding.py`,
+  using each dataset's configured target resolution while preserving
+  non-spatial dimensions; other dataset-specific download and source adapters
+  remain future work.
 - A live ATL database-update test using an in-memory OpenAQ provider override
   completed for August 4–9, 2026 and produced an OpenAQ partition alongside
   the existing AirNow partition in the external test-data directory.
@@ -126,13 +127,13 @@ databases for all configured input sources.
   - [x] Confirm no regridding is required for point observations.
   - [x] Integrate processed observations with the existing database.
   - [x] Validate the complete database-update path with a live ATL test.
-- [ ] VIIRS MAIAC AOD:
-  - [ ] Acquire data from the configured NASA Earthdata source.
-  - [ ] Subset data by configured region, period, and variables.
-  - [ ] Convert source files to the standardized database format.
-  - [ ] Apply quality control, fill-value handling, and retrieval filters.
-  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [ ] Integrate processed data with the existing database.
+- [x] VIIRS/JPSS2 VJ219A2 AOD:
+  - [x] Acquire data from the configured NASA Earthdata source.
+  - [x] Subset data by configured region, period, and variables.
+  - [x] Convert source files to the standardized database format.
+  - [x] Apply quality control, fill-value handling, and retrieval filters.
+  - [x] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [x] Integrate processed data with the existing database.
 - [ ] GOES-ABI AOD:
   - [ ] Acquire data from the configured source.
   - [ ] Subset data by configured region, period, and variables.
@@ -509,7 +510,7 @@ sources remain planned or require further implementation and integration testing
 
 | Source | Product | Variables | Resolution | Latency |
 | --- | --- | --- | --- | --- |
-| VIIRS MAIAC | VNP09GA | AOD | 1 km | 1–2 days |
+| VIIRS/JPSS2 MAIAC | VJ219A2 V002 | `optical_depth_055` | 0.01° output grid | 1–2 days |
 | TROPOMI | S5P_L2 | NO₂, O₃ | 7 km | 1–2 days |
 | PACE | PACE_OCI_L2 | NO₂, O₃ | 1 km | 1–2 days |
 | GOES-ABI | ABI-L2-AOD | AOD | 2 km | 1 hour |

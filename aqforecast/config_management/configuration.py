@@ -44,7 +44,7 @@ DEFAULT_SOURCE_NAMES = (
     "GOES-ABI",
 )
 
-DEFERRED_SOURCES = {"PACE", "VIIRS", "GOES-ABI"}
+DEFERRED_SOURCES = {"PACE", "GOES-ABI"}
 PLACEHOLDER_PATTERN = re.compile(r"<[^>]+>")
 PATH_TEMPLATE_PATTERN = re.compile(r"\{([^{}]+)\}")
 

@@ -5,5 +5,6 @@ from .generic import GenericPreprocessor
 from .airnow import AirNowPreprocessor
 from .openaq import OpenAQPreprocessor
 from .tropomi import TropomiPreprocessor
+from .viirs import ViirsAodPreprocessor
 
-__all__ = ["DataPreprocessor", "GenericPreprocessor", "AirNowPreprocessor", "OpenAQPreprocessor", "TropomiPreprocessor"]
+__all__ = ["DataPreprocessor", "GenericPreprocessor", "AirNowPreprocessor", "OpenAQPreprocessor", "TropomiPreprocessor", "ViirsAodPreprocessor"]

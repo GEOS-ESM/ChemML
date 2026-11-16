@@ -109,6 +109,12 @@ class DatabaseManager:
 
             self.data_sources.setdefault("TROPOMI", TropomiDataSource(logger=self.logger))
             self.preprocessors.setdefault("TROPOMI", TropomiPreprocessor())
+        if "VIIRS" in self.configuration.get("input_data", {}).get("datasets", {}):
+            from aqforecast.data_acquisition.viirs import ViirsAodDataSource
+            from aqforecast.preprocessing.viirs import ViirsAodPreprocessor
+
+            self.data_sources.setdefault("VIIRS", ViirsAodDataSource(logger=self.logger))
+            self.preprocessors.setdefault("VIIRS", ViirsAodPreprocessor())
 
     def _expected_times(
         self, source: Mapping[str, Any], start: pd.Timestamp, end: pd.Timestamp

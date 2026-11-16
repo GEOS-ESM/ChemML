@@ -144,6 +144,19 @@ datasets:
 
   VIIRS:
     source_key: "VIIRS"
+    file_template: "VIIRS_{region_code}_{month_string}_grid_001_d.nc"
+    variables: ["optical_depth_055"]
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", frequency: "1D", aggregation: "daily_mean", alignment: "calendar_days", tolerance: "12h", timestamp_convention: "valid_data_center_hour", availability: {mode: "continuous"}}
+    quality_control:
+      mode: "moderate"
+      qa_quality_mask: 3
+      qa_quality_max: 1
+      aod_resolution_min: 0.0
+      aod_resolution_max: 6.0
+    regridding: {method: "target_grid", latlon_resolution: 0.01}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp", collection_short_name: "VJ219A2", concept_id: "C2885060488-LPCLOUD", collection_version: "002", download_threads: 2}
 
   GOES-ABI:
     source_key: "GOES-ABI"
