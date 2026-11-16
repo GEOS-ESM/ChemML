@@ -10,7 +10,7 @@ ChemML is a developing set of Python codes for high-resolution air quality estim
 > incremental input-data database manager are available. AirNow and OpenAQ
 > ground-monitor acquisition and preprocessing, plus the TROPOMI NO₂/O₃ and
 > VIIRS VJ219A2 AOD
-> satellite ingest, plus PACE OCI trace-gas and TEMPO NO₂ ingest, are implemented
+> satellite ingest, plus PACE OCI trace-gas and TEMPO NO₂/O₃ Profile ingest, are implemented
 > source-specific ingests; other source ingest,
 > forecasting, and validation
 > workflows are being built incrementally.
@@ -55,6 +55,7 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/data_acquisition/viirs.py` implements VJ219A2 version-002 VIIRS AOD Earthdata acquisition.
 - `aqforecast/data_acquisition/pace.py` implements standard PACE OCI trace-gas Earthdata acquisition.
 - `aqforecast/data_acquisition/tempo.py` implements authenticated TEMPO NO₂ DAP4/OpenDAP acquisition with resumable temporary subsets.
+- `aqforecast/data_acquisition/tempo_o3.py` implements configurable-layer TEMPO O₃ Profile DAP4/OpenDAP acquisition.
 - `aqforecast/preprocessing/generic.py` provides shared fill-value and basic quality-control preprocessing.
 - `aqforecast/preprocessing/airnow.py` implements AirNow unit conversion, quality control, and site-ID standardization.
 - `aqforecast/preprocessing/openaq.py` implements OpenAQ unit conversion, shared quality control, sensor reconciliation, and site-ID standardization.
@@ -62,6 +63,7 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/preprocessing/viirs.py` implements VJ219A2 QA filtering, RSIN geolocation, 0.01-degree regridding, and daily aggregation.
 - `aqforecast/preprocessing/pace.py` implements PACE quality filtering, 0.02-degree regridding, and daily aggregation for total-column NO₂/O₃.
 - `aqforecast/preprocessing/tempo.py` implements TEMPO quality filtering, native-grid hourly aggregation, and UTC timestamp normalization.
+- `aqforecast/preprocessing/tempo_o3.py` implements configurable-layer selection, angle/cloud QC, native-grid hourly aggregation, and UTC timestamp normalization for TEMPO O₃.
 - `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`, `aqforecast/forecasting/`, `aqforecast/validation/`, and `aqforecast/orchestration/` contain the stage interfaces; most source-specific and forecasting implementations remain planned.
 - `aqforecast/orchestration/database_update.py` provides the standalone database-update mode.
 - `aqforecast/aqforecast.py` contains the `run_aqforecast()` workflow entry
@@ -165,7 +167,7 @@ Available and planned documentation is listed in the `docs/` directory. The inst
 
 The following documentation pages are planned:
 
-- [Data Sources](docs/data_source.md) (AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂ currently implemented)
+- [Data Sources](docs/data_source.md) (AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂/O₃ currently implemented)
 - [NCCS Deployment](docs/nccs_deployment.md)
 - [API Reference](docs/api_reference.md)
 
@@ -209,8 +211,9 @@ ChemML accesses data from multiple sources:
 - **TROPOMI**: high-resolution NO₂ and total column O₃; version-2 acquisition and preprocessing are implemented
 - **PACE OCI**: `total_column_no2` and `total_column_o3`; standard trace-gas acquisition, quality control, 0.02-degree regridding, daily aggregation, and database integration are implemented
 - **TEMPO NO₂**: `TEMPO_NO2_L3`; authenticated DAP4/OpenDAP regional subsets, resumable caching, moderate quality filtering, native 0.02-degree hourly aggregation, and database integration are implemented
+- **TEMPO O₃ Profile**: `TEMPO_O3PROF_L3`; configurable profile-layer selection, authenticated DAP4/OpenDAP regional subsets, cloud/angle QC, native 0.04-degree hourly aggregation, and database integration are implemented
 - **GOES-ABI**: AOD
-- **TEMPO O₃ profiles and PM2.5**: planned
+- **TEMPO PM2.5**: planned
 
 ### Numerical Models
 - **[GEOS-CF](https://gmao.gsfc.nasa.gov/gmao-products/geos-cf/)**: NASA's atmospheric composition forecast system

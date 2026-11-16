@@ -61,3 +61,27 @@ multiple granules represent the same UTC hour, valid values are averaged and
 the hourly, half-hour-centered timestamp is retained. Daylight-only gaps are
 not treated as nighttime observations; completeness windows are clipped to the
 requested UTC interval.
+
+## TEMPO O₃ Profile
+
+ChemML accesses the TEMPO Level-3 ozone profile collection
+`TEMPO_O3PROF_L3` (`C3685896402-LARC_CLOUD`) through NASA Earthdata. Granules
+are discovered with `earthaccess`, and regional subsets are read with the
+authenticated DAP4/OpenDAP utility. The acquisition reads `ozone_profile`
+from the `product` group, `eff_cloud_fraction` from `support_data`, and
+`solar_zenith_angle` and `viewing_zenith_angle` from `geolocation`.
+
+The configured `profile_layers` list uses human-facing 1-indexed layer names,
+while the source `layer` dimension is zero-indexed. Thus `profile_layers: [24]`
+selects source index 23, the lowest approximately 0–2 km layer, and produces
+`ozone_profile_layer_24`. Multiple configured layers produce one corresponding
+scientific variable per layer. Each granule subset is cached under the source
+database's `.tmp` directory and is removed after successful database storage;
+failed updates retain completed subsets for resumption.
+
+Quality control removes non-finite and fill-value science data, cloud fractions
+above 0.5, solar zenith angles above 80°, and viewing zenith angles above 80°.
+The native approximately 0.04° latitude/longitude grid is preserved without
+regridding. Duplicate granules in an hour are averaged after QC, with UTC
+timestamps aligned to the center of the hour. Daylight-only gaps are handled
+by the configured UTC-bounded completeness logic.

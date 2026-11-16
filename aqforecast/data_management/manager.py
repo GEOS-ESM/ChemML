@@ -127,6 +127,12 @@ class DatabaseManager:
 
             self.data_sources.setdefault("TEMPO_NO2", TempoNo2DataSource(logger=self.logger))
             self.preprocessors.setdefault("TEMPO_NO2", TempoNo2Preprocessor())
+        if "TEMPO_O3" in self.configuration.get("input_data", {}).get("datasets", {}):
+            from aqforecast.data_acquisition.tempo_o3 import TempoO3ProfileDataSource
+            from aqforecast.preprocessing.tempo_o3 import TempoO3ProfilePreprocessor
+
+            self.data_sources.setdefault("TEMPO_O3", TempoO3ProfileDataSource(logger=self.logger))
+            self.preprocessors.setdefault("TEMPO_O3", TempoO3ProfilePreprocessor())
 
     def _expected_times(
         self, source: Mapping[str, Any], start: pd.Timestamp, end: pd.Timestamp

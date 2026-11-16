@@ -16,7 +16,7 @@ inputs:
   TEMPO_NO2:
     enabled: true
   TEMPO_O3:
-    enabled: false
+    enabled: true
   GEMS:
     enabled: false
   GCAS:

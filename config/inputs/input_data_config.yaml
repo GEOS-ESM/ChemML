@@ -95,8 +95,10 @@ datasets:
   TEMPO_O3:
     source_key: "TEMPO_O3"
     file_template: "TEMPO_O3_{region_code}_{month_string}_grid_004_h.nc"
-    variables: ["troposphere_ozone_column", "ozone_profile_layer_24", "eff_cloud_fraction", "solar_zenith_angle", "viewing_zenith_angle"]
-    variable_prefix: "TEMPO_O3_"
+    variables: ["ozone_profile_layer_24"]  # Derived variables follow profile_layers below.
+    # Profile names are 1-indexed; the source file's layer dimension is 0-indexed.
+    # Layer 24 is the lowest atmospheric layer (approximately 0-2 km).
+    profile_layers: [24]
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
     time:
       type: "datetime"
@@ -107,7 +109,8 @@ datasets:
       availability: {mode: "daily_window", start: "07:00", end: "19:00", timezone: "US/Eastern"}
     regridding: {method: "none", latlon_resolution: 0.04}
     storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
-    access: {mode: "remote", temporary_directory: ".tmp"}
+    access: {mode: "remote", temporary_directory: ".tmp", cache_subdirectory: ".tmp", collection_short_name: "TEMPO_O3PROF_L3", concept_id: "C3685896402-LARC_CLOUD", product_group: "product", support_group: "support_data", geolocation_group: "geolocation"}
+    quality_control: {mode: "moderate", cloud_fraction_max: 0.5, solar_zenith_angle_max: 80.0, viewing_zenith_angle_max: 80.0}
 
   GCAS:
     source_key: "GCAS"

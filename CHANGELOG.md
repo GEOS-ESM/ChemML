@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- **16 November 2026**: Add configurable-layer TEMPO O₃ Profile
+  DAP4/OpenDAP acquisition, cloud and zenith-angle QC, native-grid hourly
+  aggregation, database integration, temporary-cache cleanup, and ATL testing.
 - **16 November 2026**: Add TEMPO NO₂ Level-3 DAP4/OpenDAP acquisition with
   resumable regional subset caching, quality control, native-grid hourly
   aggregation, database integration, successful-cache cleanup, and corrected

@@ -8,5 +8,6 @@ from .tropomi import TropomiPreprocessor
 from .viirs import ViirsAodPreprocessor
 from .pace import PaceTraceGasPreprocessor
 from .tempo import TempoNo2Preprocessor
+from .tempo_o3 import TempoO3ProfilePreprocessor
 
-__all__ = ["DataPreprocessor", "GenericPreprocessor", "AirNowPreprocessor", "OpenAQPreprocessor", "TropomiPreprocessor", "ViirsAodPreprocessor", "PaceTraceGasPreprocessor", "TempoNo2Preprocessor"]
+__all__ = ["DataPreprocessor", "GenericPreprocessor", "AirNowPreprocessor", "OpenAQPreprocessor", "TropomiPreprocessor", "ViirsAodPreprocessor", "PaceTraceGasPreprocessor", "TempoNo2Preprocessor", "TempoO3ProfilePreprocessor"]

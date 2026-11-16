@@ -89,7 +89,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - Generic local/remote acquisition adapters and shared preprocessing are in
   place. AirNow and OpenAQ are complete point-monitor source-specific
   implementations. TROPOMI version-2 NO₂/O₃, VIIRS/JPSS2 VJ219A2 AOD, PACE
-  OCI trace gases, and TEMPO NO₂ acquisition and preprocessing are complete,
+  OCI trace gases, and TEMPO NO₂/O₃ Profile acquisition and preprocessing are complete,
   with retries, QC, aggregation, shared regridding where applicable, and
   database registration. TEMPO uses authenticated DAP4/OpenDAP subsets with
   resumable `.tmp` caching and post-success cleanup. The shared
@@ -107,6 +107,10 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   through `run_aqforecast()` using the testing configuration, including native
   grid hourly storage, completeness-window correction, duplicate-time merging,
   and successful temporary-cache cleanup.
+- A live ATL TEMPO O₃ Profile database-update test completed for August 4–8,
+  2026 through `run_aqforecast()` using the testing configuration, including
+  configurable layer selection, native-grid hourly storage, QC, and temporary
+  cache cleanup.
 - Model execution, forecasting, and evaluation remain to be implemented.
 
 ### Phase 2: Data Acquisition — In Progress
@@ -172,13 +176,13 @@ databases for all configured input sources.
   - [x] Apply quality control, fill-value handling, and the primary quality flag.
   - [x] Preserve the native approximately 0.02-degree grid and aggregate hourly.
   - [x] Integrate processed data with the existing database and clean successful temporary subsets.
-- [ ] TEMPO O₃ Profiles:
-  - [ ] Acquire data from the configured NASA Earthdata source.
-  - [ ] Subset data by configured region, time window, and variables.
-  - [ ] Convert source files to the standardized database format.
-  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
-  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [ ] Integrate processed data with the existing database.
+- [x] TEMPO O₃ Profiles:
+  - [x] Acquire data from the configured NASA Earthdata source through DAP4/OpenDAP.
+  - [x] Subset data by configured region, time window, and configurable profile layers.
+  - [x] Convert source files to the standardized database format.
+  - [x] Apply cloud-fraction and solar/viewing zenith-angle quality controls.
+  - [x] Preserve the native approximately 0.04-degree grid and aggregate hourly.
+  - [x] Integrate processed data with the existing database and clean successful temporary subsets.
 - [ ] TEMPO PM2.5:
   - [ ] Acquire data from the configured NASA Earthdata source.
   - [ ] Subset data by configured region, time window, and variables.
@@ -461,8 +465,11 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 - ✅ TEMPO NO₂ DAP4/OpenDAP acquisition, resumable regional caching, moderate
   QC, native-grid hourly aggregation, database integration, and successful
   ATL testing through `run_aqforecast()`.
+- ✅ TEMPO O₃ Profile DAP4/OpenDAP acquisition with configurable profile layers,
+  cloud/angle QC, native-grid hourly aggregation, database integration, and
+  successful ATL testing through `run_aqforecast()`.
 
-AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂ now have complete
+AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂/O₃ Profile now have complete
 source-specific acquisition and preprocessing paths. The remaining configured
 satellite, model, and ground-data sources remain planned or require further
 implementation and integration testing.
@@ -470,13 +477,13 @@ implementation and integration testing.
 ### In Progress
 
 - 🚧 Dataset-specific data acquisition and preprocessing implementations beyond
-  AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂, plus broader database integration fixtures.
+  AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂/O₃ Profile, plus broader database integration fixtures.
 - 🚧 Forecasting and validation workflow implementation.
 
 ### Upcoming
 
-- Source-specific acquisition adapters for GOES-ABI, TEMPO O₃ profiles, TEMPO
-  PM2.5, model, and remaining ground-data sources.
+- Source-specific acquisition adapters for GOES-ABI, TEMPO PM2.5, model, and
+  remaining ground-data sources.
 - Dataset-specific quality control, regridding, and aggregation.
 - Integration fixtures and broader database-manager coverage.
 
@@ -515,7 +522,8 @@ implementation and integration testing.
 | PACE OCI | PACE_OCI_L2_TRGAS V3.0 | `total_column_no2`, `total_column_o3` | 0.02° output grid | 1–2 days |
 | GOES-ABI | ABI-L2-AOD | AOD | 2 km | 1 hour |
 | TEMPO NO₂ | TEMPO_NO2_L3 | `vertical_column_troposphere` | native ~0.02° grid | 1 hour |
-| TEMPO O₃ / PM2.5 | TEMPO profile and PM products | planned | 2–8 km | 1 hour |
+| TEMPO O₃ Profile | TEMPO_O3PROF_L3 | configurable `ozone_profile_layer_*` | native ~0.04° grid | 1 hour |
+| TEMPO PM2.5 | TEMPO PM product | planned | 2–8 km | 1 hour |
 
 ### Model Data
 
