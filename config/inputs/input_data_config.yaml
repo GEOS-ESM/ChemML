@@ -141,6 +141,17 @@ datasets:
   # preprocessing codes are developed.
   PACE:
     source_key: "PACE"
+    file_template: "PACE_{region_code}_{month_string}_grid_002_d.nc"
+    variables: ["total_column_no2", "total_column_o3"]
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", frequency: "1D", aggregation: "daily_mean", alignment: "calendar_days", tolerance: "12h", timestamp_convention: "valid_data_center_hour", availability: {mode: "continuous"}}
+    quality_control:
+      mode: "moderate"
+      no2_good_value: 0
+      o3_good_value: 0
+    regridding: {method: "target_grid", latlon_resolution: 0.02}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp", collection_short_name: "PACE_OCI_L2_TRGAS", collection_version: "3.0", download_threads: 2}
 
   VIIRS:
     source_key: "VIIRS"

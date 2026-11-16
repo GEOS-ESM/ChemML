@@ -11,6 +11,8 @@ inputs:
     enabled: true
   VIIRS:
     enabled: true
+  PACE:
+    enabled: true
   TEMPO_NO2:
     enabled: false
   TEMPO_O3:

@@ -115,6 +115,12 @@ class DatabaseManager:
 
             self.data_sources.setdefault("VIIRS", ViirsAodDataSource(logger=self.logger))
             self.preprocessors.setdefault("VIIRS", ViirsAodPreprocessor())
+        if "PACE" in self.configuration.get("input_data", {}).get("datasets", {}):
+            from aqforecast.data_acquisition.pace import PaceTraceGasDataSource
+            from aqforecast.preprocessing.pace import PaceTraceGasPreprocessor
+
+            self.data_sources.setdefault("PACE", PaceTraceGasDataSource(logger=self.logger))
+            self.preprocessors.setdefault("PACE", PaceTraceGasPreprocessor())
 
     def _expected_times(
         self, source: Mapping[str, Any], start: pd.Timestamp, end: pd.Timestamp

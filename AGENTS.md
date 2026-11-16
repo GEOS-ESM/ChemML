@@ -24,6 +24,7 @@ This repository is under active development as a set of codes implementing a mac
 - `aqforecast/data_acquisition/airnow.py` and `aqforecast/preprocessing/airnow.py` provide the AirNow source-specific implementation; `openaq.py` provides the corresponding OpenAQ implementation. Use these point-monitor providers as references for adding other datasets.
 - `aqforecast/data_acquisition/tropomi.py` and `aqforecast/preprocessing/tropomi.py` provide the implemented version-2 TROPOMI NO₂ and total-column O₃ satellite ingest.
 - `aqforecast/data_acquisition/viirs.py` and `aqforecast/preprocessing/viirs.py` provide the implemented VIIRS/JPSS2 VJ219A2 version-002 AOD ingest.
+- `aqforecast/data_acquisition/pace.py` and `aqforecast/preprocessing/pace.py` provide the implemented PACE OCI trace-gas ingest.
 - `aqforecast/preprocessing/generic.py` contains shared fill-value and basic quality-control preprocessing.
 - `aqforecast/contracts.py` contains the shared data contracts (`DataRequest`,
   `DatasetBundle`, `ForecastRequest`, `ForecastResult`, `ValidationResult`,
@@ -56,7 +57,7 @@ There is no project build command. For local checks:
 - `python -m aqforecast.utils.setup` runs the guided first-time setup flow after the conda environment is activated.
 - Open notebooks with Jupyter in the environment described by `docs/examples/deepsensor_demo/deepsensor_cenv.yml`; run cells incrementally and confirm referenced data paths are available.
 - On NCCS Discover, run a configured batch entry with `python docs/examples/deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
-- Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`. AirNow or OpenAQ is automatically registered for regions whose `ground_monitoring.provider` selects that provider; TROPOMI and VIIRS are automatically registered when their configured datasets are selected.
+- Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`. AirNow or OpenAQ is automatically registered for regions whose `ground_monitoring.provider` selects that provider; TROPOMI, VIIRS, and PACE are automatically registered when their configured datasets are selected.
 
 ## Coding Style & Naming Conventions
 

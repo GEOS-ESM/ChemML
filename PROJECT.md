@@ -88,7 +88,8 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   catalogs.
 - Generic local/remote acquisition adapters and shared preprocessing are in
   place. AirNow and OpenAQ are complete point-monitor source-specific
-  implementations. TROPOMI version-2 NO₂/O₃ and VIIRS/JPSS2 VJ219A2 AOD
+implementations. TROPOMI version-2 NO₂/O₃, VIIRS/JPSS2 VJ219A2 AOD, and PACE
+OCI trace gases
   acquisition and preprocessing are complete, with retries, QC, daily
   aggregation, shared regridding, and database registration. The shared
   irregular-point regridder is implemented in `aqforecast/utils/regridding.py`,
@@ -155,20 +156,10 @@ databases for all configured input sources.
   - [x] Apply quality control, fill-value handling, cloud filters, and flags.
   - [x] Regrid or aggregate to the configured spatial and temporal resolution.
   - [x] Integrate processed data with the existing database.
-- [ ] PACE NO₂:
-  - [ ] Acquire data from the configured NASA Earthdata source.
-  - [ ] Subset data by configured region, period, and variables.
-  - [ ] Convert source files to the standardized database format.
-  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
-  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [ ] Integrate processed data with the existing database.
-- [ ] PACE O₃:
-  - [ ] Acquire data from the configured NASA Earthdata source.
-  - [ ] Subset data by configured region, period, and variables.
-  - [ ] Convert source files to the standardized database format.
-  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
-  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [ ] Integrate processed data with the existing database.
+- [x] PACE NO₂ (`total_column_no2`): acquire, subset, quality-control,
+  regrid, aggregate, and integrate with the database.
+- [x] PACE O₃ (`total_column_o3`): acquire, subset, quality-control,
+  regrid, aggregate, and integrate with the database.
 - [ ] TEMPO NO₂:
   - [ ] Acquire data from the configured NASA Earthdata source.
   - [ ] Subset data by configured region, time window, and variables.
@@ -512,7 +503,7 @@ sources remain planned or require further implementation and integration testing
 | --- | --- | --- | --- | --- |
 | VIIRS/JPSS2 MAIAC | VJ219A2 V002 | `optical_depth_055` | 0.01° output grid | 1–2 days |
 | TROPOMI | S5P_L2 | NO₂, O₃ | 7 km | 1–2 days |
-| PACE | PACE_OCI_L2 | NO₂, O₃ | 1 km | 1–2 days |
+| PACE OCI | PACE_OCI_L2_TRGAS V3.0 | `total_column_no2`, `total_column_o3` | 0.02° output grid | 1–2 days |
 | GOES-ABI | ABI-L2-AOD | AOD | 2 km | 1 hour |
 | TEMPO | TEMPO_L2 | NO₂, O₃ profile, PM2.5 | 2–8 km | 1 hour |
 
