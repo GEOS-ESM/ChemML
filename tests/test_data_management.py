@@ -158,3 +158,46 @@ def test_daily_grid_merge_uses_calendar_date_for_overpass_times() -> None:
     assert merged["no2"].item() == 1.0
     assert merged["o3"].item() == 2.0
     assert merged.time.dtype.kind == "M"
+
+
+def test_daily_window_is_clipped_to_requested_utc_interval() -> None:
+    manager = _manager()
+    source = {
+        "time": {
+            "frequency": "1h",
+            "timestamp_convention": "center",
+            "availability": {
+                "mode": "daily_window",
+                "start": "07:00",
+                "end": "19:00",
+                "timezone": "US/Eastern",
+            },
+        }
+    }
+    start = pd.Timestamp("2026-08-04T00:00:00Z")
+    end = pd.Timestamp("2026-08-08T00:00:00Z")
+
+    expected = manager._expected_times(source, start, end)
+
+    assert expected.min() >= start
+    assert expected.max() < end
+    assert not any(value.date() == pd.Timestamp("2026-08-03").date() for value in expected)
+
+
+def test_xarray_merge_resolves_duplicate_incoming_timestamps() -> None:
+    manager = _manager()
+    source = {"coordinate_names": {"time": "time"}}
+    existing = xr.Dataset(
+        {"value": (("time", "lat", "lon"), [[[1.0]]])},
+        coords={"time": ["2026-08-04T10:30:00"], "lat": [33.01], "lon": [-84.99]},
+    )
+    incoming = xr.Dataset(
+        {"value": (("time", "lat", "lon"), [[[float("nan")]]])},
+        coords={"time": ["2026-08-04T10:30:00"], "lat": [33.01], "lon": [-84.99]},
+    )
+
+    merged = manager._merge(existing, incoming, source, "fill_missing")
+
+    assert merged.sizes["time"] == 1
+    assert merged["value"].item() == 1.0
+    assert merged.time.dtype.kind == "M"

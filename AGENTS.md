@@ -18,6 +18,10 @@ This repository is under active development as a set of codes implementing a mac
   this utility for regridding rather than duplicating source-specific binning
   logic; it uses each dataset's configured `regridding.latlon_resolution` and
   preserves non-spatial dimensions.
+- `aqforecast/utils/opendap.py` contains the reusable authenticated NASA
+  Earthdata DAP4 subset client. It uses Earthaccess sessions with xarray's
+  pydap backend and applies coordinate-derived index slices before loading
+  science arrays.
 - `aqforecast/utils/setup.py` contains the explicit first-time setup flow for copying configuration files, collecting paths and credentials, creating configured directories, and verifying configuration.
 - `aqforecast/data_management/` contains the incremental partitioned input-data database manager and regenerable per-source catalogs.
 - `aqforecast/data_acquisition/generic.py` contains local and remote acquisition adapter wrappers and shared acquisition behavior. Source-specific acquisition implementations belong in new modules under `aqforecast/data_acquisition/`, with corresponding preprocessing implementations in new modules under `aqforecast/preprocessing/`.
@@ -25,6 +29,7 @@ This repository is under active development as a set of codes implementing a mac
 - `aqforecast/data_acquisition/tropomi.py` and `aqforecast/preprocessing/tropomi.py` provide the implemented version-2 TROPOMI NO₂ and total-column O₃ satellite ingest.
 - `aqforecast/data_acquisition/viirs.py` and `aqforecast/preprocessing/viirs.py` provide the implemented VIIRS/JPSS2 VJ219A2 version-002 AOD ingest.
 - `aqforecast/data_acquisition/pace.py` and `aqforecast/preprocessing/pace.py` provide the implemented PACE OCI trace-gas ingest.
+- `aqforecast/data_acquisition/tempo.py` and `aqforecast/preprocessing/tempo.py` provide the implemented TEMPO NO₂ DAP4/OpenDAP ingest, including resumable subset caching.
 - `aqforecast/preprocessing/generic.py` contains shared fill-value and basic quality-control preprocessing.
 - `aqforecast/contracts.py` contains the shared data contracts (`DataRequest`,
   `DatasetBundle`, `ForecastRequest`, `ForecastResult`, `ValidationResult`,
@@ -39,7 +44,8 @@ This repository is under active development as a set of codes implementing a mac
   `database_update` mode runs the implemented incremental ingest workflow.
 - `aqforecast/orchestration/database_update.py` contains the standalone `run_database_update()` mode and `DatabaseUpdateStage`.
 - `tests/` contains the pytest regression suite for configuration, database
-  management, AirNow/OpenAQ/TROPOMI ingest, and shared regridding.
+  management, AirNow/OpenAQ/TROPOMI/VIIRS/PACE/TEMPO ingest, OpenDAP access,
+  and shared regridding.
 - `README.md`, the folder READMEs, `CHANGELOG.md`, and `CONTRIBUTING.md` document usage, history, and contribution policy.
 - `.github/workflows/` contains CI checks.
 
@@ -57,7 +63,7 @@ There is no project build command. For local checks:
 - `python -m aqforecast.utils.setup` runs the guided first-time setup flow after the conda environment is activated.
 - Open notebooks with Jupyter in the environment described by `docs/examples/deepsensor_demo/deepsensor_cenv.yml`; run cells incrementally and confirm referenced data paths are available.
 - On NCCS Discover, run a configured batch entry with `python docs/examples/deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
-- Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`. AirNow or OpenAQ is automatically registered for regions whose `ground_monitoring.provider` selects that provider; TROPOMI, VIIRS, and PACE are automatically registered when their configured datasets are selected.
+- Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`. AirNow or OpenAQ is automatically registered for regions whose `ground_monitoring.provider` selects that provider; TROPOMI, VIIRS, PACE, and TEMPO NO₂ are automatically registered when their configured datasets are selected.
 
 ## Coding Style & Naming Conventions
 
@@ -122,7 +128,7 @@ parsing, and scientific normalization behavior.
 
 The pytest suite covers configuration loading, credential collection, setup,
 database-manager site identity and timestamp handling, the AirNow, OpenAQ,
-TROPOMI, and VIIRS adapters and preprocessors using mocked responses or
+TROPOMI, VIIRS, PACE, and TEMPO adapters and preprocessors using mocked responses or
 fixtures, and the shared regridder.
 No coverage threshold is configured yet. Remote credential verification and
 live API access are opt-in and should not be required for the network-free test

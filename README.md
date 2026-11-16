@@ -10,7 +10,7 @@ ChemML is a developing set of Python codes for high-resolution air quality estim
 > incremental input-data database manager are available. AirNow and OpenAQ
 > ground-monitor acquisition and preprocessing, plus the TROPOMI NO₂/O₃ and
 > VIIRS VJ219A2 AOD
-> satellite ingest, plus PACE OCI trace-gas ingest, are implemented
+> satellite ingest, plus PACE OCI trace-gas and TEMPO NO₂ ingest, are implemented
 > source-specific ingests; other source ingest,
 > forecasting, and validation
 > workflows are being built incrementally.
@@ -46,25 +46,30 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/data_management/` provides the incremental partitioned database manager and regenerable per-source catalogs.
 - `aqforecast/utils/regridding.py` provides the shared irregular-point
   regridder for dataset-specific latitude/longitude grids.
+- `aqforecast/utils/opendap.py` provides authenticated, bounding-box-subset
+  access to NASA Earthdata DAP4 resources through xarray and pydap.
 - `aqforecast/data_acquisition/generic.py` provides local and remote acquisition adapter contracts for source-specific ingest implementations.
 - `aqforecast/data_acquisition/airnow.py` implements the AirNow historical monitor acquisition adapter.
 - `aqforecast/data_acquisition/openaq.py` implements the OpenAQ v3 sensor-based monitor acquisition adapter.
 - `aqforecast/data_acquisition/tropomi.py` implements version-2 TROPOMI NO₂ and total-column O₃ Earthdata acquisition.
 - `aqforecast/data_acquisition/viirs.py` implements VJ219A2 version-002 VIIRS AOD Earthdata acquisition.
 - `aqforecast/data_acquisition/pace.py` implements standard PACE OCI trace-gas Earthdata acquisition.
+- `aqforecast/data_acquisition/tempo.py` implements authenticated TEMPO NO₂ DAP4/OpenDAP acquisition with resumable temporary subsets.
 - `aqforecast/preprocessing/generic.py` provides shared fill-value and basic quality-control preprocessing.
 - `aqforecast/preprocessing/airnow.py` implements AirNow unit conversion, quality control, and site-ID standardization.
 - `aqforecast/preprocessing/openaq.py` implements OpenAQ unit conversion, shared quality control, sensor reconciliation, and site-ID standardization.
 - `aqforecast/preprocessing/tropomi.py` implements TROPOMI quality control, 0.05-degree regridding, and daily aggregation.
 - `aqforecast/preprocessing/viirs.py` implements VJ219A2 QA filtering, RSIN geolocation, 0.01-degree regridding, and daily aggregation.
 - `aqforecast/preprocessing/pace.py` implements PACE quality filtering, 0.02-degree regridding, and daily aggregation for total-column NO₂/O₃.
+- `aqforecast/preprocessing/tempo.py` implements TEMPO quality filtering, native-grid hourly aggregation, and UTC timestamp normalization.
 - `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`, `aqforecast/forecasting/`, `aqforecast/validation/`, and `aqforecast/orchestration/` contain the stage interfaces; most source-specific and forecasting implementations remain planned.
 - `aqforecast/orchestration/database_update.py` provides the standalone database-update mode.
 - `aqforecast/aqforecast.py` contains the `run_aqforecast()` workflow entry
   point; it loads configuration, can optionally check credentials, and exposes
   the explicit database-update mode.
 - `tests/` contains pytest regression tests for configuration, database
-  management, AirNow/OpenAQ/TROPOMI/VIIRS ingest, and shared regridding.
+  management, AirNow/OpenAQ/TROPOMI/VIIRS/PACE/TEMPO ingest, OpenDAP access,
+  and shared regridding.
 - `docs/configuration.md` documents the current configuration structure and ownership boundaries.
 
 ## Quick Start
@@ -160,7 +165,7 @@ Available and planned documentation is listed in the `docs/` directory. The inst
 
 The following documentation pages are planned:
 
-- [Data Sources](docs/data_source.md) (AirNow, OpenAQ, TROPOMI, and VIIRS currently implemented)
+- [Data Sources](docs/data_source.md) (AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂ currently implemented)
 - [NCCS Deployment](docs/nccs_deployment.md)
 - [API Reference](docs/api_reference.md)
 
@@ -185,6 +190,7 @@ Interactive Jupyter notebooks demonstrating key workflows:
   - `xarray >= 2023.1`
   - `netcdf4 >= 1.6`
   - `earthaccess >= 0.8`
+  - `pydap >= 3.5` (authenticated DAP4/OpenDAP subsets)
   - `deepsensor`
   - `pytorch >= 2.0` (for GPU acceleration)
   - `pyyaml` (configuration parsing)
@@ -202,8 +208,9 @@ ChemML accesses data from multiple sources:
 - **VIIRS/JPSS2 VJ219A2**: 0.55 micron AOD; version-002 acquisition, QC, regridding, daily aggregation, and database integration are implemented
 - **TROPOMI**: high-resolution NO₂ and total column O₃; version-2 acquisition and preprocessing are implemented
 - **PACE OCI**: `total_column_no2` and `total_column_o3`; standard trace-gas acquisition, quality control, 0.02-degree regridding, daily aggregation, and database integration are implemented
+- **TEMPO NO₂**: `TEMPO_NO2_L3`; authenticated DAP4/OpenDAP regional subsets, resumable caching, moderate quality filtering, native 0.02-degree hourly aggregation, and database integration are implemented
 - **GOES-ABI**: AOD
-- **TEMPO**: NO₂, O₃ profiles, and PM2.5 (planned)
+- **TEMPO O₃ profiles and PM2.5**: planned
 
 ### Numerical Models
 - **[GEOS-CF](https://gmao.gsfc.nasa.gov/gmao-products/geos-cf/)**: NASA's atmospheric composition forecast system

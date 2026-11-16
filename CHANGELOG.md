@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- **16 November 2026**: Add TEMPO NO₂ Level-3 DAP4/OpenDAP acquisition with
+  resumable regional subset caching, quality control, native-grid hourly
+  aggregation, database integration, successful-cache cleanup, and corrected
+  daylight-window completeness handling.
+- **16 November 2026**: Add a reusable authenticated Earthdata DAP4/OpenDAP
+  subset utility using xarray and pydap, validated against TEMPO NO₂ L3.
 - **16 November 2026**: Add standard PACE OCI trace-gas acquisition,
   quality-variable filtering, 0.02-degree regridding, daily aggregation,
   database integration, configuration, documentation, and tests.

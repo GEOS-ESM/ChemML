@@ -78,8 +78,7 @@ datasets:
   TEMPO_NO2:
     source_key: "TEMPO_NO2"
     file_template: "TEMPO_NO2_{region_code}_{month_string}_grid_002_h.nc"
-    variables: ["vertical_column_troposphere", "main_data_quality_flag", "eff_cloud_fraction", "solar_zenith_angle", "viewing_zenith_angle"]
-    variable_prefix: "TEMPO_NO2_"
+    variables: ["vertical_column_troposphere"]
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
     time:
       type: "datetime"
@@ -90,7 +89,8 @@ datasets:
       availability: {mode: "daily_window", start: "07:00", end: "19:00", timezone: "US/Eastern"}
     regridding: {method: "none", latlon_resolution: 0.02}
     storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
-    access: {mode: "remote", temporary_directory: ".tmp"}
+    access: {mode: "remote", temporary_directory: ".tmp", cache_subdirectory: ".tmp", collection_short_name: "TEMPO_NO2_L3", concept_id: "C3685896708-LARC_CLOUD", group: "product", variables: ["vertical_column_troposphere", "main_data_quality_flag"]}
+    quality_control: {mode: "scientific", quality_flag_max: 1}
 
   TEMPO_O3:
     source_key: "TEMPO_O3"

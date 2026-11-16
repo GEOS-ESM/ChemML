@@ -36,3 +36,28 @@ onto a 0.02-degree latitude/longitude grid. Daily averaging occurs after this
 quality control and regridding. Multiple overpasses are averaged, and the UTC
 timestamp aligned to the center of the overpass hour with the most combined
 valid pixels is retained for each day.
+
+## TEMPO NO₂
+
+ChemML accesses the TEMPO Level-3 NO₂ collection `TEMPO_NO2_L3`
+(`C3685896708-LARC_CLOUD`) through NASA Earthdata. Granule names are found
+with `earthaccess`, while the requested region is read through authenticated
+DAP4/OpenDAP access using xarray and pydap. Only the `product` group and the
+`vertical_column_troposphere` and `main_data_quality_flag` variables are
+loaded. The OpenDAP utility derives native latitude/longitude index slices
+from each granule, so acquisition is region-independent and does not download
+the full global field.
+
+Each spatial subset is cached as a temporary NetCDF under the source
+database's `.tmp` directory. Completed cache files support resuming an
+interrupted acquisition and are removed only after the processed database
+partition is written successfully. Failed updates leave completed subsets in
+place for reuse.
+
+The preprocessor retains finite science values with
+`main_data_quality_flag <= 1`, preserving negative NO₂ values. TEMPO's native
+approximately 0.02-degree grid is preserved; no regridding is applied. When
+multiple granules represent the same UTC hour, valid values are averaged and
+the hourly, half-hour-centered timestamp is retained. Daylight-only gaps are
+not treated as nighttime observations; completeness windows are clipped to the
+requested UTC interval.

@@ -17,6 +17,7 @@ dependencies:
   - yamllint
   - pip:
     - earthaccess>=0.8
+    - pydap>=3.5
     - deepsensor
     - torch>=2.0
     # Required by aqforecast/config_management/configuration.py and its tests.

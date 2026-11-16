@@ -14,7 +14,7 @@ inputs:
   PACE:
     enabled: true
   TEMPO_NO2:
-    enabled: false
+    enabled: true
   TEMPO_O3:
     enabled: false
   GEMS:

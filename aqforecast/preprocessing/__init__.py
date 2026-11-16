@@ -7,5 +7,6 @@ from .openaq import OpenAQPreprocessor
 from .tropomi import TropomiPreprocessor
 from .viirs import ViirsAodPreprocessor
 from .pace import PaceTraceGasPreprocessor
+from .tempo import TempoNo2Preprocessor
 
-__all__ = ["DataPreprocessor", "GenericPreprocessor", "AirNowPreprocessor", "OpenAQPreprocessor", "TropomiPreprocessor", "ViirsAodPreprocessor", "PaceTraceGasPreprocessor"]
+__all__ = ["DataPreprocessor", "GenericPreprocessor", "AirNowPreprocessor", "OpenAQPreprocessor", "TropomiPreprocessor", "ViirsAodPreprocessor", "PaceTraceGasPreprocessor", "TempoNo2Preprocessor"]

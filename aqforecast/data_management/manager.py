@@ -121,6 +121,12 @@ class DatabaseManager:
 
             self.data_sources.setdefault("PACE", PaceTraceGasDataSource(logger=self.logger))
             self.preprocessors.setdefault("PACE", PaceTraceGasPreprocessor())
+        if "TEMPO_NO2" in self.configuration.get("input_data", {}).get("datasets", {}):
+            from aqforecast.data_acquisition.tempo import TempoNo2DataSource
+            from aqforecast.preprocessing.tempo import TempoNo2Preprocessor
+
+            self.data_sources.setdefault("TEMPO_NO2", TempoNo2DataSource(logger=self.logger))
+            self.preprocessors.setdefault("TEMPO_NO2", TempoNo2Preprocessor())
 
     def _expected_times(
         self, source: Mapping[str, Any], start: pd.Timestamp, end: pd.Timestamp
@@ -159,7 +165,12 @@ class DatabaseManager:
                 ).tz_convert("UTC")
                 + offset
             )
-        return pd.DatetimeIndex(values)
+        # Local-calendar windows can begin on the preceding UTC date (for
+        # example, 07:00 US/Eastern is 11:00 UTC). A request must never
+        # declare timestamps outside its explicit half-open UTC interval as
+        # missing, so trim the generated windows after converting them to UTC.
+        generated = pd.DatetimeIndex(values)
+        return generated[(generated >= start) & (generated < end)]
 
     def _source_directory(self, source_key: str) -> Path:
         return Path(
@@ -450,16 +461,30 @@ class DatabaseManager:
             .unique()
             .sort_values()
         )
+        combined_times = pd.DatetimeIndex(
+            pd.to_datetime(combined[time_name].values, utc=True)
+        )
         records = []
         for timestamp in unique_times:
-            candidates = combined.sel({time_name: [timestamp]})
+            # ``combined`` can contain the same timestamp in both the
+            # archived and incoming datasets. Label-based selection is
+            # ambiguous until those duplicate records are resolved, so use
+            # positional indices here.
+            indices = [
+                index
+                for index, value in enumerate(combined_times)
+                if value == timestamp
+            ]
+            candidates = combined.isel({time_name: indices})
             if policy == "replace_partition":
                 record = candidates.isel({time_name: -1})
             else:
                 record = candidates.isel({time_name: 0})
                 for index in range(1, candidates.sizes.get(time_name, 1)):
                     record = record.combine_first(candidates.isel({time_name: index}))
-            records.append(record.expand_dims({time_name: [timestamp]}))
+            records.append(
+                record.expand_dims({time_name: [timestamp.tz_localize(None)]})
+            )
         return xr.concat(records, dim=time_name).sortby(time_name)
 
     def _merge_daily_xarray(
@@ -673,6 +698,19 @@ class DatabaseManager:
                         source_report["written_files"] = self._write(
                             source_key, source, merged, temp
                         )
+                        cleanup = getattr(adapter, "cleanup", None)
+                        if callable(cleanup) and isinstance(incoming, DatasetBundle):
+                            try:
+                                cleanup(incoming)
+                                source_report["temporary_files_cleaned"] = True
+                            except OSError as error:
+                                source_report["temporary_files_cleaned"] = False
+                                source_report.setdefault("warnings", []).append(
+                                    f"Temporary-file cleanup failed: {error}"
+                                )
+                                report.warnings.append(
+                                    f"{source_key}: temporary-file cleanup failed: {error}"
+                                )
                         source_report["status"] = "updated"
                 catalog = DatasetCatalog(
                     source_key,
