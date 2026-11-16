@@ -71,7 +71,15 @@ def _write_granule(path: Path) -> None:
         qa = fields.createVariable("AOD_QA", "u2", ("DIM_ORBIT", "YDim", "XDim"), fill_value=0)
         qa[:] = np.array([[[1, 1], [1, 1]], [[1, 3], [1, 3]]], dtype=np.uint16)
         root.setncattr("TimeStamp", "20261221720,20261221810")
-        root.setncattr("GRingLongitude", [-84.9, -84.8, -84.8, -84.9])
+        root.setncattr(
+            "GRingLongitude",
+            [
+                np.degrees(central + x[0] / (radius * np.cos(np.radians(latitudes[0])))),
+                np.degrees(central + x[1] / (radius * np.cos(np.radians(latitudes[0])))),
+                np.degrees(central + x[1] / (radius * np.cos(np.radians(latitudes[1])))),
+                np.degrees(central + x[0] / (radius * np.cos(np.radians(latitudes[1])))),
+            ],
+        )
         root.setncattr("GRingLatitude", [33.1, 33.1, 33.2, 33.2])
 
 
@@ -121,3 +129,14 @@ def test_viirs_acquisition_falls_back_to_concept_id(monkeypatch, tmp_path: Path)
     assert calls[0]["short_name"] == SHORT_NAME
     assert calls[1]["concept_id"] == CONCEPT_ID
     assert bundle.data[0].name.startswith(SHORT_NAME)
+
+
+def test_viirs_geolocation_uses_granule_projection_metadata(tmp_path: Path) -> None:
+    granule = tmp_path / "VJ219A2.A2026122.h30v05.002.test.h5"
+    _write_granule(granule)
+    result = ViirsAodPreprocessor().preprocess(
+        DatasetBundle("VIIRS", [granule], {}), _configuration()
+    )
+
+    assert result.data.lat.values[0] == np.float64(33.025)
+    assert result.data.lon.values[0] == np.float64(-84.975)

@@ -179,17 +179,29 @@ def _timestamps(root: Any) -> list[pd.Timestamp]:
 
 
 def _rsin_parameters(root: Any, x: np.ndarray, y: np.ndarray) -> tuple[float, float]:
-    radius = 6371007.181
+    """Return the granule-specific RSIN sphere radius and central meridian.
+
+    VJ219A2 stores projected cell-center coordinates relative to a zonal
+    central meridian.  The meridian is recovered from the four granule corner
+    coordinates rather than inferred from a particular tile or region.
+    """
     projection = root.groups["HDFEOS INFORMATION"].variables["StructMetadata.0"][:]
     if isinstance(projection, np.ndarray):
         projection = projection.item()
     match = re.search(r"ProjParams=\(([-+0-9.]+)", str(projection))
-    if match:
-        radius = float(match.group(1))
+    if not match:
+        raise ValueError("VIIRS granule is missing the RSIN projection radius")
+    radius = float(match.group(1))
     longitude = np.asarray(root.getncattr("GRingLongitude"), dtype=float)
     latitude = np.asarray(root.getncattr("GRingLatitude"), dtype=float)
+    if longitude.size != 4 or latitude.size != 4:
+        raise ValueError("VIIRS granule must provide four geolocation corners")
     x_corners = np.array([x[0], x[-1], x[-1], x[0]])
     central = np.radians(longitude) - x_corners / (radius * np.cos(np.radians(latitude)))
+    # GRing longitudes are stored at limited decimal precision, so allow the
+    # resulting small corner spread while still rejecting malformed metadata.
+    if not np.all(np.isfinite(central)) or np.ptp(central) > 5.0e-4:
+        raise ValueError("VIIRS granule corner metadata is inconsistent with RSIN coordinates")
     return radius, float(np.nanmean(central))
 
 

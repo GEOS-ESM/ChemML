@@ -22,5 +22,3 @@ calendar day and assigns the timestamp to the center of the overpass hour
 (for example, `17:30:00`). When multiple overpasses are available, the time
 with the most valid source pixels is retained as that day's representative
 timestamp. The stored scientific variable is named `optical_depth_055`.
-
-Generated NetCDF files remain outside the Git repository.
