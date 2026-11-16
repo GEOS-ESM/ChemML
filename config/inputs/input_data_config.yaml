@@ -43,13 +43,20 @@ datasets:
   TROPOMI:
     source_key: "TROPOMI"
     file_template: "TROPOMI_{region_code}_{month_string}_grid_005_d.nc"
-    variables: ["no2", "o3"]
-    variable_prefix: "TROPOMI_"
+    variables: ["tropospheric_no2_column", "total_o3_column"]
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
-    time: {type: "datetime", aggregation: "daily_mean", alignment: "reference_times", tolerance: "12h", timestamp_convention: "median", availability: {mode: "continuous"}}
+    time: {type: "datetime", frequency: "1D", aggregation: "daily_mean", alignment: "calendar_days", tolerance: "12h", timestamp_convention: "valid_data_center_hour", availability: {mode: "continuous"}}
+    quality_control:
+      mode: "moderate"
+      qa_min: 0.5
+      cloud_fraction_max: 0.5
+      solar_zenith_angle_max: 80.0
+      no2_min: -5.0e-5
+      o3_min: 0.05
+      o3_max: 0.25
     regridding: {method: "target_grid", latlon_resolution: 0.05}
     storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
-    access: {mode: "remote", temporary_directory: ".tmp"}
+    access: {mode: "remote", temporary_directory: ".tmp", collection_version: "2", download_threads: 2}
 
   GEMS:
     source_key: "GEMS"

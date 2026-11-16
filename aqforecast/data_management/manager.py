@@ -103,6 +103,12 @@ class DatabaseManager:
                 "ground_monitors", OpenAQDataSource(logger=self.logger)
             )
             self.preprocessors.setdefault("ground_monitors", OpenAQPreprocessor())
+        if "TROPOMI" in self.configuration.get("input_data", {}).get("datasets", {}):
+            from aqforecast.data_acquisition.tropomi import TropomiDataSource
+            from aqforecast.preprocessing.tropomi import TropomiPreprocessor
+
+            self.data_sources.setdefault("TROPOMI", TropomiDataSource(logger=self.logger))
+            self.preprocessors.setdefault("TROPOMI", TropomiPreprocessor())
 
     def _expected_times(
         self, source: Mapping[str, Any], start: pd.Timestamp, end: pd.Timestamp
@@ -274,7 +280,7 @@ class DatabaseManager:
         ):
             return (
                 self._missing_times(
-                    expected, self._observed_times(data, source), tolerance
+                    expected, self._observed_times(data, source), tolerance, source
                 ),
                 [],
             )
@@ -289,7 +295,7 @@ class DatabaseManager:
                 .dropna()
                 .unique()
             )
-            missing = self._missing_times(expected, observed, tolerance)
+            missing = self._missing_times(expected, observed, tolerance, source)
             if len(missing):
                 missing_by_site.append(missing)
                 missing_site_ids.append(str(site_id))
@@ -303,8 +309,17 @@ class DatabaseManager:
         )
 
     def _missing_times(
-        self, expected: pd.DatetimeIndex, observed: pd.DatetimeIndex, tolerance: Any
+        self,
+        expected: pd.DatetimeIndex,
+        observed: pd.DatetimeIndex,
+        tolerance: Any,
+        source: Optional[Mapping[str, Any]] = None,
     ) -> pd.DatetimeIndex:
+        if source and source.get("time", {}).get("aggregation") == "daily_mean":
+            observed_dates = {_utc(value).normalize() for value in observed}
+            return pd.DatetimeIndex(
+                [value for value in expected if _utc(value).normalize() not in observed_dates]
+            )
         tolerance = pd.Timedelta(tolerance or "0s")
         # Normalize timestamp resolution before comparing integer values.
         # Recent pandas versions may retain parsed input at microsecond
@@ -415,6 +430,8 @@ class DatabaseManager:
             return incoming
         if policy == "replace_all":
             return incoming
+        if source.get("time", {}).get("aggregation") == "daily_mean":
+            return self._merge_daily_xarray(existing, incoming, time_name, policy)
         combined = xr.concat([existing, incoming], dim=time_name).sortby(time_name)
         unique_times = (
             pd.DatetimeIndex(pd.to_datetime(combined[time_name].values, utc=True))
@@ -432,6 +449,38 @@ class DatabaseManager:
                     record = record.combine_first(candidates.isel({time_name: index}))
             records.append(record.expand_dims({time_name: [timestamp]}))
         return xr.concat(records, dim=time_name).sortby(time_name)
+
+    def _merge_daily_xarray(
+        self, existing: Any, incoming: Any, time_name: str, policy: str
+    ) -> Any:
+        """Merge daily datasets by calendar date, not exact overpass time."""
+
+        import xarray as xr
+
+        combined = xr.concat([existing, incoming], dim=time_name).sortby(time_name)
+        timestamps = pd.DatetimeIndex(
+            pd.to_datetime(combined[time_name].values, utc=True)
+        )
+        dates = timestamps.normalize()
+        records = []
+        output_times = []
+        for day in dates.unique().sort_values():
+            indices = [index for index, value in enumerate(dates) if value == day]
+            if policy == "replace_partition":
+                selected = combined.isel({time_name: indices[-1]}, drop=True)
+                timestamp = timestamps[indices[-1]].tz_localize(None)
+            else:
+                selected = combined.isel({time_name: indices[0]}, drop=True)
+                timestamp = timestamps[indices[0]].tz_localize(None)
+                for index in indices[1:]:
+                    selected = selected.combine_first(
+                        combined.isel({time_name: index}, drop=True)
+                    )
+            records.append(selected.expand_dims({time_name: [timestamp]}))
+            output_times.append(timestamp)
+        return xr.concat(records, dim=time_name).assign_coords(
+            {time_name: output_times}
+        ).sortby(time_name)
 
     def _write(
         self, source_key: str, source: Mapping[str, Any], data: Any, run_dir: Path
@@ -535,7 +584,7 @@ class DatabaseManager:
                         expected, existing, source, tolerance
                     )
                 else:
-                    missing = self._missing_times(expected, observed, tolerance)
+                    missing = self._missing_times(expected, observed, tolerance, source)
                 source_report["missing_timestamps"] = [
                     value.isoformat() for value in missing
                 ]

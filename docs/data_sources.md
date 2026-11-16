@@ -47,3 +47,30 @@ accepted without warning. Conflicting valid values produce a structured
 warning, and the value from the sensor with the highest ID is retained. The
 preprocessed result is written as the shared standardized point-data CSV
 database and handled by the generic database manager.
+
+## TROPOMI
+
+TROPOMI is the first implemented satellite-data ingest. The adapter searches
+NASA Earthdata for the version-2 high-resolution collections
+`S5P_L2__NO2____HiR` and `S5P_L2__O3_TOT_HiR`, using the configured UTC interval
+and region bounding box. Earthdata credentials are read from the resolved
+`credentials.earthdata` configuration. Native granules are swath NetCDF-4
+files; the collection short name appears in Earthdata collection/path
+metadata, while native filenames use the standard `S5P_OFFL_L2__...` convention.
+
+The preprocessor reads the science and support-data groups and applies the
+configured moderate-quality filter before aggregation: `qa_value > 0.5`, cloud
+fraction `< 0.5`, solar zenith angle `< 80°`, tropospheric NO₂ greater than
+`-5e-5 mol m⁻²`, and total-column O₃ between `0.05` and `0.25 mol m⁻²`.
+
+Valid swath pixels are regridded with the shared irregular-point regridder to
+cell-centered 0.05° latitude/longitude cells. Each day is averaged after
+regridding; when multiple overpasses are available, the UTC timestamp centered
+on the hour containing the most valid source pixels represents that day. The
+standardized variables are `tropospheric_no2_column` and `total_o3_column`.
+Both variables are combined in the same monthly NetCDF partition and managed
+by the generic database manager. Daily completeness and merges compare
+calendar dates rather than exact overpass timestamps.
+
+The ATL integration tests ingested August 4–12, 2026, into
+`TROPOMI_ATL_202608_grid_005_d.nc` with a regenerated source catalog.

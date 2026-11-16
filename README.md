@@ -8,8 +8,9 @@ ChemML is a developing set of Python codes for high-resolution air quality estim
 
 > **Warning:** ChemML is still under development. The configuration system and
 > incremental input-data database manager are available. AirNow and OpenAQ
-> ground-monitor acquisition and preprocessing are implemented as the first
-> complete source-specific ingest; other source ingest, forecasting, and validation
+> ground-monitor acquisition and preprocessing, plus the TROPOMI NO₂/O₃
+> satellite ingest, are implemented source-specific ingests; other source ingest,
+> forecasting, and validation
 > workflows are being built incrementally.
 > Several data-ingest modules, documentation pages, and example notebooks
 > remain planned.
@@ -46,16 +47,18 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/data_acquisition/generic.py` provides local and remote acquisition adapter contracts for source-specific ingest implementations.
 - `aqforecast/data_acquisition/airnow.py` implements the AirNow historical monitor acquisition adapter.
 - `aqforecast/data_acquisition/openaq.py` implements the OpenAQ v3 sensor-based monitor acquisition adapter.
+- `aqforecast/data_acquisition/tropomi.py` implements version-2 TROPOMI NO₂ and total-column O₃ Earthdata acquisition.
 - `aqforecast/preprocessing/generic.py` provides shared fill-value and basic quality-control preprocessing.
 - `aqforecast/preprocessing/airnow.py` implements AirNow unit conversion, quality control, and site-ID standardization.
 - `aqforecast/preprocessing/openaq.py` implements OpenAQ unit conversion, shared quality control, sensor reconciliation, and site-ID standardization.
+- `aqforecast/preprocessing/tropomi.py` implements TROPOMI quality control, 0.05-degree regridding, and daily aggregation.
 - `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`, `aqforecast/forecasting/`, `aqforecast/validation/`, and `aqforecast/orchestration/` contain the stage interfaces; most source-specific and forecasting implementations remain planned.
 - `aqforecast/orchestration/database_update.py` provides the standalone database-update mode.
 - `aqforecast/aqforecast.py` contains the `run_aqforecast()` workflow entry
   point; it loads configuration, can optionally check credentials, and exposes
   the explicit database-update mode.
 - `tests/` contains pytest regression tests for configuration, database
-  management, AirNow/OpenAQ ingest, and shared regridding.
+  management, AirNow/OpenAQ/TROPOMI ingest, and shared regridding.
 - `docs/configuration.md` documents the current configuration structure and ownership boundaries.
 
 ## Quick Start
@@ -151,7 +154,7 @@ Available and planned documentation is listed in the `docs/` directory. The inst
 
 The following documentation pages are planned:
 
-- [Data Sources](docs/data_sources.md) (AirNow and OpenAQ currently implemented)
+- [Data Sources](docs/data_sources.md) (AirNow, OpenAQ, and TROPOMI currently implemented)
 - [NCCS Deployment](docs/nccs_deployment.md)
 - [API Reference](docs/api_reference.md)
 
@@ -191,7 +194,7 @@ ChemML accesses data from multiple sources:
 
 ### Satellite Data (via NASA Earthdata)
 - **VIIRS MAIAC**: Aerosol Optical Depth (AOD)
-- **TROPOMI**: NO₂ and total column O₃
+- **TROPOMI**: high-resolution NO₂ and total column O₃; version-2 acquisition and preprocessing are implemented
 - **PACE**: NO₂ and O₃
 - **GOES-ABI**: AOD
 - **TEMPO**: NO₂, O₃ profiles, and PM2.5 (planned)

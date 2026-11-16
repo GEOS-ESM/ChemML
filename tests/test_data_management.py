@@ -2,6 +2,7 @@
 
 import pandas as pd
 import pytest
+import xarray as xr
 
 from aqforecast.data_management import DatabaseManager
 
@@ -134,3 +135,26 @@ def test_missing_times_accepts_naive_observed_timestamps() -> None:
     missing = manager._missing_times(expected, observed, "0s")
 
     assert list(missing) == [pd.Timestamp("2025-01-01T01:00:00Z")]
+
+
+def test_daily_grid_merge_uses_calendar_date_for_overpass_times() -> None:
+    manager = _manager()
+    source = {
+        "coordinate_names": {"time": "time"},
+        "time": {"aggregation": "daily_mean"},
+    }
+    existing = xr.Dataset(
+        {"no2": (("time", "lat", "lon"), [[[1.0]]]), "o3": (("time", "lat", "lon"), [[[float("nan")]]])},
+        coords={"time": ["2026-05-02T18:30:00"], "lat": [33.025], "lon": [-84.975]},
+    )
+    incoming = xr.Dataset(
+        {"no2": (("time", "lat", "lon"), [[[float("nan")]]]), "o3": (("time", "lat", "lon"), [[[2.0]]])},
+        coords={"time": ["2026-05-02T17:30:00"], "lat": [33.025], "lon": [-84.975]},
+    )
+
+    merged = manager._merge(existing, incoming, source, "fill_missing")
+
+    assert merged.sizes["time"] == 1
+    assert merged["no2"].item() == 1.0
+    assert merged["o3"].item() == 2.0
+    assert merged.time.dtype.kind == "M"

@@ -22,6 +22,7 @@ This repository is under active development as a set of codes implementing a mac
 - `aqforecast/data_management/` contains the incremental partitioned input-data database manager and regenerable per-source catalogs.
 - `aqforecast/data_acquisition/generic.py` contains local and remote acquisition adapter wrappers and shared acquisition behavior. Source-specific acquisition implementations belong in new modules under `aqforecast/data_acquisition/`, with corresponding preprocessing implementations in new modules under `aqforecast/preprocessing/`.
 - `aqforecast/data_acquisition/airnow.py` and `aqforecast/preprocessing/airnow.py` provide the AirNow source-specific implementation; `openaq.py` provides the corresponding OpenAQ implementation. Use these point-monitor providers as references for adding other datasets.
+- `aqforecast/data_acquisition/tropomi.py` and `aqforecast/preprocessing/tropomi.py` provide the implemented version-2 TROPOMI NO₂ and total-column O₃ satellite ingest.
 - `aqforecast/preprocessing/generic.py` contains shared fill-value and basic quality-control preprocessing.
 - `aqforecast/contracts.py` contains the shared data contracts (`DataRequest`,
   `DatasetBundle`, `ForecastRequest`, `ForecastResult`, `ValidationResult`,
@@ -36,7 +37,7 @@ This repository is under active development as a set of codes implementing a mac
   `database_update` mode runs the implemented incremental ingest workflow.
 - `aqforecast/orchestration/database_update.py` contains the standalone `run_database_update()` mode and `DatabaseUpdateStage`.
 - `tests/` contains the pytest regression suite for configuration, database
-  management, AirNow/OpenAQ ingest, and shared regridding.
+  management, AirNow/OpenAQ/TROPOMI ingest, and shared regridding.
 - `README.md`, the folder READMEs, `CHANGELOG.md`, and `CONTRIBUTING.md` document usage, history, and contribution policy.
 - `.github/workflows/` contains CI checks.
 
@@ -54,7 +55,7 @@ There is no project build command. For local checks:
 - `python -m aqforecast.utils.setup` runs the guided first-time setup flow after the conda environment is activated.
 - Open notebooks with Jupyter in the environment described by `docs/examples/deepsensor_demo/deepsensor_cenv.yml`; run cells incrementally and confirm referenced data paths are available.
 - On NCCS Discover, run a configured batch entry with `python docs/examples/deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
-- Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`. AirNow or OpenAQ is automatically registered for regions whose `ground_monitoring.provider` selects that provider; other source-specific adapters may still be injected explicitly.
+- Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`. AirNow or OpenAQ is automatically registered for regions whose `ground_monitoring.provider` selects that provider; TROPOMI is automatically registered when its configured dataset is selected.
 
 ## Coding Style & Naming Conventions
 
@@ -118,8 +119,9 @@ parsing, and scientific normalization behavior.
 ## Testing Guidelines
 
 The pytest suite covers configuration loading, credential collection, setup,
-database-manager site identity and timestamp handling, the AirNow and OpenAQ
-adapters and preprocessors using mocked responses, and the shared regridder.
+database-manager site identity and timestamp handling, the AirNow, OpenAQ, and
+TROPOMI adapters and preprocessors using mocked responses or fixtures, and the
+shared regridder.
 No coverage threshold is configured yet. Remote credential verification and
 live API access are opt-in and should not be required for the network-free test
 suite. Run `python -m pytest tests/` for Python changes. For changes to

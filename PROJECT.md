@@ -88,8 +88,8 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   catalogs.
 - Generic local/remote acquisition adapters and shared preprocessing are in
   place. AirNow and OpenAQ are complete point-monitor source-specific
-  implementations, with acquisition, preprocessing, retries, QC, stable
-  site-ID handling, sensor reconciliation where applicable, and provider-based
+  implementations, and TROPOMI version-2 NO₂/O₃ acquisition and preprocessing
+  are complete, with retries, QC, daily aggregation, shared regridding, and
   database registration. The shared irregular-point regridder is implemented
   in `aqforecast/utils/regridding.py`, using each dataset's configured target
   resolution while preserving non-spatial dimensions; other dataset-specific
@@ -97,6 +97,9 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - A live ATL database-update test using an in-memory OpenAQ provider override
   completed for August 4–9, 2026 and produced an OpenAQ partition alongside
   the existing AirNow partition in the external test-data directory.
+- A live ATL TROPOMI database-update test completed for August 4–12, 2026,
+  including overlapping incremental updates through `run_aqforecast()` and
+  storage of both daily satellite variables in one monthly NetCDF partition.
 - Model execution, forecasting, and evaluation remain to be implemented.
 
 ### Phase 2: Data Acquisition — In Progress
@@ -137,20 +140,20 @@ databases for all configured input sources.
   - [ ] Apply quality control, fill-value handling, and retrieval filters.
   - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
   - [ ] Integrate processed data with the existing database.
-- [ ] TROPOMI NO₂:
-  - [ ] Acquire data from the configured NASA Earthdata source.
-  - [ ] Subset data by configured region, period, and variables.
-  - [ ] Convert source files to the standardized database format.
-  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
-  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [ ] Integrate processed data with the existing database.
-- [ ] TROPOMI O₃:
-  - [ ] Acquire data from the configured NASA Earthdata source.
-  - [ ] Subset data by configured region, period, and variables.
-  - [ ] Convert source files to the standardized database format.
-  - [ ] Apply quality control, fill-value handling, cloud filters, and flags.
-  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [ ] Integrate processed data with the existing database.
+- [x] TROPOMI NO₂:
+  - [x] Acquire data from the configured NASA Earthdata source.
+  - [x] Subset data by configured region, period, and variables.
+  - [x] Convert source files to the standardized database format.
+  - [x] Apply quality control, fill-value handling, cloud filters, and flags.
+  - [x] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [x] Integrate processed data with the existing database.
+- [x] TROPOMI O₃:
+  - [x] Acquire data from the configured NASA Earthdata source.
+  - [x] Subset data by configured region, period, and variables.
+  - [x] Convert source files to the standardized database format.
+  - [x] Apply quality control, fill-value handling, cloud filters, and flags.
+  - [x] Regrid or aggregate to the configured spatial and temporal resolution.
+  - [x] Integrate processed data with the existing database.
 - [ ] PACE NO₂:
   - [ ] Acquire data from the configured NASA Earthdata source.
   - [ ] Subset data by configured region, period, and variables.
@@ -455,15 +458,18 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 - ✅ AirNow preprocessing with PPM-to-PPB conversion, QC, and AQS-based site IDs.
 - ✅ Site-aware database merging, coordinate validation, gap detection, and
   empty-database initialization.
+- ✅ TROPOMI version-2 NO₂ and total-column O₃ acquisition, moderate QC,
+  0.05-degree regridding, daily aggregation, combined NetCDF storage, and
+  incremental ATL integration tests.
 
-AirNow is currently the only source for which acquisition and preprocessing
-are complete. All other configured satellite, model, and ground-data sources
-remain planned or require further implementation and integration testing.
+AirNow, OpenAQ, and TROPOMI now have complete source-specific acquisition and
+preprocessing paths. The remaining configured satellite, model, and ground-data
+sources remain planned or require further implementation and integration testing.
 
 ### In Progress
 
 - 🚧 Dataset-specific data acquisition and preprocessing implementations beyond
-  AirNow, plus broader database integration fixtures.
+  AirNow, OpenAQ, and TROPOMI, plus broader database integration fixtures.
 - 🚧 Forecasting and validation workflow implementation.
 
 ### Upcoming
