@@ -58,6 +58,7 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/data_acquisition/tempo.py` implements authenticated TEMPO NO₂ DAP4/OpenDAP acquisition with resumable temporary subsets.
 - `aqforecast/data_acquisition/tempo_o3.py` implements configurable-layer TEMPO O₃ Profile DAP4/OpenDAP acquisition.
 - `aqforecast/data_acquisition/land_cover.py` implements MCD12Q1 yearly Earthdata acquisition with up to two years of source-year fallback.
+- `aqforecast/data_acquisition/goes_abi.py` implements anonymous NOAA S3 GOES-ABI AOD acquisition with ordered GOES-19/16/18/17 fallback.
 - `aqforecast/preprocessing/generic.py` provides shared fill-value and basic quality-control preprocessing.
 - `aqforecast/preprocessing/airnow.py` implements AirNow unit conversion, quality control, and site-ID standardization.
 - `aqforecast/preprocessing/openaq.py` implements OpenAQ unit conversion, shared quality control, sensor reconciliation, and site-ID standardization.
@@ -67,14 +68,15 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/preprocessing/tempo.py` implements TEMPO quality filtering, native-grid hourly aggregation, and UTC timestamp normalization.
 - `aqforecast/preprocessing/tempo_o3.py` implements configurable-layer selection, angle/cloud QC, native-grid hourly aggregation, and UTC timestamp normalization for TEMPO O₃.
 - `aqforecast/preprocessing/land_cover.py` implements MCD12Q1 sinusoidal geolocation, configurable `LW`/`QC` filtering, categorical 0.005-degree regridding, and source-year timestamps.
+- `aqforecast/preprocessing/goes_abi.py` implements fixed-grid geolocation, DQF/AOD filtering, configurable regridding, satellite fallback, and hourly center-timestamp aggregation.
 - `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`, `aqforecast/forecasting/`, `aqforecast/validation/`, and `aqforecast/orchestration/` contain the stage interfaces; most source-specific and forecasting implementations remain planned.
 - `aqforecast/orchestration/database_update.py` provides the standalone database-update mode.
 - `aqforecast/aqforecast.py` contains the `run_aqforecast()` workflow entry
   point; it loads configuration, can optionally check credentials, and exposes
   the explicit database-update mode.
 - `tests/` contains pytest regression tests for configuration, database
-  management, AirNow/OpenAQ/TROPOMI/VIIRS/PACE/TEMPO/MCD12Q1 ingest, OpenDAP
-  access, and shared regridding.
+  management, AirNow/OpenAQ/TROPOMI/VIIRS/PACE/TEMPO/MCD12Q1/GOES-ABI ingest,
+  OpenDAP access, and shared regridding.
 - `docs/configuration.md` documents the current configuration structure and ownership boundaries.
 
 ## Quick Start
@@ -216,12 +218,14 @@ ChemML accesses data from multiple sources:
 - **TEMPO NO₂**: `TEMPO_NO2_L3`; authenticated DAP4/OpenDAP regional subsets, resumable caching, moderate quality filtering, native 0.02-degree hourly aggregation, and database integration are implemented
 - **TEMPO O₃ Profile**: `TEMPO_O3PROF_L3`; configurable profile-layer selection, authenticated DAP4/OpenDAP regional subsets, cloud/angle QC, native 0.04-degree hourly aggregation, and database integration are implemented
 - **MCD12Q1**: yearly `LC_Type1` land cover; Earthdata acquisition with up to two years of fallback, native sinusoidal geolocation, configurable `LW`/`QC` filters, categorical 0.005-degree regridding, and yearly database integration are implemented
-- **GOES-ABI**: AOD
+- **GOES-ABI**: AOD; anonymous NOAA S3 `ABI-L2-AODC` acquisition, ordered
+  satellite fallback, quality filtering, 0.02-degree regridding, and hourly
+  aggregation are implemented
 - **TEMPO PM2.5**: deferred beyond Phase 2 until April 2027 because the
   product is not expected to be available before then
 
 GEMS and GCAS are also deferred beyond the immediate Phase 2 implementation
-scope. GOES-ABI and GEOS-CF remain planned Phase 2 sources.
+scope. GEOS-CF remains a planned Phase 2 source.
 
 ### Numerical Models
 - **[GEOS-CF](https://gmao.gsfc.nasa.gov/gmao-products/geos-cf/)**: NASA's atmospheric composition forecast system

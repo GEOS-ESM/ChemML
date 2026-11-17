@@ -131,13 +131,15 @@ databases for all configured input sources.
     and integrate into the database, including a live ATL test.
   - [x] VIIRS/JPSS2 VJ219A2 AOD: acquire, quality-control, geolocate, regrid,
     aggregate, and integrate into the database.
-  - [ ] GOES-ABI AOD:
-    - [ ] Acquire data from the configured source.
-    - [ ] Subset data by configured region, period, and variables.
-    - [ ] Convert source files to the standardized database format.
-    - [ ] Apply quality control, fill-value handling, and retrieval filters.
-    - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
-    - [ ] Integrate processed data with the existing database.
+  - [x] GOES-ABI AOD:
+    - [x] Acquire public NOAA S3 `ABI-L2-AODC` data using ordered GOES-19,
+      GOES-16, GOES-18, and GOES-17 fallback.
+    - [x] Subset data by configured region, period, and variables.
+    - [x] Convert fixed-grid NetCDF files to the standardized database format.
+    - [x] Apply DQF, fill-value, valid-range, and physical AOD filters.
+    - [x] Regrid to a configurable 0.02-degree grid and aggregate hourly with
+      timestamps at the center of each UTC hour.
+    - [x] Integrate processed data with the standardized database.
   - [x] TROPOMI NO₂/O₃: acquire, quality-control, regrid, aggregate, combine,
     and integrate both products into the database.
   - [x] PACE NO₂/O₃: acquire, quality-control, regrid, aggregate, and integrate
@@ -454,9 +456,9 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
   configurable `LW`/`QC` filters, yearly storage, and ATL database-update
   testing.
 
-AirNow, OpenAQ, TROPOMI, VIIRS, PACE, TEMPO NO₂/O₃ Profile, and MCD12Q1 land
-cover now have complete source-specific acquisition and preprocessing paths.
-GOES-ABI and GEOS-CF remain planned Phase 2 sources; GEMS, GCAS, and TEMPO
+AirNow, OpenAQ, TROPOMI, VIIRS, PACE, TEMPO NO₂/O₃ Profile, MCD12Q1 land
+cover, and GOES-ABI now have complete source-specific acquisition and
+preprocessing paths. GEOS-CF remains a planned Phase 2 source; GEMS, GCAS, and TEMPO
 PM2.5 are deferred to future work.
 
 ### In Progress

@@ -31,7 +31,7 @@ def test_load_default_configuration() -> None:
 
     assert configuration["region"]["region_code"] == "Seoul"
     assert configuration["aqforecast"]["inputs"]["GEOS-CF"]["enabled"] is True
-    assert configuration["warnings"]
+    assert not configuration["warnings"]
 
 
 def test_aqforecast_runner_loads_configuration() -> None:

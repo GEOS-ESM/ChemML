@@ -182,3 +182,19 @@ datasets:
 
   GOES-ABI:
     source_key: "GOES-ABI"
+    file_template: "GOES_ABI_{region_code}_{month_string}_grid_002_h.nc"
+    variables: ["aod550"]
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", frequency: "1h", aggregation: "hourly_mean", alignment: "reference_times", tolerance: "30m", timestamp_convention: "center", availability: {mode: "continuous"}}
+    quality_control:
+      mode: "moderate"
+      dqf_max: 1
+      aod_min: 0.0
+      aod_max: 5.0
+    regridding: {method: "target_grid", latlon_resolution: 0.02}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access:
+      mode: "remote"
+      temporary_directory: ".tmp"
+      product: "ABI-L2-AODC"
+      satellite_order: ["noaa-goes19", "noaa-goes16", "noaa-goes18", "noaa-goes17"]

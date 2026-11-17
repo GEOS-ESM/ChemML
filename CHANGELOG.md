@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- **17 November 2026**: Add GOES-ABI AOD acquisition from public NOAA S3,
+  ordered GOES-19/16/18/17 fallback, fixed-grid geolocation, DQF quality
+  filtering, configurable 0.02-degree regridding, hourly aggregation,
+  database integration, documentation, and ATL testing.
 - **16 November 2026**: Add configurable-layer TEMPO O₃ Profile
   DAP4/OpenDAP acquisition, cloud and zenith-angle QC, native-grid hourly
   aggregation, database integration, temporary-cache cleanup, and ATL testing.

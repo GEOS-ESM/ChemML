@@ -32,6 +32,7 @@ This repository is under active development as a set of codes implementing a mac
 - `aqforecast/data_acquisition/tempo.py` and `aqforecast/preprocessing/tempo.py` provide the implemented TEMPO NO₂ DAP4/OpenDAP ingest, including resumable subset caching.
 - `aqforecast/data_acquisition/tempo_o3.py` and `aqforecast/preprocessing/tempo_o3.py` provide the implemented configurable-layer TEMPO O₃ Profile DAP4/OpenDAP ingest.
 - `aqforecast/data_acquisition/land_cover.py` and `aqforecast/preprocessing/land_cover.py` provide the implemented MCD12Q1 yearly land-cover ingest, including source-year fallback and categorical regridding from the native sinusoidal grid.
+- `aqforecast/data_acquisition/goes_abi.py` and `aqforecast/preprocessing/goes_abi.py` provide the implemented NOAA S3 GOES-ABI AOD ingest, including ordered GOES-19/16/18/17 fallback, fixed-grid geolocation, DQF filtering, configurable 0.02-degree regridding, and hourly center-timestamp aggregation.
 - `aqforecast/preprocessing/generic.py` contains shared fill-value and basic quality-control preprocessing.
 - `aqforecast/contracts.py` contains the shared data contracts (`DataRequest`,
   `DatasetBundle`, `ForecastRequest`, `ForecastResult`, `ValidationResult`,
@@ -46,8 +47,8 @@ This repository is under active development as a set of codes implementing a mac
   `database_update` mode runs the implemented incremental ingest workflow.
 - `aqforecast/orchestration/database_update.py` contains the standalone `run_database_update()` mode and `DatabaseUpdateStage`.
 - `tests/` contains the pytest regression suite for configuration, database
-  management, AirNow/OpenAQ/TROPOMI/VIIRS/PACE/TEMPO/MCD12Q1 ingest, OpenDAP
-  access, and shared regridding.
+  management, AirNow/OpenAQ/TROPOMI/VIIRS/PACE/TEMPO/MCD12Q1/GOES-ABI ingest,
+  OpenDAP access, and shared regridding.
 - `README.md`, the folder READMEs, `CHANGELOG.md`, and `CONTRIBUTING.md` document usage, history, and contribution policy.
 - `.github/workflows/` contains CI checks.
 

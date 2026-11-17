@@ -23,6 +23,8 @@ inputs:
     enabled: false
   land_cover:
     enabled: true
+  GOES-ABI:
+    enabled: true
 
 forecast:
   lead_times_hours: [1, 3, 6, 12, 24, 48, 72]

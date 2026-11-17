@@ -44,7 +44,7 @@ DEFAULT_SOURCE_NAMES = (
     "GOES-ABI",
 )
 
-DEFERRED_SOURCES = {"GOES-ABI"}
+DEFERRED_SOURCES = set()
 PLACEHOLDER_PATTERN = re.compile(r"<[^>]+>")
 PATH_TEMPLATE_PATTERN = re.compile(r"\{([^{}]+)\}")
 

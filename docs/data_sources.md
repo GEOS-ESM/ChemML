@@ -142,8 +142,20 @@ year was used as a fallback. Yearly completeness recognizes configured
 fallback source years, and the generic database manager writes yearly NetCDF
 partitions and catalogs.
 
-## Planned sources
-
-GOES-ABI AOD and GEOS-CF remain planned Phase 2 sources. GEMS, GCAS,
+GOES-ABI AOD is acquired from the public NOAA `noaa-goes19`, `noaa-goes16`,
+`noaa-goes18`, and `noaa-goes17` S3 buckets using the `ABI-L2-AODC` CONUS
+product. The adapter checks those satellites in configured order, stages all
+available candidate granules for each hour, and the preprocessor selects the
+first satellite with valid regional retrievals. It converts the GOES fixed
+grid to latitude/longitude, retains `DQF <= 1`, rejects fill and out-of-range
+AOD values, regrids to the configured target grid (0.02 degrees by default),
+and averages to UTC hourly timestamps centered at `:30`. GEOS-CF remains a
+planned Phase 2 source. GEMS, GCAS,
 and TEMPO PM2.5 are deferred beyond the immediate Phase 2 implementation
 scope; TEMPO PM2.5 is expected to become available around April 2027.
+
+## Planned sources
+
+GEOS-CF remains a planned Phase 2 source. GEMS, GCAS, and TEMPO PM2.5 are
+deferred beyond the immediate Phase 2 implementation scope; TEMPO PM2.5 is
+expected to become available around April 2027.

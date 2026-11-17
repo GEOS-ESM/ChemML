@@ -139,6 +139,12 @@ class DatabaseManager:
 
             self.data_sources.setdefault("land_cover", LandCoverDataSource(logger=self.logger))
             self.preprocessors.setdefault("land_cover", LandCoverPreprocessor())
+        if "GOES-ABI" in self.configuration.get("input_data", {}).get("datasets", {}):
+            from aqforecast.data_acquisition.goes_abi import GoesAbiAodDataSource
+            from aqforecast.preprocessing.goes_abi import GoesAbiAodPreprocessor
+
+            self.data_sources.setdefault("GOES-ABI", GoesAbiAodDataSource(logger=self.logger))
+            self.preprocessors.setdefault("GOES-ABI", GoesAbiAodPreprocessor())
 
     def _expected_times(
         self, source: Mapping[str, Any], start: pd.Timestamp, end: pd.Timestamp
