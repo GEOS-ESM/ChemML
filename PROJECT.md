@@ -120,89 +120,103 @@ databases for all configured input sources.
 
 **Tasks**:
 
-- [x] AirNow: acquire, subset, standardize, quality-control, validate site
-  identity, and integrate into the database.
-- [x] OpenAQ: acquire, subset, standardize, quality-control, reconcile sites,
-  and integrate into the database, including a live ATL test.
-- [x] VIIRS/JPSS2 VJ219A2 AOD: acquire, quality-control, geolocate, regrid,
-  aggregate, and integrate into the database.
-- [ ] GOES-ABI AOD:
-  - [ ] Acquire data from the configured source.
-  - [ ] Subset data by configured region, period, and variables.
-  - [ ] Convert source files to the standardized database format.
-  - [ ] Apply quality control, fill-value handling, and retrieval filters.
-  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [ ] Integrate processed data with the existing database.
-- [x] TROPOMI NO₂/O₃: acquire, quality-control, regrid, aggregate, combine,
-  and integrate both products into the database.
-- [x] PACE NO₂/O₃: acquire, quality-control, regrid, aggregate, and integrate
-  both trace-gas variables into the database.
-- [x] TEMPO NO₂: acquire authenticated OpenDAP subsets, quality-control,
-  aggregate on the native grid, and integrate with resumable caching.
-- [x] TEMPO O₃ Profiles: acquire configurable profile layers through OpenDAP,
-  apply cloud/angle QC, aggregate on the native grid, and integrate with cache
-  cleanup.
-- [ ] GEOS-CF:
-  - [ ] Acquire model data for the configured region and period.
-  - [ ] Subset data by configured region, period, and variables.
-  - [ ] Convert source files to the standardized database format.
-  - [ ] Apply quality control, fill-value handling, and missing-data rules.
-  - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
-  - [ ] Integrate processed data with the existing database.
-- [ ] Land Cover information:
-  - [ ] Acquire the configured reference-period land-cover product.
-  - [ ] Subset data by configured region and variables.
-  - [ ] Convert source files to the standardized database format.
-  - [ ] Apply quality control, fill-value handling, and class validation.
-  - [ ] Regrid or aggregate to the configured spatial resolution.
-  - [ ] Integrate the reference-period data with the existing database.
-- [ ] Implement post-update database integrity verification, including
-  timestamp completeness, required variables, coordinate/grid structure,
-  duplicate detection, partition/catalog consistency, and explicit reporting
-  of any remaining gaps.
-- [x] Implement a shared irregular-point regridder with dataset-specific
-  latitude/longitude resolution, numeric means, categorical modes, preserved
-  non-spatial dimensions, and NaN empty cells.
-- [x] Modify `run_aqforecast()` to expose a database-update mode now that a
-  complete source-specific ingestion path exists.
-- [x] Add generic site-coordinate verification at both acquisition-output and
-  database-management boundaries, using configured site IDs and tolerances
-  rather than duplicating the checks in each dataset adapter.
-- [ ] Replace the hard-coded provider-to-adapter mapping in `DatabaseManager`
-  with a configurable or registry-based source-adapter mechanism.
-- [x] Extend the generic acquisition contract so source adapters can pass
-  structured API/file error messages to the logging and update-report systems.
-- [ ] Add an end-to-end database-update test covering acquisition,
-  preprocessing, merging, partition writing, and catalog generation.
-- [x] Handle empty source files, including CSV files containing only headers,
-  as empty databases or explicit, actionable input errors.
-- [ ] Create data download scripts.
-- [ ] Implement data-acquisition modules for the remaining Phase 2 sources
-  (GOES-ABI, GEOS-CF, and land cover).
-- [x] Add the AirNow source-specific acquisition and preprocessing adapters to
-  the database manager.
-- [x] Add AirNow source-specific tests using mocked API responses and
-  representative raw-data fixtures.
-- [x] Add database-manager tests for missing intervals, site identity,
-  coordinate consistency, empty databases, and timestamp normalization.
-- [ ] Add broader tests for partial updates, retries/failures, and output
-  database fixtures across all sources.
-- [ ] After all intended datasets have acquisition implementations, conduct an
-  all-up database-update test covering every implemented dataset over a period
-  that crosses a month boundary. Verify multi-source downloads, database
-  merging, monthly partitioning, catalogs, and subsequent data access.
-- [ ] Keep `config/inputs/input_data_config.yaml` aligned with the settings required to download and preprocess each data source as ingest codes are developed.
-- [ ] Test data acquisition on NCCS.
-- [ ] Schedule ongoing data ingest:
-  - [ ] Create scripts to update the database in NCCS on a regular (daily) cadence.
-  - [ ] Schedule scripts to run automatically using `cron`.
-  - [ ] Verify that data are being ingested as intended.
-
-Land-cover data are part of this acquisition workflow, but require a special
-time-offset provision. The acquisition process must support requesting a
-reference period from an earlier source period (for example, using land-cover
-data from the preceding year) rather than assuming that all sources cover the
-same dates.
+- [ ] Implement data acquisition and preprocessing for key datasets.
+  - [x] AirNow: acquire, subset, standardize, quality-control, validate site
+    identity, and integrate into the database.
+    - [x] Add the AirNow source-specific acquisition and preprocessing adapters to
+      the database manager.
+    - [x] Add AirNow source-specific tests using mocked API responses and
+      representative raw-data fixtures.
+  - [x] OpenAQ: acquire, subset, standardize, quality-control, reconcile sites,
+    and integrate into the database, including a live ATL test.
+  - [x] VIIRS/JPSS2 VJ219A2 AOD: acquire, quality-control, geolocate, regrid,
+    aggregate, and integrate into the database.
+  - [ ] GOES-ABI AOD:
+    - [ ] Acquire data from the configured source.
+    - [ ] Subset data by configured region, period, and variables.
+    - [ ] Convert source files to the standardized database format.
+    - [ ] Apply quality control, fill-value handling, and retrieval filters.
+    - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+    - [ ] Integrate processed data with the existing database.
+  - [x] TROPOMI NO₂/O₃: acquire, quality-control, regrid, aggregate, combine,
+    and integrate both products into the database.
+  - [x] PACE NO₂/O₃: acquire, quality-control, regrid, aggregate, and integrate
+    both trace-gas variables into the database.
+  - [x] TEMPO NO₂: acquire authenticated OpenDAP subsets, quality-control,
+    aggregate on the native grid, and integrate with resumable caching.
+  - [x] TEMPO O₃ Profiles: acquire configurable profile layers through OpenDAP,
+    apply cloud/angle QC, aggregate on the native grid, and integrate with cache
+    cleanup.
+  - [ ] GEOS-CF:
+    - [ ] Acquire model data for the configured region and period.
+    - [ ] Subset data by configured region, period, and variables.
+    - [ ] Convert source files to the standardized database format.
+    - [ ] Apply quality control, fill-value handling, and missing-data rules.
+    - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
+    - [ ] Integrate processed data with the existing database.
+    - [ ] Integrate data from both forecasting and analysis runs into a common data structure.
+  - [ ] Land Cover information:
+    - [ ] Acquire the configured reference-period land-cover product. If
+      current-year data are unavailable, implement a special rule for acquiring
+      earlier data. Land-cover data are part of this acquisition workflow, but
+      require a special time-offset provision. The acquisition process must
+      support requesting a reference period from an earlier source period (for
+      example, using land-cover data from the preceding year) rather than
+      assuming that all sources cover the same dates.
+    - [ ] Subset data by configured region and variables.
+    - [ ] Convert source files to the standardized database format.
+    - [ ] Apply quality control, fill-value handling, and class validation.
+    - [ ] Regrid or aggregate to the configured spatial resolution.
+    - [ ] Integrate the reference-period data with the existing database.
+- [ ] Common data acquisition functionality
+  - [ ] Implement post-update database integrity verification, including
+    timestamp completeness, required variables, coordinate/grid structure,
+    duplicate detection, partition/catalog consistency, and explicit reporting
+    of any remaining gaps.
+  - [x] Add generic site-coordinate verification at both acquisition-output and
+    database-management boundaries, using configured site IDs and tolerances
+    rather than duplicating the checks in each dataset adapter.
+  - [x] Implement a shared irregular-point regridder with dataset-specific
+    latitude/longitude resolution, numeric means, categorical modes, preserved
+    non-spatial dimensions, and NaN empty cells.
+  - [x] Extend the generic acquisition contract so source adapters can pass
+    structured API/file error messages to the logging and update-report systems.
+  - [x] Handle empty source files, including CSV files containing only headers,
+    as empty databases or explicit, actionable input errors.
+  - [x] Add database-manager tests for missing intervals, site identity,
+    coordinate consistency, empty databases, and timestamp normalization.
+  - [ ] Add broader tests for partial updates, retries/failures, and output
+    database fixtures across all sources.
+  - [ ] Replace the hard-coded provider-to-adapter mapping in `DatabaseManager`
+    with a configurable or registry-based source-adapter mechanism.
+  - [ ] Keep `config/inputs/input_data_config.yaml` aligned with the settings required to download and preprocess each data source as ingest codes are developed.
+  - [ ] Update project documentation files.
+    - [ ] Keep `PROJECT.md` up to date with the current status of the implementation.
+    - [ ] Keep `AGENTS.md` up to date with created files, notes on the overall project workflow, and notes relevant to implementing other data ingests in the future.
+    - [ ] Keep `README.md` up to date with a brief note on development status, repository components, package dependencies, data sources, and a high-level overview of the workflow.
+    - [ ] Keep `docs/configuration.md` up to date with notes on specific settings needed to be specified for the input data sources.
+    - [ ] Keep `docs/data_sources.md` up to date with a summary of how each dataset is accessed and preprocessed.
+    - [ ] Keep `docs/installation.md` up to date with an example of how to start an archive of the input data sources for a region of interest.
+    - [ ] Keep `docs/user_guide.md` up to date with examples of how database updates are performed.
+- [ ] Integration with `aqforecast` workflows
+  - [x] Modify `run_aqforecast()` to expose a database-update mode now that a
+    complete source-specific ingestion path exists.
+  - [ ] Add an incremental database update mode that allows for automatic updating of the input datasets to bring them up to the "present", based on the time the code is run. Add configuration options for the number of days of overlap the function uses to ensure coverage (e.g., look back one day prior to the last time the update was run) and the maximum amount of time over which the update will be conducted (e.g., update for at most a week before giving an error).
+- [ ] Examples and Scripting/Orchestration
+  - [ ] Create a runnable data download script (`.sh` file) which can be scheduled to run at a fixed cadence (e.g., daily) to keep the database up to date.
+  - [ ] Create a Python notebook illustrating how to populate the database and visualize the data currently available in the database. Use `docs/examples/deepsensor_demo/Deepsensor_demo_Oct2025.ipynb` as inspiration for the plots.
+    - [ ] To support this, create a generalized plotting function in the `aqforecast/utils` folder. This function should use `cartopy` for basemaps. Be sure that base maps are downloaded and saved locally during first-time setup if an internet connection is available.
+- [ ] Testing and verification
+  - [ ] Conduct an end-to-end database-update test covering acquisition,
+    preprocessing, merging, partition writing, and catalog generation.
+    After all intended datasets have acquisition implementations, conduct an
+    all-up database-update test covering every implemented dataset over a period
+    that crosses a month boundary. Verify multi-source downloads, database
+    merging, monthly partitioning, catalogs, and subsequent data access.
+  - [ ] Test data acquisition on NCCS. Schedule ongoing data ingest:
+    - [ ] Create scripts to update the database in NCCS on a regular (daily) cadence.
+    - [ ] Schedule scripts to run automatically using `cron`.
+    - [ ] Verify that data are being ingested as intended.
 
 **Deliverables**:
 
