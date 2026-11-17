@@ -124,9 +124,26 @@ and solar or viewing zenith angles above 80°. The native approximately 0.04°
 grid is preserved, duplicate hourly granules are averaged, and cached subsets
 are removed after successful storage.
 
+## MCD12Q1 land cover
+
+ChemML accesses the MODIS/Terra+Aqua MCD12Q1 Collection 6.1 yearly land-cover
+product through `earthaccess`. The adapter searches for the requested calendar
+year and, when no granules are available, tries preceding years up to the
+configured `access.max_year_fallback` limit. A fallback is recorded in the
+NetCDF attributes so the source year remains auditable.
+
+MCD12Q1 HDF4 tiles provide `LC_Type1` on a native 500 m sinusoidal grid. The
+preprocessor converts the native projection to latitude/longitude and uses
+categorical mode aggregation on the configured 0.005-degree grid. `LW` and
+`QC` values are read for quality-control support, but their filters are
+disabled by default with bounds spanning the full byte range. The output
+timestamp is January 1 of the actual source year, including when an earlier
+year was used as a fallback. Yearly completeness recognizes configured
+fallback source years, and the generic database manager writes yearly NetCDF
+partitions and catalogs.
+
 ## Planned sources
 
-GOES-ABI AOD, GEOS-CF, and land-cover data do not yet have completed
-source-specific ingest paths and remain planned Phase 2 sources. GEMS, GCAS,
+GOES-ABI AOD and GEOS-CF remain planned Phase 2 sources. GEMS, GCAS,
 and TEMPO PM2.5 are deferred beyond the immediate Phase 2 implementation
 scope; TEMPO PM2.5 is expected to become available around April 2027.

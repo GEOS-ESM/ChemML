@@ -133,12 +133,26 @@ class DatabaseManager:
 
             self.data_sources.setdefault("TEMPO_O3", TempoO3ProfileDataSource(logger=self.logger))
             self.preprocessors.setdefault("TEMPO_O3", TempoO3ProfilePreprocessor())
+        if "land_cover" in self.configuration.get("input_data", {}).get("datasets", {}):
+            from aqforecast.data_acquisition.land_cover import LandCoverDataSource
+            from aqforecast.preprocessing.land_cover import LandCoverPreprocessor
+
+            self.data_sources.setdefault("land_cover", LandCoverDataSource(logger=self.logger))
+            self.preprocessors.setdefault("land_cover", LandCoverPreprocessor())
 
     def _expected_times(
         self, source: Mapping[str, Any], start: pd.Timestamp, end: pd.Timestamp
     ) -> pd.DatetimeIndex:
         time_config = source.get("time", {})
         availability = time_config.get("availability", {})
+        if availability.get("mode") == "yearly":
+            last_year = (end - pd.Timedelta(nanoseconds=1)).year
+            return pd.DatetimeIndex(
+                [
+                    pd.Timestamp(year=year, month=1, day=1, tz="UTC")
+                    for year in range(start.year, last_year + 1)
+                ]
+            )
         frequency = time_config.get("frequency", "1h")
         mode = (
             availability.get("mode", "continuous")
@@ -344,6 +358,19 @@ class DatabaseManager:
         tolerance: Any,
         source: Optional[Mapping[str, Any]] = None,
     ) -> pd.DatetimeIndex:
+        if source and source.get("time", {}).get("availability", {}).get("mode") == "yearly":
+            fallback = int(source.get("access", {}).get("max_year_fallback", 0))
+            observed_years = {int(_utc(value).year) for value in observed}
+            return pd.DatetimeIndex(
+                [
+                    value
+                    for value in expected
+                    if not any(
+                        0 <= value.year - observed_year <= fallback
+                        for observed_year in observed_years
+                    )
+                ]
+            )
         if source and source.get("time", {}).get("aggregation") == "daily_mean":
             observed_dates = {_utc(value).normalize() for value in observed}
             return pd.DatetimeIndex(
@@ -395,7 +422,7 @@ class DatabaseManager:
         if partition == "yearly":
             return pd.DatetimeIndex(
                 [
-                    pd.Timestamp(year=int(year), tz="UTC")
+                    pd.Timestamp(year=int(year), month=1, day=1, tz="UTC")
                     for year in sorted(set(times.year))
                 ]
             )

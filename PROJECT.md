@@ -155,19 +155,19 @@ databases for all configured input sources.
     - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
     - [ ] Integrate processed data with the existing database.
     - [ ] Integrate data from both forecasting and analysis runs into a common data structure.
-  - [ ] Land Cover information:
-    - [ ] Acquire the configured reference-period land-cover product. If
+  - [x] Land Cover information:
+    - [x] Acquire the configured reference-period land-cover product. If
       current-year data are unavailable, implement a special rule for acquiring
       earlier data. Land-cover data are part of this acquisition workflow, but
       require a special time-offset provision. The acquisition process must
       support requesting a reference period from an earlier source period (for
       example, using land-cover data from the preceding year) rather than
       assuming that all sources cover the same dates.
-    - [ ] Subset data by configured region and variables.
-    - [ ] Convert source files to the standardized database format.
-    - [ ] Apply quality control, fill-value handling, and class validation.
-    - [ ] Regrid or aggregate to the configured spatial resolution.
-    - [ ] Integrate the reference-period data with the existing database.
+    - [x] Subset data by configured region and variables.
+    - [x] Convert source files to the standardized database format.
+    - [x] Apply quality control, fill-value handling, and class validation.
+    - [x] Regrid or aggregate to the configured spatial resolution.
+    - [x] Integrate the reference-period data with the existing database.
 - [ ] Common data acquisition functionality
   - [ ] Implement post-update database integrity verification, including
     timestamp completeness, required variables, coordinate/grid structure,
@@ -449,11 +449,15 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 - ✅ TEMPO O₃ Profile DAP4/OpenDAP acquisition with configurable profile layers,
   cloud/angle QC, native-grid hourly aggregation, database integration, and
   successful ATL testing through `run_aqforecast()`.
+- ✅ MCD12Q1 yearly land-cover acquisition with up to two years of source-year
+  fallback, native sinusoidal geolocation, categorical 0.005-degree regridding,
+  configurable `LW`/`QC` filters, yearly storage, and ATL database-update
+  testing.
 
-AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂/O₃ Profile now have complete
-source-specific acquisition and preprocessing paths. GOES-ABI, GEOS-CF, and
-land cover remain planned Phase 2 sources; GEMS, GCAS, and TEMPO PM2.5 are
-deferred to future work.
+AirNow, OpenAQ, TROPOMI, VIIRS, PACE, TEMPO NO₂/O₃ Profile, and MCD12Q1 land
+cover now have complete source-specific acquisition and preprocessing paths.
+GOES-ABI and GEOS-CF remain planned Phase 2 sources; GEMS, GCAS, and TEMPO
+PM2.5 are deferred to future work.
 
 ### In Progress
 
@@ -464,7 +468,7 @@ deferred to future work.
 ### Upcoming
 
 - Source-specific acquisition adapters for the remaining Phase 2 sources:
-  GOES-ABI, GEOS-CF, land cover, and any remaining ground-data sources.
+  GOES-ABI, GEOS-CF, and any remaining ground-data sources.
 - Dataset-specific quality control, regridding, and aggregation.
 - Integration fixtures and broader database-manager coverage.
 

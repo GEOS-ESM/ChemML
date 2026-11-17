@@ -137,6 +137,33 @@ def test_missing_times_accepts_naive_observed_timestamps() -> None:
     assert list(missing) == [pd.Timestamp("2025-01-01T01:00:00Z")]
 
 
+def test_yearly_missing_times_accept_a_fallback_source_year() -> None:
+    manager = _manager()
+    source = {
+        "time": {"availability": {"mode": "yearly"}},
+        "access": {"max_year_fallback": 2},
+    }
+    expected = pd.DatetimeIndex([pd.Timestamp("2026-01-01", tz="UTC")])
+    observed = pd.DatetimeIndex([pd.Timestamp("2025-01-01", tz="UTC")])
+
+    missing = manager._missing_times(expected, observed, "0s", source)
+
+    assert len(missing) == 0
+
+
+def test_yearly_partitions_use_year_start_timestamps() -> None:
+    manager = _manager()
+    source = {"storage": {"partition": "yearly"}}
+
+    partitions = list(
+        manager._partitions(
+            pd.DatetimeIndex([pd.Timestamp("2025-08-04", tz="UTC")]), source
+        )
+    )
+
+    assert partitions == [pd.Timestamp("2025-01-01", tz="UTC")]
+
+
 def test_daily_grid_merge_uses_calendar_date_for_overpass_times() -> None:
     manager = _manager()
     source = {

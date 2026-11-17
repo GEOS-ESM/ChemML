@@ -135,10 +135,18 @@ datasets:
     variables: ["LC_Type1"]
     variable_prefix: "MCD12Q1_"
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
-    time: {aggregation: "mean_over_time", alignment: "expand_to_reference_times", availability: {mode: "continuous"}}
-    regridding: {method: "none", latlon_resolution: 0.005}
+    time: {type: "year", aggregation: "reference_year", alignment: "reference_year", timestamp_convention: "year_start", availability: {mode: "yearly"}}
+    quality_control:
+      apply_lw_filter: false
+      apply_qc_filter: false
+      lw_min: 0
+      lw_max: 255
+      qc_min: 0
+      qc_max: 255
+      land_cover_invalid_values: [255]
+    regridding: {method: "target_grid", latlon_resolution: 0.005, categorical_variables: ["LC_Type1"]}
     storage: {partition: "yearly", format: "netcdf", catalog_filename: "catalog.json"}
-    access: {mode: "remote", temporary_directory: ".tmp"}
+    access: {mode: "remote", temporary_directory: ".tmp", collection_short_name: "MCD12Q1", concept_id: "C2484079608-LPCLOUD", collection_version: "061", download_threads: 2, max_year_fallback: 2}
 
   # Complete these definitions as the corresponding data-ingest and
   # preprocessing codes are developed.
