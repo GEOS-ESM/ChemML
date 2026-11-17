@@ -57,7 +57,7 @@ Large input and output datasets are external to the repository. Do not commit ge
 There is no project build command. For local checks:
 
 - `yamllint -d relaxed --no-warnings .github/workflows/*.yml .yamllint.yml config/default_config.yaml config/*/*.yaml` validates YAML in the same style as CI.
-- Activate the `chemml` Conda environment before running Python tests: `conda activate chemml`.
+- Activate the `chemml` Conda environment before running Python commands during development: `conda activate chemml`.
 - `python -m pytest tests/` runs the Python regression tests from the activated `chemml` environment.
 - `python aqforecast/config_management/configuration.py config/default_config.yaml` checks the referenced configuration files.
 - `python aqforecast/config_management/configuration.py config/default_config.yaml --interactive` interactively fills fixable missing or invalid configuration values.
