@@ -453,10 +453,6 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
   fallback, native sinusoidal geolocation, categorical 0.005-degree regridding,
   configurable `LW`/`QC` filters, yearly storage, and ATL database-update
   testing.
-- ✅ Full ATL validation through `config/testing_config.yaml` for August 4–10,
-  2026: unavailable 2026 data correctly fell back to 2025, was stored with a
-  `2025-01-01` timestamp in a yearly NetCDF partition, and a repeat update
-  reported no missing timestamps or redundant download.
 
 AirNow, OpenAQ, TROPOMI, VIIRS, PACE, TEMPO NO₂/O₃ Profile, and MCD12Q1 land
 cover now have complete source-specific acquisition and preprocessing paths.

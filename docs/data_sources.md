@@ -140,9 +140,7 @@ disabled by default with bounds spanning the full byte range. The output
 timestamp is January 1 of the actual source year, including when an earlier
 year was used as a fallback. Yearly completeness recognizes configured
 fallback source years, and the generic database manager writes yearly NetCDF
-partitions and catalogs. The ATL validation using `config/testing_config.yaml`
-for August 4–10, 2026 stored the fallback data in
-`MCD12Q1_ATL_2025_grid_0005_a.nc`; a repeat update found no missing timestamp.
+partitions and catalogs.
 
 ## Planned sources
 
