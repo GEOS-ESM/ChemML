@@ -66,6 +66,7 @@ There is no project build command. For local checks:
 - Open notebooks with Jupyter in the environment described by `docs/examples/deepsensor_demo/deepsensor_cenv.yml`; run cells incrementally and confirm referenced data paths are available.
 - On NCCS Discover, run a configured batch entry with `python docs/examples/deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
 - Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`. AirNow or OpenAQ is automatically registered for regions whose `ground_monitoring.provider` selects that provider; TROPOMI, VIIRS, PACE, TEMPO NO₂, and TEMPO O₃ are automatically registered when their configured datasets are selected.
+- For the configured ATL integration check, use `config/testing_config.yaml` with `run_aqforecast(..., mode="database_update")`; select `land_cover` explicitly when validating MCD12Q1 so unrelated enabled sources are not downloaded. A 2026 request may be stored in the 2025 yearly partition when MCD12Q1 falls back to the latest available source year.
 
 ## Coding Style & Naming Conventions
 

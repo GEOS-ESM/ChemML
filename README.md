@@ -22,7 +22,7 @@ ChemML is a developing set of Python codes for high-resolution air quality estim
 
 ChemML integrates multiple data sources to generate accurate, high-resolution air quality forecasts:
 
-- **Satellite Data**: VIIRS MAIAC AOD, TROPOMI NO₂/O₃, PACE NO₂/O₃, GOES-ABI AOD, TEMPO NO₂/O₃ profiles
+- **Satellite Data**: VIIRS MAIAC AOD, TROPOMI NO₂/O₃, PACE NO₂/O₃, MCD12Q1 land cover, GOES-ABI AOD, TEMPO NO₂/O₃ profiles
 - **Numerical Models**: GEOS-CF atmospheric composition forecasts
 - **Ground Observations**: EPA AirNow and OpenAQ monitoring networks
 - **Machine Learning**: [DeepSensor](https://github.com/alan-turing-institute/deepsensor) Conditional Neural Process (ConvNP) architecture
