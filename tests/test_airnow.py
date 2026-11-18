@@ -3,6 +3,7 @@
 from datetime import datetime, timezone
 
 import pandas as pd
+import requests
 
 from aqforecast.contracts import DataRequest
 from aqforecast.data_acquisition.airnow import AirNowDataSource
@@ -33,6 +34,16 @@ class FakeSession:
     def get(self, url, *, params, timeout):
         self.calls.append((url, params, timeout))
         return FakeResponse(self.payload)
+
+
+class FlakySession(FakeSession):
+    """Fail once so the adapter's retry path can be tested without a network."""
+
+    def get(self, url, *, params, timeout):
+        if not self.calls:
+            self.calls.append((url, params, timeout))
+            raise requests.ConnectionError("temporary test failure")
+        return super().get(url, params=params, timeout=timeout)
 
 
 CONFIGURATION = {
@@ -121,6 +132,69 @@ def test_airnow_acquisition_uses_verified_request_and_preserves_units():
         pd.Timestamp("2026-07-03 00:30:00+00:00"),
         "PPM",
     ]
+
+
+def test_airnow_retries_transient_request_failure(monkeypatch):
+    session = FlakySession(RESPONSE)
+    monkeypatch.setattr("aqforecast.data_acquisition.airnow.time.sleep", lambda _: None)
+    source = AirNowDataSource(session=session, max_retries=2)
+    request = DataRequest(
+        "ground_monitors",
+        "ATL",
+        [],
+        datetime(2026, 7, 3, tzinfo=timezone.utc),
+        datetime(2026, 7, 3, 2, tzinfo=timezone.utc),
+    )
+
+    bundle = source.acquire(request, CONFIGURATION)
+
+    assert not bundle.errors
+    assert len(session.calls) == 2
+
+
+def test_airnow_standardized_output_round_trips_through_database(tmp_path):
+    configuration = {
+        **CONFIGURATION,
+        "region": {**CONFIGURATION["region"], "region_code": "ATL"},
+        "aqforecast": {"inputs": {"ground_monitors": {"enabled": True}}},
+        "filepaths": {"data_sources": {"ground_monitors": str(tmp_path / "ground_monitors")}},
+        "input_data": {
+            "datasets": {
+                "ground_monitors": {
+                    "file_template": "ground_monitors_{region_code}_{month_string}.csv",
+                    "variables": ["site_id", "lat", "lon", "time", "PM2.5", "PM10", "NO2", "O3", "SO2", "CO"],
+                    "site_id": "site_id",
+                    "coordinate_names": {"latitude": "lat", "longitude": "lon", "time": "time"},
+                    "time": {"frequency": "1h", "timestamp_convention": "center", "tolerance": "0s", "availability": {"mode": "continuous"}},
+                    "storage": {"partition": "monthly", "format": "csv", "catalog_filename": "catalog.json"},
+                }
+            }
+        },
+    }
+    session = FakeSession(RESPONSE)
+    source = AirNowDataSource(session=session, max_query_hours=168)
+    manager = DatabaseManager(
+        configuration,
+        data_sources={"ground_monitors": source},
+        preprocessors={"ground_monitors": AirNowPreprocessor()},
+    )
+
+    report = manager.update(
+        "2026-07-03T00:00:00Z",
+        "2026-07-03T02:00:00Z",
+        source_keys=["ground_monitors"],
+    )
+
+    assert report.sources["ground_monitors"]["status"] == "updated"
+    assert report.sources["ground_monitors"]["integrity"]["valid"]
+    output = tmp_path / "ground_monitors" / "ground_monitors_ATL_202607.csv"
+    assert output.exists()
+    archived = pd.read_csv(output)
+    assert set(pd.to_datetime(archived["time"], utc=True)) == {
+        pd.Timestamp("2026-07-03T00:30:00Z"),
+        pd.Timestamp("2026-07-03T01:30:00Z"),
+    }
+    assert (tmp_path / "ground_monitors" / "catalog.json").exists()
 
 
 def test_airnow_preprocessing_converts_qc_maps_site_id_and_drops_units():

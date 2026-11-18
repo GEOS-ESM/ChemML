@@ -15,9 +15,16 @@ from aqforecast.data_management import DatabaseManager
 class SyntheticAdapter:
     """Return deterministic data for the requested half-open interval."""
 
-    def __init__(self, source_key: str, *, fail: bool = False) -> None:
+    def __init__(
+        self,
+        source_key: str,
+        *,
+        fail: bool = False,
+        omit_first_timestamp: bool = False,
+    ) -> None:
         self.source_key = source_key
         self.fail = fail
+        self.omit_first_timestamp = omit_first_timestamp
         self.calls: list[tuple[pd.Timestamp, pd.Timestamp]] = []
 
     def acquire(self, request, configuration):
@@ -50,6 +57,11 @@ class SyntheticAdapter:
                 {"grid_value": (("time", "lat", "lon"), np.arange(len(times), dtype=float)[:, None, None])},
                 coords={"time": times.tz_localize(None), "lat": [33.75], "lon": [-84.39]},
             )
+        if self.omit_first_timestamp and len(self.calls) == 1:
+            if isinstance(data, pd.DataFrame):
+                data = data.iloc[1:].reset_index(drop=True)
+            else:
+                data = data.isel(time=slice(1, None))
         return DatasetBundle(self.source_key, data)
 
 
@@ -114,6 +126,8 @@ def test_update_isolates_source_failure_and_writes_month_boundary(tmp_path):
     assert report.sources["points"]["status"] == "updated"
     assert report.sources["grid"]["status"] == "updated"
     assert report.sources["broken"]["status"] == "failed"
+    assert report.sources["broken"]["errors"][0]["retryable"] is True
+    assert not list((tmp_path / "broken" / ".tmp").iterdir())
     assert len(adapters["points"].calls) == 1
     assert len(adapters["grid"].calls) == 1
     assert (tmp_path / "points" / "points_ATL_202601.csv").exists()
@@ -158,6 +172,36 @@ def test_overlapping_updates_fill_second_month_without_duplicates(tmp_path):
         assert pd.DatetimeIndex(pd.to_datetime(dataset.time.values, utc=True)).is_unique
     assert len(points.calls) == 2
     assert len(grid.calls) == 2
+
+
+def test_partial_source_gap_is_warned_then_filled_on_a_later_update(tmp_path):
+    configuration = _configuration(tmp_path)
+    points = SyntheticAdapter("points", omit_first_timestamp=True)
+    manager = DatabaseManager(configuration, data_sources={"points": points})
+
+    first = manager.update(
+        "2026-08-04T00:00:00Z",
+        "2026-08-04T04:00:00Z",
+        source_keys=["points"],
+    )
+
+    assert first.sources["points"]["status"] == "updated"
+    assert first.sources["points"]["integrity"]["valid"]
+    assert first.sources["points"]["integrity"]["checks"]["timestamps"]["missing"]
+    assert any("unavailable or missing" in warning for warning in first.warnings)
+
+    second = manager.update(
+        "2026-08-04T00:00:00Z",
+        "2026-08-04T04:00:00Z",
+        source_keys=["points"],
+    )
+
+    assert second.sources["points"]["status"] == "updated"
+    assert not second.sources["points"]["integrity"]["checks"]["timestamps"]["missing"]
+    point_times = _read_point_times(tmp_path / "points" / "points_ATL_202608.csv")
+    assert len(point_times) == 4
+    assert point_times.is_unique
+    assert len(points.calls) == 2
 
 
 def test_update_crossing_year_boundary_uses_both_year_partitions(tmp_path):

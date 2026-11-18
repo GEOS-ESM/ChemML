@@ -113,8 +113,8 @@ databases for all configured input sources.
     coordinate consistency, empty databases, and timestamp normalization.
   - [x] Add offline cross-source and cross-month database fixtures, including
     overlapping updates, failure isolation, year boundaries, and leap years.
-  - [ ] Add broader tests for partial updates, retries/failures, and output
-    database fixtures across all sources.
+  - [x] Add broader tests for partial updates, retries/failures, and output
+    database fixtures across implemented sources.
   - [x] Replace the hard-coded provider-to-adapter mapping in `DatabaseManager`
     with a registry-based source-adapter mechanism that supports custom
     registrations and explicit adapter overrides.
