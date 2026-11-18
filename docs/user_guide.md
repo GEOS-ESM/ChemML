@@ -89,8 +89,9 @@ print(result["report"])
 The rolling window is controlled by `database.incremental_update` in
 `config/aqforecast/aqforecast_config.yaml`. The example configuration looks
 back two days and forward five days, aligned to the current UTC hour, and
-rejects windows longer than 14 days. A future cron or NCCS wrapper can invoke
-this mode at the desired cadence.
+rejects windows longer than 14 days. A cron or NCCS wrapper can invoke this
+mode at the desired cadence; the repository includes a Bash scheduler
+entry point described below.
 
 ## Update the input-data database
 
@@ -220,6 +221,32 @@ contains the generated path under `operational_report_path`. Reports older than
 `database.operational_logging.retain_days` are removed during a later update;
 the default retention period is 365 days. Cleanup only targets these
 per-operation text reports and does not remove the general `aqforecast.log`.
+
+### Schedule rolling database updates
+
+The repository includes `scripts/update_database_incremental.sh` as a
+scheduler entry point. It activates the `chemml` Conda environment and runs
+`run_aqforecast(mode="incremental_database_update")` with credential checking
+enabled. It uses `config/default_config.yaml` by default; edit the
+`CONFIG_PATH` line in the script to select another master configuration.
+
+Make the script executable and test it manually before scheduling it:
+
+```bash
+chmod +x scripts/update_database_incremental.sh
+scripts/update_database_incremental.sh
+```
+
+For example, a daily cron entry from the repository root could be:
+
+```cron
+15 2 * * * /path/to/ChemML/scripts/update_database_incremental.sh >> /path/to/ChemML/cron.log 2>&1
+```
+
+The script exits with status 1 when the update reports failures and status 2
+when Conda is unavailable. Detailed per-run reports are written to the
+configured `logs_directory`; cron installation and scheduler-specific setup
+remain operator responsibilities.
 
 For configuration-only mode, a valid `run_aqforecast()` result contains:
 

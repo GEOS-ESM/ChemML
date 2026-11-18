@@ -50,6 +50,7 @@ This repository is under active development as a set of codes implementing a mac
   `database_update` mode runs the implemented incremental ingest workflow.
 - `aqforecast/orchestration/database_update.py` contains the standalone `run_database_update()` mode and `DatabaseUpdateStage`.
 - `aqforecast/orchestration/database_update.py` also contains `run_incremental_database_update()`, which computes a UTC-hour rolling update window from configuration; scheduling remains external.
+- `scripts/update_database_incremental.sh` is the scheduler entry point for rolling database updates. It activates the `chemml` Conda environment and points to `config/default_config.yaml` by default; edit its `CONFIG_PATH` line for another master configuration.
 - `tests/` contains the pytest regression suite for configuration, database
   management, AirNow/OpenAQ/TROPOMI/VIIRS/PACE/TEMPO/MCD12Q1/GOES-ABI/GEOS-CF
   ingest, OpenDAP access, and shared regridding.

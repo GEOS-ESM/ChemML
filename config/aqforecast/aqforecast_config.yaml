@@ -40,7 +40,7 @@ database:
   default_conflict_policy: "fill_missing"
   update_enabled_inputs_by_default: true
   # Used by run_incremental_database_update(); scheduling is handled by the
-  # future cron/NCCS wrapper, not by the Python workflow itself.
+  # scheduler entry point in scripts/update_database_incremental.sh.
   incremental_update:
     lookback_days: 2
     lookahead_days: 5

@@ -176,7 +176,15 @@ For a rolling update around the current UTC hour, use
 `run_incremental_database_update(configuration)`. Its lookback, lookahead, and
 maximum-window safeguards are configured under
 `aqforecast.database.incremental_update`. Scheduling this function is left to
-the future cron/NCCS wrapper.
+the scheduler entry point or an NCCS-specific batch wrapper.
+
+For scheduler use, run `scripts/update_database_incremental.sh`. The script
+activates the `chemml` Conda environment, uses
+`config/default_config.yaml` by default, and invokes the incremental update
+mode with credential checking enabled. Edit the `CONFIG_PATH` line near the
+top of the script to select another master configuration, then make it
+executable with `chmod +x scripts/update_database_incremental.sh`. The script
+returns a nonzero exit status when the update fails.
 
 ## Documentation
 

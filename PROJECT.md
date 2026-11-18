@@ -221,7 +221,8 @@ databases for all configured input sources.
     lookahead, and maximum-window safeguards. Scheduling remains a future
     script/cron task.
 - [ ] Examples and Scripting/Orchestration
-  - [ ] Create a runnable data download script (`.sh` file) which can be scheduled to run at a fixed cadence (e.g., daily) to keep the database up to date.
+  - [x] Create `scripts/update_database_incremental.sh`, a Conda-activating
+    scheduler entry point for configured rolling database updates.
   - [ ] Create a Python notebook illustrating how to populate the database and visualize the data currently available in the database. Use `docs/examples/deepsensor_demo/Deepsensor_demo_Oct2025.ipynb` as inspiration for the plots.
     - [ ] To support this, create a generalized plotting function in the `aqforecast/utils` folder. This function should use `cartopy` for basemaps. Be sure that base maps are downloaded and saved locally during first-time setup if an internet connection is available.
 - [ ] Testing and verification
