@@ -142,6 +142,35 @@ year was used as a fallback. Yearly completeness recognizes configured
 fallback source years, and the generic database manager writes yearly NetCDF
 partitions and catalogs.
 
+## GEOS-CF
+
+GEOS-CF v2 is acquired from the public unauthenticated OpenDAP service with
+xarray and pydap. The adapter reads analysis data and available dated forecast
+initializations for the configured interval, using the AQC, MET, and XGC
+collections selected in `input_data_config.yaml`; CHM PM-speciation fields are
+optional. Requests are subset to the configured region and time interval on
+the native 0.25-degree grid, split into configurable time and variable chunks,
+and retried when transient collection requests fail.
+
+The preprocessor decodes the service's raw year-1 time coordinate using GrADS
+timestamp metadata, normalizes valid times to UTC center-of-hour timestamps,
+retains finite values, and replaces NaN or infinite values with missing data.
+Analysis and forecast records are combined with a `forecast_lead_day`
+dimension: analysis is 0 and forecast lead days are 1–5. Forecast dates absent
+from the public rolling archive are reported as warning gaps without stopping
+other available data. Scientific valid-range filters beyond finite-value
+handling remain to be added.
+
+The default access mode is OpenDAP (`access.mode: "remote"`). On NCCS, switch
+to `access.mode: "local"` and provide `access.local_root` for the operational
+GEOS-CF v2 tree. The local adapter searches configured stream/date directories
+for selected collection files, including `.nc4` and compressed layouts. The
+local NCCS path has not yet received an end-to-end ChemML database test.
+
+The adapter has network-free regression tests, but a complete local end-to-end
+test has not yet been completed because the public OpenDAP service has
+intermittently returned 502 responses and stalled data transfers.
+
 GOES-ABI AOD is acquired from the public NOAA `noaa-goes19`, `noaa-goes16`,
 `noaa-goes18`, and `noaa-goes17` S3 buckets using the `ABI-L2-AODC` CONUS
 product. The adapter checks those satellites in configured order, stages all
@@ -149,13 +178,12 @@ available candidate granules for each hour, and the preprocessor selects the
 first satellite with valid regional retrievals. It converts the GOES fixed
 grid to latitude/longitude, retains `DQF <= 1`, rejects fill and out-of-range
 AOD values, regrids to the configured target grid (0.02 degrees by default),
-and averages to UTC hourly timestamps centered at `:30`. GEOS-CF remains a
-planned Phase 2 source. GEMS, GCAS,
+and averages to UTC hourly timestamps centered at `:30`. GEMS, GCAS,
 and TEMPO PM2.5 are deferred beyond the immediate Phase 2 implementation
 scope; TEMPO PM2.5 is expected to become available around April 2027.
 
 ## Planned sources
 
-GEOS-CF remains a planned Phase 2 source. GEMS, GCAS, and TEMPO PM2.5 are
-deferred beyond the immediate Phase 2 implementation scope; TEMPO PM2.5 is
-expected to become available around April 2027.
+GEMS, GCAS, and TEMPO PM2.5 are deferred beyond the immediate Phase 2
+implementation scope; TEMPO PM2.5 is expected to become available around
+April 2027.

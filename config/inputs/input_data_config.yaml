@@ -38,7 +38,26 @@ datasets:
     time: {type: "datetime", frequency: "1h", alignment: "reference_times", tolerance: "30m", timestamp_convention: "center", availability: {mode: "continuous"}}
     regridding: {method: "none", latlon_resolution: 0.25}
     storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
-    access: {mode: "local", temporary_directory: ".tmp"}
+    access:
+      # Use mode: "local" with local_root on NCCS instead of OpenDAP remote mode.
+      mode: "remote"
+      base_url: "https://opendap.nccs.nasa.gov/dods/gmao/geos-cf/v2"
+      forecast_endpoint: "dated"
+      forecast_cycle_hour_utc: 9
+      forecast_lookback_days: 6
+      forecast_retention_days: 14
+      request_retries: 3
+      retry_pause_seconds: 1.0
+      request_chunk_hours: 24
+      request_variable_chunk_size: 3
+      # NCCS alternative: /discover/nobackup/projects/gmao/geos_cf/pub/v2
+      local_root: "/discover/nobackup/projects/gmao/geos_cf/pub/v2"
+      temporary_directory: ".tmp"
+      collections:
+        aqc: ["no2", "o3", "pm25_rh35"] # Additional variable options: "co", "pm10_rh35", "so2"
+        chm: [ ] # Variable options: "pm25bc_rh35", "pm25du_rh35", "pm25nh4_rh35", "pm25nit_rh35", "pm25oc_rh35", "pm25soa_rh35", "pm25ss_rh35", "pm25su_rh35"
+        met: ["q", "cldtt", "phis", "ps", "rh", "slp", "t", "tprec", "troppb", "ts", "u", "v", "zl", "zpbl"]
+        xgc: ["aod550_bc", "aod550_dust", "aod550_oc", "aod550_psc", "aod550_sla", "aod550_sna", "aod550_ss", "totcol_no2", "totcol_o3", "tropcol_no2", "tropcol_o3"] # Additional variable options: "pblcol_no2", "pblcol_o3"
 
   TROPOMI:
     source_key: "TROPOMI"

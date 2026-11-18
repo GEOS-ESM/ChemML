@@ -12,7 +12,10 @@ ChemML is a developing set of Python codes for high-resolution air quality estim
 > VIIRS VJ219A2 AOD
 > satellite ingest, plus PACE OCI trace-gas, TEMPO NO₂/O₃ Profile, and MCD12Q1
 > land-cover ingest, are implemented
-> source-specific ingests; other source ingest,
+> source-specific ingests. The GEOS-CF adapter and preprocessing are developed
+> with network-free tests, but have not completed a local end-to-end database
+> test because public OpenDAP availability has been intermittent. Other source
+> ingest,
 > forecasting, and validation
 > workflows are being built incrementally.
 > Several data-ingest modules, documentation pages, and example notebooks
@@ -59,6 +62,8 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/data_acquisition/tempo_o3.py` implements configurable-layer TEMPO O₃ Profile DAP4/OpenDAP acquisition.
 - `aqforecast/data_acquisition/land_cover.py` implements MCD12Q1 yearly Earthdata acquisition with up to two years of source-year fallback.
 - `aqforecast/data_acquisition/goes_abi.py` implements anonymous NOAA S3 GOES-ABI AOD acquisition with ordered GOES-19/16/18/17 fallback.
+- `aqforecast/data_acquisition/geos_cf.py` implements chunked public OpenDAP
+  and configurable NCCS-local GEOS-CF v2 analysis/forecast acquisition.
 - `aqforecast/preprocessing/generic.py` provides shared fill-value and basic quality-control preprocessing.
 - `aqforecast/preprocessing/airnow.py` implements AirNow unit conversion, quality control, and site-ID standardization.
 - `aqforecast/preprocessing/openaq.py` implements OpenAQ unit conversion, shared quality control, sensor reconciliation, and site-ID standardization.
@@ -69,6 +74,8 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/preprocessing/tempo_o3.py` implements configurable-layer selection, angle/cloud QC, native-grid hourly aggregation, and UTC timestamp normalization for TEMPO O₃.
 - `aqforecast/preprocessing/land_cover.py` implements MCD12Q1 sinusoidal geolocation, configurable `LW`/`QC` filtering, categorical 0.005-degree regridding, and source-year timestamps.
 - `aqforecast/preprocessing/goes_abi.py` implements fixed-grid geolocation, DQF/AOD filtering, configurable regridding, satellite fallback, and hourly center-timestamp aggregation.
+- `aqforecast/preprocessing/geos_cf.py` implements UTC time normalization,
+  finite-value handling, native-grid merging, and `forecast_lead_day` indexing.
 - `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`, `aqforecast/forecasting/`, `aqforecast/validation/`, and `aqforecast/orchestration/` contain the stage interfaces; most source-specific and forecasting implementations remain planned.
 - `aqforecast/orchestration/database_update.py` provides the standalone database-update mode.
 - `aqforecast/aqforecast.py` contains the `run_aqforecast()` workflow entry
@@ -164,15 +171,17 @@ sensors at a site and reports competing valid sensor values.
 
 ## Documentation
 
-Available and planned documentation is listed in the `docs/` directory. The installation guide, configuration reference, and initial user guide are currently available:
+Available and planned documentation is listed in the `docs/` directory. The
+installation guide, configuration reference, user guide, and data-source
+reference are currently available:
 
 - [Installation Guide](docs/installation.md)
 - [Configuration Reference](docs/configuration.md)
 - [User Guide](docs/user_guide.md)
+- [Data Sources](docs/data_sources.md)
 
 Additional documentation pages are planned:
 
-- [Data Sources](docs/data_sources.md) (AirNow, OpenAQ, TROPOMI, VIIRS, PACE, TEMPO NO₂/O₃, and MCD12Q1 currently implemented)
 - [NCCS Deployment](docs/nccs_deployment.md)
 - [API Reference](docs/api_reference.md)
 
@@ -225,7 +234,8 @@ ChemML accesses data from multiple sources:
   product is not expected to be available before then
 
 GEMS and GCAS are also deferred beyond the immediate Phase 2 implementation
-scope. GEOS-CF remains a planned Phase 2 source.
+scope. GEOS-CF acquisition and preprocessing are developed but remain
+incomplete pending local end-to-end validation.
 
 ### Numerical Models
 - **[GEOS-CF](https://gmao.gsfc.nasa.gov/gmao-products/geos-cf/)**: NASA's atmospheric composition forecast system

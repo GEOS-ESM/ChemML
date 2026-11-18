@@ -97,6 +97,13 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
   using each dataset's configured target resolution while preserving
   non-spatial dimensions; other dataset-specific download and source adapters
   remain future work.
+- GEOS-CF v2 acquisition and preprocessing have been developed. The adapter
+  supports chunked public OpenDAP access, optional NCCS-local access, finite-
+  value handling, native-grid analysis/forecast merging, and
+  `forecast_lead_day` indexing. Network-free tests pass, but the implementation
+  is not complete because a local end-to-end database test has not been
+  completed and the public OpenDAP service has intermittently returned 502
+  responses and stalled transfers.
 - A live ATL database-update test using an in-memory OpenAQ provider override
   completed for August 4–9, 2026 and produced an OpenAQ partition alongside
   the existing AirNow partition in the external test-data directory.
@@ -149,14 +156,13 @@ databases for all configured input sources.
   - [x] TEMPO O₃ Profiles: acquire configurable profile layers through OpenDAP,
     apply cloud/angle QC, aggregate on the native grid, and integrate with cache
     cleanup.
-  - [ ] GEOS-CF:
-    - [ ] Acquire model data for the configured region and period.
-    - [ ] Subset data by configured region, period, and variables.
-    - [ ] Convert source files to the standardized database format.
-    - [ ] Apply quality control, fill-value handling, and missing-data rules.
-    - [ ] Regrid or aggregate to the configured spatial and temporal resolution.
-    - [ ] Integrate processed data with the existing database.
-    - [ ] Integrate data from both forecasting and analysis runs into a common data structure.
+  - [ ] GEOS-CF (developed, but not complete pending local end-to-end testing):
+    - [x] Implement analysis and forecast acquisition for configured regions and periods.
+    - [x] Subset data by configured region, period, and selected variables using chunked requests.
+    - [x] Convert source data to the standardized native-grid database structure.
+    - [x] Apply finite-value handling, timestamp normalization, and availability-gap warnings.
+    - [x] Integrate analysis and forecast runs with `forecast_lead_day` indexing.
+    - [ ] Complete local NCCS and end-to-end database-update testing.
   - [x] Land Cover information:
     - [x] Acquire the configured reference-period land-cover product. If
       current-year data are unavailable, implement a special rule for acquiring
@@ -191,6 +197,7 @@ databases for all configured input sources.
     database fixtures across all sources.
   - [ ] Replace the hard-coded provider-to-adapter mapping in `DatabaseManager`
     with a configurable or registry-based source-adapter mechanism.
+  - [ ] Implement (or verify) logging of database updating, reporting on the success or failure of the update into a log file associated with the run.
   - [ ] Keep `config/inputs/input_data_config.yaml` aligned with the settings required to download and preprocess each data source as ingest codes are developed.
   - [ ] Update project documentation files.
     - [ ] Keep `PROJECT.md` up to date with the current status of the implementation.
@@ -458,19 +465,18 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 
 AirNow, OpenAQ, TROPOMI, VIIRS, PACE, TEMPO NO₂/O₃ Profile, MCD12Q1 land
 cover, and GOES-ABI now have complete source-specific acquisition and
-preprocessing paths. GEOS-CF remains a planned Phase 2 source; GEMS, GCAS, and TEMPO
-PM2.5 are deferred to future work.
+preprocessing paths. GEOS-CF is developed but incomplete pending local
+end-to-end testing; GEMS, GCAS, and TEMPO PM2.5 are deferred to future work.
 
 ### In Progress
 
-- 🚧 Dataset-specific data acquisition and preprocessing implementations beyond
-  AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂/O₃ Profile, plus broader database integration fixtures.
+- 🚧 GEOS-CF local/end-to-end validation and broader database integration fixtures.
 - 🚧 Forecasting and validation workflow implementation.
 
 ### Upcoming
 
-- Source-specific acquisition adapters for the remaining Phase 2 sources:
-  GOES-ABI, GEOS-CF, and any remaining ground-data sources.
+- Source-specific acquisition adapters and validation for any remaining Phase 2
+  sources.
 - Dataset-specific quality control, regridding, and aggregation.
 - Integration fixtures and broader database-manager coverage.
 

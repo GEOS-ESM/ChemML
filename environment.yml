@@ -16,6 +16,7 @@ dependencies:
   - pip
   - yamllint
   - pip:
+    # Only needed for the GOES-ABI data-access system; remove if GOES-ABI is not used.
     - s3fs>=2023.1
     - earthaccess>=0.8
     - pydap>=3.5

@@ -145,6 +145,12 @@ class DatabaseManager:
 
             self.data_sources.setdefault("GOES-ABI", GoesAbiAodDataSource(logger=self.logger))
             self.preprocessors.setdefault("GOES-ABI", GoesAbiAodPreprocessor())
+        if "GEOS-CF" in self.configuration.get("input_data", {}).get("datasets", {}):
+            from aqforecast.data_acquisition.geos_cf import GeosCfDataSource
+            from aqforecast.preprocessing.geos_cf import GeosCfPreprocessor
+
+            self.data_sources.setdefault("GEOS-CF", GeosCfDataSource(logger=self.logger))
+            self.preprocessors.setdefault("GEOS-CF", GeosCfPreprocessor())
 
     def _expected_times(
         self, source: Mapping[str, Any], start: pd.Timestamp, end: pd.Timestamp
