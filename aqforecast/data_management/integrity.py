@@ -72,7 +72,7 @@ def _missing_expected(
         observed_dates = {value.normalize() for value in observed}
         return pd.DatetimeIndex([value for value in expected if value.normalize() not in observed_dates])
     tolerance = pd.Timedelta(source.get("time", {}).get("tolerance", "0s"))
-    observed_ns = observed.tz_localize(None).asi8
+    observed_ns = observed.tz_localize(None).astype("datetime64[ns]").asi8
     missing = [
         value
         for value in expected

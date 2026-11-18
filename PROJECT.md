@@ -194,6 +194,8 @@ databases for all configured input sources.
     as empty databases or explicit, actionable input errors.
   - [x] Add database-manager tests for missing intervals, site identity,
     coordinate consistency, empty databases, and timestamp normalization.
+  - [x] Add offline cross-source and cross-month database fixtures, including
+    overlapping updates, failure isolation, year boundaries, and leap years.
   - [ ] Add broader tests for partial updates, retries/failures, and output
     database fixtures across all sources.
   - [ ] Replace the hard-coded provider-to-adapter mapping in `DatabaseManager`
@@ -407,7 +409,7 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 - [ ] Create `docs/examples/05_validation_analysis.ipynb`.
 - [x] Set up the initial pytest test structure.
 - [ ] Complete unit-test coverage.
-- [ ] Add database-manager regression and integration tests using representative CSV and NetCDF fixtures.
+- [x] Add database-manager regression and integration tests using representative CSV and NetCDF fixtures.
 - [ ] Perform integration testing.
 - [ ] Conduct a security review.
 - [ ] Create tutorial videos and materials.

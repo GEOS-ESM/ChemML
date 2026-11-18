@@ -458,7 +458,7 @@ class DatabaseManager:
                     for year in sorted(set(times.year))
                 ]
             )
-        return times.to_period("M").to_timestamp().tz_localize("UTC").unique()
+        return times.tz_convert(None).to_period("M").to_timestamp().tz_localize("UTC").unique()
 
     def _merge(
         self, existing: Any, incoming: Any, source: Mapping[str, Any], policy: str
@@ -601,7 +601,7 @@ class DatabaseManager:
                 elif partition == "yearly":
                     mask = timestamps.dt.year == period.year
                 else:
-                    mask = timestamps.dt.to_period("M") == period.to_period("M")
+                    mask = timestamps.dt.tz_localize(None).dt.to_period("M") == period.tz_localize(None).to_period("M")
                 subset = data[mask]
                 target = directory / self._filename(source_key, source, period)
                 staged = run_dir / target.name
@@ -616,7 +616,7 @@ class DatabaseManager:
                 elif partition == "yearly":
                     mask = timestamps.year == period.year
                 else:
-                    mask = timestamps.to_period("M") == period.to_period("M")
+                    mask = timestamps.tz_convert(None).to_period("M") == period.tz_localize(None).to_period("M")
                 subset = data.isel({time_name: mask})
                 target = directory / self._filename(source_key, source, period)
                 staged = run_dir / target.name
