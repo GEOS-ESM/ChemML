@@ -198,8 +198,9 @@ databases for all configured input sources.
     overlapping updates, failure isolation, year boundaries, and leap years.
   - [ ] Add broader tests for partial updates, retries/failures, and output
     database fixtures across all sources.
-  - [ ] Replace the hard-coded provider-to-adapter mapping in `DatabaseManager`
-    with a configurable or registry-based source-adapter mechanism.
+  - [x] Replace the hard-coded provider-to-adapter mapping in `DatabaseManager`
+    with a registry-based source-adapter mechanism that supports custom
+    registrations and explicit adapter overrides.
   - [x] Implement operational database-update reports with per-source results,
     warnings, detailed failures, interpretable filenames, and configurable
     cleanup of reports older than the retention period.

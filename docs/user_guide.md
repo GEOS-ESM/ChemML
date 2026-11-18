@@ -188,6 +188,10 @@ Database files are stored using the partition and format configured in
 point data. Temporary downloads and staged writes use a per-run `.tmp`
 directory, which is cleaned after the update. A regenerated `catalog.json` is
 written in each source directory as a confirmation of the files on disk.
+Built-in acquisition and preprocessing adapters are selected through the
+`SourceRegistry`. Custom registries can be passed to `DatabaseManager`, while
+explicit `data_sources` and `preprocessors` mappings continue to override the
+registered defaults.
 Each update also returns an `integrity` section for every selected source.
 Availability gaps appear as warnings; malformed partitions, duplicate records,
 grid/schema mismatches, and catalog inconsistencies mark that source as failed.

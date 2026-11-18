@@ -16,14 +16,11 @@ from zoneinfo import ZoneInfo
 import pandas as pd
 
 from aqforecast.contracts import DataRequest, DatasetBundle
-from aqforecast.data_acquisition.airnow import AirNowDataSource
-from aqforecast.data_acquisition.openaq import OpenAQDataSource
 from aqforecast.data_acquisition.base import UnavailableDataSource
 from aqforecast.data_acquisition.base import AcquisitionError
 from aqforecast.data_management.catalog import DatasetCatalog
 from aqforecast.data_management.integrity import verify_database_integrity
-from aqforecast.preprocessing.airnow import AirNowPreprocessor
-from aqforecast.preprocessing.openaq import OpenAQPreprocessor
+from aqforecast.data_management.registry import SourceRegistry, default_source_registry
 from aqforecast.preprocessing.generic import GenericPreprocessor
 from aqforecast.data_management.validation import validate_site_coordinates
 
@@ -84,74 +81,25 @@ class DatabaseManager:
         data_sources: Optional[Mapping[str, Any]] = None,
         preprocessors: Optional[Mapping[str, Any]] = None,
         logger: Optional[logging.Logger] = None,
+        source_registry: Optional[SourceRegistry] = None,
     ) -> None:
         self.configuration = configuration
         self.data_sources = dict(data_sources or {})
         self.preprocessors = dict(preprocessors or {})
         self.logger = logger or logging.getLogger("aqforecast.data_management")
-        provider = (
-            self.configuration.get("region", {})
-            .get("ground_monitoring", {})
-            .get("provider")
-        )
-        if str(provider).casefold() == "airnow":
-            self.data_sources.setdefault(
-                "ground_monitors", AirNowDataSource(logger=self.logger)
-            )
-            self.preprocessors.setdefault("ground_monitors", AirNowPreprocessor())
-        elif str(provider).casefold() == "openaq":
-            self.data_sources.setdefault(
-                "ground_monitors", OpenAQDataSource(logger=self.logger)
-            )
-            self.preprocessors.setdefault("ground_monitors", OpenAQPreprocessor())
-        if "TROPOMI" in self.configuration.get("input_data", {}).get("datasets", {}):
-            from aqforecast.data_acquisition.tropomi import TropomiDataSource
-            from aqforecast.preprocessing.tropomi import TropomiPreprocessor
-
-            self.data_sources.setdefault("TROPOMI", TropomiDataSource(logger=self.logger))
-            self.preprocessors.setdefault("TROPOMI", TropomiPreprocessor())
-        if "VIIRS" in self.configuration.get("input_data", {}).get("datasets", {}):
-            from aqforecast.data_acquisition.viirs import ViirsAodDataSource
-            from aqforecast.preprocessing.viirs import ViirsAodPreprocessor
-
-            self.data_sources.setdefault("VIIRS", ViirsAodDataSource(logger=self.logger))
-            self.preprocessors.setdefault("VIIRS", ViirsAodPreprocessor())
-        if "PACE" in self.configuration.get("input_data", {}).get("datasets", {}):
-            from aqforecast.data_acquisition.pace import PaceTraceGasDataSource
-            from aqforecast.preprocessing.pace import PaceTraceGasPreprocessor
-
-            self.data_sources.setdefault("PACE", PaceTraceGasDataSource(logger=self.logger))
-            self.preprocessors.setdefault("PACE", PaceTraceGasPreprocessor())
-        if "TEMPO_NO2" in self.configuration.get("input_data", {}).get("datasets", {}):
-            from aqforecast.data_acquisition.tempo import TempoNo2DataSource
-            from aqforecast.preprocessing.tempo import TempoNo2Preprocessor
-
-            self.data_sources.setdefault("TEMPO_NO2", TempoNo2DataSource(logger=self.logger))
-            self.preprocessors.setdefault("TEMPO_NO2", TempoNo2Preprocessor())
-        if "TEMPO_O3" in self.configuration.get("input_data", {}).get("datasets", {}):
-            from aqforecast.data_acquisition.tempo_o3 import TempoO3ProfileDataSource
-            from aqforecast.preprocessing.tempo_o3 import TempoO3ProfilePreprocessor
-
-            self.data_sources.setdefault("TEMPO_O3", TempoO3ProfileDataSource(logger=self.logger))
-            self.preprocessors.setdefault("TEMPO_O3", TempoO3ProfilePreprocessor())
-        if "land_cover" in self.configuration.get("input_data", {}).get("datasets", {}):
-            from aqforecast.data_acquisition.land_cover import LandCoverDataSource
-            from aqforecast.preprocessing.land_cover import LandCoverPreprocessor
-
-            self.data_sources.setdefault("land_cover", LandCoverDataSource(logger=self.logger))
-            self.preprocessors.setdefault("land_cover", LandCoverPreprocessor())
-        if "GOES-ABI" in self.configuration.get("input_data", {}).get("datasets", {}):
-            from aqforecast.data_acquisition.goes_abi import GoesAbiAodDataSource
-            from aqforecast.preprocessing.goes_abi import GoesAbiAodPreprocessor
-
-            self.data_sources.setdefault("GOES-ABI", GoesAbiAodDataSource(logger=self.logger))
-            self.preprocessors.setdefault("GOES-ABI", GoesAbiAodPreprocessor())
-        if "GEOS-CF" in self.configuration.get("input_data", {}).get("datasets", {}):
-            from aqforecast.data_acquisition.geos_cf import GeosCfDataSource
-            from aqforecast.preprocessing.geos_cf import GeosCfPreprocessor
-
-            self.data_sources.setdefault("GEOS-CF", GeosCfDataSource(logger=self.logger))
-            self.preprocessors.setdefault("GEOS-CF", GeosCfPreprocessor())
+        registry = source_registry or default_source_registry(self.configuration)
+        configured_datasets = self.configuration.get("input_data", {}).get("datasets", {})
+        for source_key, registration in registry.items():
+            if source_key not in configured_datasets and source_key != "ground_monitors":
+                continue
+            if not registration.enabled_if(self.configuration):
+                continue
+            if source_key not in self.data_sources:
+                self.data_sources[source_key] = registration.create_data_source(
+                    self.logger
+                )
+            if source_key not in self.preprocessors:
+                self.preprocessors[source_key] = registration.create_preprocessor()
 
     def _expected_times(
         self, source: Mapping[str, Any], start: pd.Timestamp, end: pd.Timestamp
