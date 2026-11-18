@@ -20,8 +20,8 @@ class RecordingManager:
         return Report()
 
 
-def _configuration():
-    return {
+def _configuration(tmp_path=None):
+    configuration = {
         "aqforecast": {
             "database": {
                 "default_conflict_policy": "preserve_existing",
@@ -32,20 +32,24 @@ def _configuration():
                     "timezone": "UTC",
                     "time_alignment": "hour",
                 },
+                "operational_logging": {"retain_days": 365},
             }
         }
     }
+    if tmp_path is not None:
+        configuration["filepaths"] = {"working": {"logs_directory": str(tmp_path)}}
+    return configuration
 
 
-def test_incremental_update_uses_aligned_rolling_window(monkeypatch):
-    manager = RecordingManager(_configuration())
+def test_incremental_update_uses_aligned_rolling_window(monkeypatch, tmp_path):
+    manager = RecordingManager(_configuration(tmp_path))
     monkeypatch.setattr(
         "aqforecast.orchestration.database_update.DatabaseManager",
         lambda configuration, **kwargs: manager,
     )
 
     result = run_incremental_database_update(
-        _configuration(),
+        _configuration(tmp_path),
         now="2026-11-18T14:37:42-05:00",
         source_keys=["GEOS-CF"],
     )
@@ -56,6 +60,7 @@ def test_incremental_update_uses_aligned_rolling_window(monkeypatch):
     assert options["source_keys"] == ["GEOS-CF"]
     assert options["conflict_policy"] == "preserve_existing"
     assert result["incremental_update"]["anchor_time"] == "2026-11-18T19:00:00+00:00"
+    assert result["operational_report_path"].endswith(".txt")
 
 
 def test_incremental_update_rejects_window_over_maximum():

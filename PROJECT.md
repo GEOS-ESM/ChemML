@@ -200,7 +200,9 @@ databases for all configured input sources.
     database fixtures across all sources.
   - [ ] Replace the hard-coded provider-to-adapter mapping in `DatabaseManager`
     with a configurable or registry-based source-adapter mechanism.
-  - [ ] Implement (or verify) logging of database updating, reporting on the success or failure of the update into a log file associated with the run.
+  - [x] Implement operational database-update reports with per-source results,
+    warnings, detailed failures, interpretable filenames, and configurable
+    cleanup of reports older than the retention period.
   - [ ] Keep `config/inputs/input_data_config.yaml` aligned with the settings required to download and preprocess each data source as ingest codes are developed.
   - [ ] Update project documentation files.
     - [ ] Keep `PROJECT.md` up to date with the current status of the implementation.

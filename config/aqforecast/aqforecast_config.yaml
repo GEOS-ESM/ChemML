@@ -47,3 +47,5 @@ database:
     max_window_days: 14
     timezone: "UTC"
     time_alignment: "hour"
+  operational_logging:
+    retain_days: 365

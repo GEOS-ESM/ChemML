@@ -13,6 +13,7 @@ This repository is under active development as a set of codes implementing a mac
 - `aqforecast/config_management/` contains reusable configuration validation and configuration-loading utilities.
 - `aqforecast/config_management/credentials.py` contains local credential collection and optional remote verification.
 - `aqforecast/utils/logging.py` contains shared console/file logging and credential redaction.
+- `aqforecast/utils/operational_logging.py` writes human-readable per-run database-update reports and removes expired operational reports according to configured retention.
 - `aqforecast/utils/regridding.py` contains the generic irregular-point to
   latitude/longitude-grid regridder. Future source preprocessors should use
   this utility for regridding rather than duplicating source-specific binning

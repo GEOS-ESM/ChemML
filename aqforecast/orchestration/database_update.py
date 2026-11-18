@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any, Mapping, Optional, Sequence
 
 import pandas as pd
 
 from aqforecast.contracts import WorkflowContext
 from aqforecast.data_management import DatabaseManager
+from aqforecast.utils.operational_logging import write_database_update_report
 
 
 class DatabaseUpdateStage:
@@ -31,10 +33,29 @@ class DatabaseUpdateStage:
         return context
 
 
-def run_database_update(configuration: Mapping[str, Any], start_time: Any, end_time: Any, *, source_keys: Optional[Sequence[str]] = None, conflict_policy: str = "fill_missing", override: bool = False, data_sources: Optional[Mapping[str, Any]] = None, preprocessors: Optional[Mapping[str, Any]] = None) -> dict[str, Any]:
+def run_database_update(configuration: Mapping[str, Any], start_time: Any, end_time: Any, *, source_keys: Optional[Sequence[str]] = None, conflict_policy: str = "fill_missing", override: bool = False, data_sources: Optional[Mapping[str, Any]] = None, preprocessors: Optional[Mapping[str, Any]] = None, operation_name: str = "database_update") -> dict[str, Any]:
     """Execute database-update mode without invoking forecasting stages."""
+    started_at = datetime.now(timezone.utc)
     manager = DatabaseManager(configuration, data_sources=data_sources, preprocessors=preprocessors)
-    return manager.update(start_time, end_time, source_keys=source_keys, conflict_policy=conflict_policy, override=override).as_dict()
+    try:
+        result = manager.update(start_time, end_time, source_keys=source_keys, conflict_policy=conflict_policy, override=override).as_dict()
+    except Exception as error:
+        failure = {
+            "start_time": str(start_time),
+            "end_time": str(end_time),
+            "sources": {},
+            "warnings": [],
+            "error": {"type": type(error).__name__, "message": str(error)},
+        }
+        write_database_update_report(configuration, operation_name, started_at, failure)
+        raise
+    report_path, report_warnings = write_database_update_report(
+        configuration, operation_name, started_at, result
+    )
+    result["operational_report_path"] = str(report_path)
+    if report_warnings:
+        result.setdefault("warnings", []).extend(report_warnings)
+    return result
 
 
 def _incremental_update_window(
@@ -120,6 +141,7 @@ def run_incremental_database_update(
         override=override,
         data_sources=data_sources,
         preprocessors=preprocessors,
+        operation_name="incremental_database_update",
     )
     result["incremental_update"] = metadata
     return result

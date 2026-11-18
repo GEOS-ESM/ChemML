@@ -255,6 +255,9 @@ the data.
 - Database update defaults, including the `fill_missing` conflict policy.
 - Rolling database-update windows, including lookback/lookahead durations,
   UTC hourly alignment, and a maximum-window safeguard.
+- Operational report retention, configured by
+  `database.operational_logging.retain_days` (365 days by default). Reports
+  are written beneath the resolved `filepaths.working.logs_directory`.
 
 This file should be kept synchronized with the forecasting implementation as its required settings are defined.
 

@@ -208,6 +208,15 @@ configured lookback/lookahead window. `max_window_days` rejects accidentally
 oversized requests. Scheduling is intentionally left to cron or an NCCS batch
 wrapper; there is no enable/disable flag in the Python configuration.
 
+Every explicit or rolling database update also writes a human-readable report
+under the configured `filepaths.working.logs_directory`. Reports are named with
+the operation and UTC run-start time, for example
+`incremental_database_update_20261118T190000.000000Z.txt`. The returned report
+contains the generated path under `operational_report_path`. Reports older than
+`database.operational_logging.retain_days` are removed during a later update;
+the default retention period is 365 days. Cleanup only targets these
+per-operation text reports and does not remove the general `aqforecast.log`.
+
 For configuration-only mode, a valid `run_aqforecast()` result contains:
 
 - `status`: `configuration_loaded`.

@@ -45,6 +45,7 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/config_management/` contains the configuration checker and interactive configuration utility.
 - `aqforecast/config_management/credentials.py` manages local credentials and optional remote verification.
 - `aqforecast/utils/logging.py` provides shared console/file logging with credential redaction.
+- `aqforecast/utils/operational_logging.py` writes per-run human-readable database-update reports with configurable retention cleanup.
 - `aqforecast/utils/setup.py` provides a guided first-time setup flow that copies configuration files, collects paths and credentials, creates configured directories, and verifies the result.
 - `aqforecast/contracts.py` defines the shared request, result, and workflow-context data contracts.
 - `aqforecast/data_management/` provides the incremental partitioned database manager, post-update integrity verification, and regenerable per-source catalogs.
