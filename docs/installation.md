@@ -141,8 +141,9 @@ python aqforecast/config_management/configuration.py \
     config/default_config.yaml --interactive
 ```
 
-## Run the initial tests
+## Next steps after setup
 
-```bash
-python -m pytest tests/
-```
+The setup is complete when the configuration check passes and the configured
+directories and credentials are available. See the [User Guide](user_guide.md)
+for validation, tests, bounded and incremental database updates, and scheduler
+usage.

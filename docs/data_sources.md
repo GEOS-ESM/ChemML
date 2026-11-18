@@ -1,9 +1,12 @@
 # ChemML Data Sources
 
 This document records how each configured source is acquired, normalized, and
-stored in the ChemML input-data database. Source-specific API and file-format
-handling lives in acquisition adapters; common validation, merging,
-partitioning, and catalog generation live in the database manager.
+stored in the ChemML input-data database. The methods and defaults described
+here are configurable: see [docs/configuration.md](configuration.md),
+especially `config/inputs/input_data_config.yaml`, for authoritative options.
+Source-specific API and file-format handling lives in acquisition adapters;
+common validation, merging, partitioning, and catalog generation live in the
+database manager.
 
 ## AirNow
 
@@ -164,12 +167,11 @@ handling remain to be added.
 The default access mode is OpenDAP (`access.mode: "remote"`). On NCCS, switch
 to `access.mode: "local"` and provide `access.local_root` for the operational
 GEOS-CF v2 tree. The local adapter searches configured stream/date directories
-for selected collection files, including `.nc4` and compressed layouts. The
-local NCCS path has not yet received an end-to-end ChemML database test.
+for selected collection files, including `.nc4` and compressed layouts.
 
-The adapter has network-free regression tests, but a complete local end-to-end
-test has not yet been completed because the public OpenDAP service has
-intermittently returned 502 responses and stalled data transfers.
+Local NCCS access and end-to-end GEOS-CF validation remain deployment tasks.
+
+## GOES-ABI
 
 GOES-ABI AOD is acquired from the public NOAA `noaa-goes19`, `noaa-goes16`,
 `noaa-goes18`, and `noaa-goes17` S3 buckets using the `ABI-L2-AODC` CONUS

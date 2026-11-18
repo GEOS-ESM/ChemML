@@ -35,7 +35,7 @@ This repository is under active development as a set of codes implementing a mac
 - `aqforecast/data_acquisition/tempo_o3.py` and `aqforecast/preprocessing/tempo_o3.py` provide the implemented configurable-layer TEMPO O₃ Profile DAP4/OpenDAP ingest.
 - `aqforecast/data_acquisition/land_cover.py` and `aqforecast/preprocessing/land_cover.py` provide the implemented MCD12Q1 yearly land-cover ingest, including source-year fallback and categorical regridding from the native sinusoidal grid.
 - `aqforecast/data_acquisition/goes_abi.py` and `aqforecast/preprocessing/goes_abi.py` provide the implemented NOAA S3 GOES-ABI AOD ingest, including ordered GOES-19/16/18/17 fallback, fixed-grid geolocation, DQF filtering, configurable 0.02-degree regridding, and hourly center-timestamp aggregation.
-- `aqforecast/data_acquisition/geos_cf.py` and `aqforecast/preprocessing/geos_cf.py` provide the developed GEOS-CF v2 analysis/forecast ingest, including chunked public OpenDAP access, optional NCCS-local access, native-grid processing, and `forecast_lead_day` indexing. The adapter has network-free tests but no completed local end-to-end database test because public OpenDAP transfers have been intermittent.
+- `aqforecast/data_acquisition/geos_cf.py` and `aqforecast/preprocessing/geos_cf.py` provide the GEOS-CF v2 analysis/forecast ingest, including chunked public OpenDAP access, optional NCCS-local access, native-grid processing, and `forecast_lead_day` indexing. Local/NCCS end-to-end validation remains an environment-specific task tracked in `PROJECT.md`.
 - `aqforecast/preprocessing/generic.py` contains shared fill-value and basic quality-control preprocessing.
 - `aqforecast/contracts.py` contains the shared data contracts (`DataRequest`,
   `DatasetBundle`, `ForecastRequest`, `ForecastResult`, `ValidationResult`,
@@ -46,8 +46,8 @@ This repository is under active development as a set of codes implementing a mac
   is the first implemented orchestration workflow; most source-specific and
   forecasting implementations remain planned.
 - `aqforecast/aqforecast.py` contains the `run_aqforecast()` entry point. Its
-  default forecast mode remains configuration-only, while its explicit
-  `database_update` mode runs the implemented incremental ingest workflow.
+  default forecast mode remains configuration-only, while its explicit bounded
+  and incremental database-update modes run the implemented ingest workflow.
 - `aqforecast/orchestration/database_update.py` contains the standalone `run_database_update()` mode and `DatabaseUpdateStage`.
 - `aqforecast/orchestration/database_update.py` also contains `run_incremental_database_update()`, which computes a UTC-hour rolling update window from configuration; scheduling remains external.
 - `scripts/update_database_incremental.sh` is the scheduler entry point for rolling database updates. It activates the `chemml` Conda environment and points to `config/default_config.yaml` by default; edit its `CONFIG_PATH` line for another master configuration.
@@ -58,6 +58,44 @@ This repository is under active development as a set of codes implementing a mac
 - `.github/workflows/` contains CI checks.
 
 Large input and output datasets are external to the repository. Do not commit generated NetCDF files, model outputs, or local environment directories.
+
+## Documentation Conventions
+
+Keep documentation organized by audience and purpose:
+
+- `README.md` provides the public project overview, implementation status,
+  quick start, and links to further resources. It may retain links to planned
+  files that do not yet exist, but each such link must be clearly labeled as
+  planned or to be created.
+- `AGENTS.md` contains persistent instructions for coding agents, including
+  repository structure, development workflow, conventions, and action
+  restrictions. Do not use it as a test-results log or project roadmap.
+- `PROJECT.md` is the implementation roadmap, including phases, tasks,
+  deliverables, current status, risks, and next steps. Keep completed-item
+  descriptions concise and avoid duplicating user guides.
+- `CHANGELOG.md` records substantive changes using Keep a Changelog headings
+  and Semantic Versioning conventions.
+- `docs/configuration.md` explains configuration-file structure, ownership,
+  meanings, and options.
+- `docs/data_sources.md` summarizes source access and preprocessing, while
+  referring configurable defaults to the configuration reference.
+- `docs/installation.md` covers cloning, environment creation, and automated
+  or manual first-time setup.
+- `docs/user_guide.md` is the expanding guide to major user activities and
+  workflow modes. It currently covers configuration validation, bounded and
+  incremental database updates, scheduling, and tests; extend it as new
+  functionality and modes are implemented.
+- `TO_DO.md` is a human-maintained development scratchpad, not project
+  documentation. Do not reorganize, summarize, or treat it as part of the
+  documentation set.
+
+During documentation cleanup, preserve links to intentionally planned future
+files in `README.md` and identify them as planned. Do not create or rename a
+documentation file merely because a reference contains a typo or points to a
+future resource; make such changes only when the project plan explicitly calls
+for the resource. Keep `docs/implementation_instructions_for_agents/` as the
+local agent-only implementation-notes area rather than treating it as public
+user documentation.
 
 ## Build, Test, and Development Commands
 

@@ -43,70 +43,24 @@ configuration_files:
 
 The master file also defines `config_version`, `experiment_code`, and the experiment-name template. The current template uses `{region_code}` and `{experiment_code}`.
 
-## Checking configuration files
+## Validation and runtime loading
 
-`aqforecast/config_management/configuration.py` provides the reusable `check_configuration()` function and a command-line interface. It follows the references in a selected master file and checks the referenced YAML files for required settings, valid types, source-key consistency, path-template structure, and deferred dataset definitions.
+The configuration-management module validates the master file and all referenced
+component files, then resolves them into one runtime configuration mapping.
+Validation and setup commands are documented in the
+[Installation Guide](installation.md), while runtime use is documented in the
+[User Guide](user_guide.md). The validator checks required fields, value types,
+source-key consistency, path templates, and references between component
+files. It reports missing credentials and paths as warnings when appropriate.
 
-Run read-only checking mode with:
-
-```bash
-python aqforecast/config_management/configuration.py config/default_config.yaml
-```
-
-Use `--check-paths` when the configured input and output roots should also be required to exist. The command returns exit code 0 when there are no errors and exit code 1 when errors remain. Deferred sources that contain only their `source_key` are reported as warnings until their ingest and preprocessing settings are implemented.
-
-Interactive mode prompts for fixable missing or invalid values and writes accepted values to the owning YAML file:
-
-```bash
-python aqforecast/config_management/configuration.py config/default_config.yaml --interactive
-```
-
-The Python API returns a `ConfigurationReport` with `errors`, `warnings`, `changed_files`, and an `is_valid` property:
-
-```python
-from aqforecast.config_management.configuration import check_configuration, load_configuration
-
-report = check_configuration("config/default_config.yaml", mode="check")
-if not report.is_valid:
-    print(report.format())
-```
-
-Checking mode does not require the git-ignored credentials file or real credentials; those are reported as warnings. Interactive mode requires credentials by default. This can also be controlled explicitly with the API using `require_credentials=True` or `False`.
-
-The repository regression test runs the default configuration through the checker:
-
-```bash
-pytest tests/test_configuration.py
-```
-
-## Loading configuration at runtime
-
-`load_configuration()` uses the same validation rules and returns a single dictionary containing the component configurations:
-
-```python
-from aqforecast.config_management.configuration import load_configuration
-
-configuration = load_configuration("config/default_config.yaml")
-experiment_name = configuration["experiment_name"]
-tropomi_path = configuration["filepaths"]["data_sources"]["TROPOMI"]
-```
-
-The loader resolves `{region_code}`, `{experiment_code}`, `{experiment_name}`, `{input}`, and `{output}` where those values are known. Dataset filename placeholders such as `{month_string}` remain unresolved for the ingest code to fill later.
-
-Missing credentials and nonexistent configured paths are returned in `configuration["warnings"]` and do not stop loading. Structural errors, missing non-credential references, malformed values, and conflicting source definitions raise `ConfigurationError`. The loader does not create directories; a separate setup utility will own that responsibility.
-
-The high-level `run_aqforecast()` function can request credential checking by
-passing `require_credentials=True`. It loads the configuration first so the
-credential manager can locate the configured credentials file, then saves and
-revalidates the credentials before continuing.
-
-The runtime loader is integrated with `run_aqforecast()`. The new runner uses
-the resolved configuration dictionary; the older example runner remains a
-separate legacy workflow that uses JSON settings and hard-coded paths.
+The loader resolves `{region_code}`, `{experiment_code}`, `{experiment_name}`,
+`{input}`, and `{output}` where those values are known. Dataset filename
+placeholders such as `{month_string}` remain unresolved for the ingest code to
+fill later. Loading does not create directories or acquire data.
 
 ## Region configuration
 
-Region files live in `config/regions/`. Copy `region_template.yaml` to create a new region. A region file owns:
+Region files live in `config/regions/`. A region file owns:
 
 - `region_code` and the human-readable `name`.
 - Inclusive latitude and longitude `bounds` in decimal degrees.
@@ -133,39 +87,14 @@ timezone: "Asia/Seoul"
 
 ## Credentials
 
-Copy `config/credentials/credentials_template.yaml` to `config/credentials/credentials.yaml` and fill it in locally:
+The credentials template defines NASA Earthdata, OpenAQ, AirNow, and NCCS
+credential fields. The local credentials file is ignored by Git and must never
+be committed or written to logs.
 
-```bash
-cp config/credentials/credentials_template.yaml config/credentials/credentials.yaml
-```
-
-The template contains NASA Earthdata, OpenAQ, AirNow, and NCCS credential fields. `credentials.yaml` is ignored by Git and must never be committed or written to logs.
-
-Credential collection is available through `manage_credentials()`:
-
-```python
-from aqforecast.config_management import manage_credentials
-
-result = manage_credentials("config/default_config.yaml")
-```
-
-The function uses `load_configuration()` to locate the credentials file,
-prompts for missing required values, performs local validation, and writes the
-accepted values with restrictive file permissions. OpenAQ and AirNow are
-optional unless `prompt_optional=True` is used. Remote verification is opt-in:
-
-```python
-result = manage_credentials(
-    "config/default_config.yaml",
-    verify_remote=True,
-)
-```
-
-Remote verification requires internet access. Earthdata is checked with
-`earthaccess` when available, with a direct HTTPS fallback; OpenAQ and AirNow
-are checked through authenticated requests. Transiently unverified checks are
-retried. NCCS access is reported as not checked because it must be verified
-from the NCCS environment.
+Credential collection, local validation, and optional remote verification are
+described in the [Installation Guide](installation.md). Earthdata, OpenAQ,
+AirNow, and NCCS credentials must be stored securely; the local credentials
+file is ignored by Git and credential values must not appear in logs.
 
 ## Filepaths
 
@@ -216,31 +145,11 @@ Source names are case-sensitive and must match `source_key` values in `input_dat
   provider is active for a region; other providers require their own registered
   adapters.
 
-The database manager stores timestamps in UTC and treats update intervals as
-half-open (`[start_time, end_time)`). Existing files are checked for expected
-timestamps before acquisition. Missing timestamps trigger a registered source
-adapter, after which processed data are merged using the default
-`fill_missing` policy. A regenerated `catalog.json` in each source directory
-records the files found, time coverage, variables, dimensions, and spatial
-extent; configuration remains authoritative.
-After each update, the manager also verifies the partitions and catalog.
-Missing timestamps are reported as warnings because remote sources can have
-availability gaps; malformed files, duplicate records, inconsistent grids,
-missing required variables, and catalog mismatches are reported as integrity
-errors.
-
-Detailed definitions currently exist for `ground_monitors`, `GEOS-CF`,
-`TROPOMI`, `PACE`, `VIIRS`, `TEMPO_NO2`, `TEMPO_O3`, `land_cover`, and
-`GOES-ABI`. GEOS-CF is developed but remains pending local end-to-end
-validation. `GEMS` and `GCAS` remain planned sources, while TEMPO PM2.5 is
-deferred beyond Phase 2.
-
-The current `ground_monitors` definition is the AirNow-compatible point-data
-example. AirNow acquisition first returns `aqs_id`, `lat`, `lon`, `time`,
-pollutant values, and temporary unit columns. Its preprocessor maps `aqs_id` to
-the configured `site_id`, removes temporary unit columns, and returns the
-canonical archive columns before the database manager merges and partitions
-the data.
+The input-data configuration is authoritative for source schemas, timestamp
+conventions, storage partitions, access modes, quality-control defaults, and
+regridding settings. Source behavior and preprocessing details are summarized
+in [docs/data_sources.md](data_sources.md); update commands and database
+semantics are described in [docs/user_guide.md](user_guide.md).
 
 ## Air-quality forecasting configuration
 
@@ -301,10 +210,7 @@ This file should be kept up to date as the Phase 5 validation system, baseline i
 | `validation/validation_config.yaml` | Cross-validation, baselines, metrics, stratifications, and plots |
 
 Keep each setting in its owning file rather than duplicating it across configurations.
-
-## Current limitations
-
-- The new runtime loader is not yet integrated with the legacy example runner; new runners will consume the loaded dictionary directly.
-- `ASIAAQ_Deepsensor_Run.py` still reads legacy JSON settings and hard-coded paths.
-- Several source definitions and model settings are placeholders.
-- File templates must be reconciled with the actual outputs of future ingest codes.
+Runtime behavior and command examples belong in the [User Guide](user_guide.md);
+first-time setup belongs in the [Installation Guide](installation.md).
+Deferred source and model settings remain provisional until their
+implementations are developed.

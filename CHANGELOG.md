@@ -1,52 +1,51 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to this project are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and releases follow
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-- **17 November 2026**: Add GOES-ABI AOD acquisition from public NOAA S3,
-  ordered GOES-19/16/18/17 fallback, fixed-grid geolocation, DQF quality
-  filtering, configurable 0.02-degree regridding, hourly aggregation,
-  database integration, documentation, and ATL testing.
-- **16 November 2026**: Add configurable-layer TEMPO O₃ Profile
-  DAP4/OpenDAP acquisition, cloud and zenith-angle QC, native-grid hourly
-  aggregation, database integration, temporary-cache cleanup, and ATL testing.
-- **16 November 2026**: Add TEMPO NO₂ Level-3 DAP4/OpenDAP acquisition with
-  resumable regional subset caching, quality control, native-grid hourly
-  aggregation, database integration, successful-cache cleanup, and corrected
-  daylight-window completeness handling.
-- **16 November 2026**: Add a reusable authenticated Earthdata DAP4/OpenDAP
-  subset utility using xarray and pydap, validated against TEMPO NO₂ L3.
-- **16 November 2026**: Add standard PACE OCI trace-gas acquisition,
-  quality-variable filtering, 0.02-degree regridding, daily aggregation,
-  database integration, configuration, documentation, and tests.
-- **16 November 2026**: Add VIIRS/JPSS2 VJ219A2 version-002 AOD acquisition,
-  moderate quality filtering, RSIN geolocation, 0.01-degree regridding, daily
-  aggregation, database integration, configuration, documentation, and tests.
-- **14 November 2026**: Expose database updates through `run_aqforecast()`, add generic point-site
-  coordinate validation and structured acquisition diagnostics, and make
-  AirNow concentration bounds configurable.
-- **14 November 2026**: Add OpenAQ v3 ground-monitor acquisition,
-  preprocessing, sensor reconciliation, provider registration, and mocked API
-  tests.
-- **14 November 2026**: Add configurable OpenAQ request pacing and select
-  OpenAQ for the example Seoul region.
-- Document the AirNow ingest and correct the agent implementation-notes path.
-
 ### Added
-- **13 November 2026**: Added the incremental input-data database manager,
-  regenerable per-source catalogs, local/remote acquisition adapter contracts,
-  generic preprocessing support, and database-update orchestration mode.
-- **1 October 2025**: Added several notebooks and scripts related to running the DeepSensor workflow on Discover for analysis of data from the ASIA-AQ campaign.
+
+- Incremental partitioned input-data database management with per-source
+  catalogs and integrity verification.
+- AirNow, OpenAQ, VIIRS, TROPOMI, PACE, TEMPO NO₂/O₃ Profiles, MCD12Q1,
+  GOES-ABI, and developed GEOS-CF acquisition/preprocessing paths.
+- Authenticated NASA Earthdata DAP4/OpenDAP access through xarray and pydap,
+  including resumable TEMPO subset caching and chunked GEOS-CF access.
+- Rolling database-update mode with configurable lookback, lookahead, and
+  maximum-window safeguards.
+- Human-readable per-run database-update reports with configurable retention.
+- Adapter registry supporting lazy built-in registration, custom registries,
+  and explicit adapter overrides.
+- `scripts/update_database_incremental.sh` for Conda-based cron or NCCS
+  scheduler integration.
+- Configuration management, credential handling, shared regridding, and
+  network-free regression and integration fixtures.
 
 ### Changed
 
+- `run_aqforecast()` now supports explicit and rolling database-update modes.
+- Source-specific adapter registration moved from `DatabaseManager` into a
+  reusable registry.
+- Documentation was organized by audience across the README, agent guidance,
+  roadmap, configuration reference, data-source reference, installation guide,
+  and user guide.
+
 ### Fixed
+
+- Timestamp normalization, monthly/yearly partition boundaries, leap-year
+  handling, duplicate merging, coordinate consistency, and catalog validation.
+- Operational cleanup now removes only expired per-run reports and preserves
+  the general application log.
 
 ### Removed
 
 ### Deprecated
 
+## Versioning notes
+
+No public release has been cut yet. Future release entries should use a
+version heading such as `## [0.1.0] - YYYY-MM-DD` and move the corresponding
+items out of `Unreleased`.

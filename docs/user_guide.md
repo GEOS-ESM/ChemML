@@ -1,10 +1,10 @@
 # ChemML User Guide
 
-ChemML is under active development. The current public workflow entry point is
-an initial runner that loads and validates the selected configuration. The
-incremental input-data database update mode is available as a standalone
-orchestration operation. AirNow, OpenAQ, TROPOMI, VIIRS, PACE, and TEMPO NO₂/O₃
-acquisition and preprocessing are implemented; model training, forecasting,
+ChemML is under active development. Configuration validation, bounded and
+incremental input-data database updates, operational reports, and scheduler
+support are available. AirNow, OpenAQ, TROPOMI, VIIRS, PACE, TEMPO, MCD12Q1,
+and GOES-ABI acquisition and preprocessing paths are implemented; GEOS-CF
+still requires local/NCCS end-to-end validation. Model training, forecasting,
 and result evaluation remain under development.
 
 ## Validate a configuration
@@ -265,23 +265,10 @@ evaluation yet.
 
 ## Current limitations
 
-Configuration-only mode does not currently:
-
-- Download or discover input data.
-- Preprocess data for DeepSensor.
-- Train or load a forecasting model.
-- Generate forecast outputs.
-- Evaluate forecasts.
-- Create output directories.
-- Provide operation modes such as `train`, `forecast`, or `evaluate`.
-
-The database update mode is available through both
-`run_aqforecast(mode="database_update")` and
-`aqforecast.orchestration.run_database_update()`.
-
-These stages will be added as their respective systems are implemented. The
-runner will remain the high-level orchestration entry point, while directory
-creation will be handled by a separate setup utility.
+The current operational workflow covers configuration and input-data database
+updates. DeepSensor conditioning, model training, forecasting, and validation
+are not yet implemented. GEOS-CF still requires local/NCCS end-to-end
+validation, and full all-source database-update testing remains open.
 
 ## Tests
 

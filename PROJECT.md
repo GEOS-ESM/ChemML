@@ -76,49 +76,10 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 
 **Current status**:
 
-- Project objectives and high-level structure defined.
-- Configuration file layout, templates, validation utility, documentation, and regression tests are in place.
-- Runtime configuration loading, credential management, and the initial runner integration are in place.
-- The guided `aqforecast.utils.setup_aqforecast()` setup flow copies missing configuration files, collects paths and credentials, creates configured directories, and verifies the completed setup.
-- Package directories and shared data contracts for acquisition, preprocessing,
-  forecasting, validation, orchestration, and database management are in place.
-- The database manager can inspect partitioned CSV/NetCDF files, identify
-  missing expected timestamps, merge acquired data with `fill_missing`
-  semantics, use per-run temporary staging, and regenerate per-source JSON
-  catalogs.
-- Generic local/remote acquisition adapters and shared preprocessing are in
-  place. AirNow and OpenAQ are complete point-monitor source-specific
-  implementations. TROPOMI version-2 NO₂/O₃, VIIRS/JPSS2 VJ219A2 AOD, PACE
-  OCI trace gases, and TEMPO NO₂/O₃ Profile acquisition and preprocessing are complete,
-  with retries, QC, aggregation, shared regridding where applicable, and
-  database registration. TEMPO uses authenticated DAP4/OpenDAP subsets with
-  resumable `.tmp` caching and post-success cleanup. The shared
-  irregular-point regridder is implemented in `aqforecast/utils/regridding.py`,
-  using each dataset's configured target resolution while preserving
-  non-spatial dimensions; other dataset-specific download and source adapters
-  remain future work.
-- GEOS-CF v2 acquisition and preprocessing have been developed. The adapter
-  supports chunked public OpenDAP access, optional NCCS-local access, finite-
-  value handling, native-grid analysis/forecast merging, and
-  `forecast_lead_day` indexing. Network-free tests pass, but the implementation
-  is not complete because a local end-to-end database test has not been
-  completed and the public OpenDAP service has intermittently returned 502
-  responses and stalled transfers.
-- A live ATL database-update test using an in-memory OpenAQ provider override
-  completed for August 4–9, 2026 and produced an OpenAQ partition alongside
-  the existing AirNow partition in the external test-data directory.
-- A live ATL TROPOMI database-update test completed for August 4–12, 2026,
-  including overlapping incremental updates through `run_aqforecast()` and
-  storage of both daily satellite variables in one monthly NetCDF partition.
-- A live ATL TEMPO NO₂ database-update test completed for August 4–8, 2026
-  through `run_aqforecast()` using the testing configuration, including native
-  grid hourly storage, completeness-window correction, duplicate-time merging,
-  and successful temporary-cache cleanup.
-- A live ATL TEMPO O₃ Profile database-update test completed for August 4–8,
-  2026 through `run_aqforecast()` using the testing configuration, including
-  configurable layer selection, native-grid hourly storage, QC, and temporary
-  cache cleanup.
-- Model execution, forecasting, and evaluation remain to be implemented.
+The Phase 1 foundation is complete. Configuration loading and validation,
+credential management, setup utilities, shared contracts, database management,
+and the initial workflow interfaces are available. Forecasting, validation, and
+DeepSensor workflow execution remain future phases.
 
 ### Phase 2: Data Acquisition — In Progress
 
@@ -127,56 +88,12 @@ databases for all configured input sources.
 
 **Tasks**:
 
-- [ ] Implement data acquisition and preprocessing for key datasets.
-  - [x] AirNow: acquire, subset, standardize, quality-control, validate site
-    identity, and integrate into the database.
-    - [x] Add the AirNow source-specific acquisition and preprocessing adapters to
-      the database manager.
-    - [x] Add AirNow source-specific tests using mocked API responses and
-      representative raw-data fixtures.
-  - [x] OpenAQ: acquire, subset, standardize, quality-control, reconcile sites,
-    and integrate into the database, including a live ATL test.
-  - [x] VIIRS/JPSS2 VJ219A2 AOD: acquire, quality-control, geolocate, regrid,
-    aggregate, and integrate into the database.
-  - [x] GOES-ABI AOD:
-    - [x] Acquire public NOAA S3 `ABI-L2-AODC` data using ordered GOES-19,
-      GOES-16, GOES-18, and GOES-17 fallback.
-    - [x] Subset data by configured region, period, and variables.
-    - [x] Convert fixed-grid NetCDF files to the standardized database format.
-    - [x] Apply DQF, fill-value, valid-range, and physical AOD filters.
-    - [x] Regrid to a configurable 0.02-degree grid and aggregate hourly with
-      timestamps at the center of each UTC hour.
-    - [x] Integrate processed data with the standardized database.
-  - [x] TROPOMI NO₂/O₃: acquire, quality-control, regrid, aggregate, combine,
-    and integrate both products into the database.
-  - [x] PACE NO₂/O₃: acquire, quality-control, regrid, aggregate, and integrate
-    both trace-gas variables into the database.
-  - [x] TEMPO NO₂: acquire authenticated OpenDAP subsets, quality-control,
-    aggregate on the native grid, and integrate with resumable caching.
-  - [x] TEMPO O₃ Profiles: acquire configurable profile layers through OpenDAP,
-    apply cloud/angle QC, aggregate on the native grid, and integrate with cache
-    cleanup.
-  - [ ] GEOS-CF (developed, but not complete pending local end-to-end testing):
-    - [x] Implement analysis and forecast acquisition for configured regions and periods.
-    - [x] Subset data by configured region, period, and selected variables using chunked requests.
-    - [x] Convert source data to the standardized native-grid database structure.
-    - [x] Apply finite-value handling, timestamp normalization, and availability-gap warnings.
-    - [x] Integrate analysis and forecast runs with `forecast_lead_day` indexing.
-    - [ ] Complete local NCCS and end-to-end database-update testing.
-  - [x] Land Cover information:
-    - [x] Acquire the configured reference-period land-cover product. If
-      current-year data are unavailable, implement a special rule for acquiring
-      earlier data. Land-cover data are part of this acquisition workflow, but
-      require a special time-offset provision. The acquisition process must
-      support requesting a reference period from an earlier source period (for
-      example, using land-cover data from the preceding year) rather than
-      assuming that all sources cover the same dates.
-    - [x] Subset data by configured region and variables.
-    - [x] Convert source files to the standardized database format.
-    - [x] Apply quality control, fill-value handling, and class validation.
-    - [x] Regrid or aggregate to the configured spatial resolution.
-    - [x] Integrate the reference-period data with the existing database.
-  - [ ] Common data acquisition functionality
+- [x] Implement data acquisition and preprocessing for AirNow, OpenAQ,
+  VIIRS, GOES-ABI, TROPOMI, PACE, TEMPO NO₂, TEMPO O₃ Profiles, and MCD12Q1
+  land cover, including database integration and source-specific regression
+  coverage.
+- [ ] Complete GEOS-CF local NCCS and end-to-end database-update validation.
+- [x] Common data acquisition functionality
   - [x] Implement post-update database integrity verification, including
     timestamp completeness, required variables, coordinate/grid structure,
     duplicate detection, partition/catalog consistency, and explicit reporting
@@ -204,22 +121,24 @@ databases for all configured input sources.
   - [x] Implement operational database-update reports with per-source results,
     warnings, detailed failures, interpretable filenames, and configurable
     cleanup of reports older than the retention period.
-  - [ ] Keep `config/inputs/input_data_config.yaml` aligned with the settings required to download and preprocess each data source as ingest codes are developed.
-  - [ ] Update project documentation files.
-    - [ ] Keep `PROJECT.md` up to date with the current status of the implementation.
-    - [ ] Keep `AGENTS.md` up to date with created files, notes on the overall project workflow, and notes relevant to implementing other data ingests in the future.
-    - [ ] Keep `README.md` up to date with a brief note on development status, repository components, package dependencies, data sources, and a high-level overview of the workflow.
-    - [ ] Keep `docs/configuration.md` up to date with notes on specific settings needed to be specified for the input data sources.
-    - [ ] Keep `docs/data_sources.md` up to date with a summary of how each dataset is accessed and preprocessed.
-    - [ ] Keep `docs/installation.md` up to date with an example of how to start an archive of the input data sources for a region of interest.
-    - [ ] Keep `docs/user_guide.md` up to date with examples of how database updates are performed.
+  - [x] Keep `config/inputs/input_data_config.yaml` aligned with the settings
+    required to download and preprocess each implemented data source.
+  - [ ] Update project documentation files and streamline the remaining
+    deployment and workflow guidance.
+    - [x] Keep `PROJECT.md` up to date with the current implementation status.
+    - [x] Keep `AGENTS.md` up to date with the repository workflow and created files.
+    - [x] Keep `README.md` up to date with development status and repository components.
+    - [x] Keep `docs/configuration.md` up to date with source configuration settings.
+    - [x] Keep `docs/data_sources.md` up to date with source access and preprocessing.
+    - [ ] Add or verify an installation example for starting a regional input archive in `docs/installation.md`.
+    - [x] Keep `docs/user_guide.md` up to date with database-update examples.
 - [ ] Integration with `aqforecast` workflows
   - [x] Modify `run_aqforecast()` to expose a database-update mode now that a
     complete source-specific ingestion path exists.
   - [x] Add an incremental database update mode that automatically updates the
     input datasets around the current UTC hour, with configurable lookback,
-    lookahead, and maximum-window safeguards. Scheduling remains a future
-    script/cron task.
+    lookahead, and maximum-window safeguards. A scheduler entry point is now
+    available in `scripts/update_database_incremental.sh`.
 - [ ] Examples and Scripting/Orchestration
   - [x] Create `scripts/update_database_incremental.sh`, a Conda-activating
     scheduler entry point for configured rolling database updates.
@@ -438,57 +357,24 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 
 ## Current Development Status
 
-### Completed Items
-
-- ✅ Project structure design.
-- ✅ Development roadmap.
-- ✅ GitHub repository setup.
-- ✅ Configuration file layout and templates.
-- ✅ Configuration validation utility.
-- ✅ Configuration reference documentation.
-- ✅ Initial configuration regression test.
-- ✅ Initial AQ-forecast runner skeleton.
-- ✅ Runtime configuration loader and runner integration.
-- ✅ Credential management with optional remote verification.
-- ✅ Credential-management tests.
-- ✅ Shared logging utility with credential redaction.
-- ✅ Incremental partitioned database manager with UTC completeness checking.
-- ✅ Per-source catalog generation and update reporting.
-- ✅ Standalone database-update orchestration mode.
-- ✅ AirNow acquisition adapter using the verified historical API query format.
-- ✅ AirNow preprocessing with PPM-to-PPB conversion, QC, and AQS-based site IDs.
-- ✅ Site-aware database merging, coordinate validation, gap detection, and
-  empty-database initialization.
-- ✅ TROPOMI version-2 NO₂ and total-column O₃ acquisition, moderate QC,
-  0.05-degree regridding, daily aggregation, combined NetCDF storage, and
-  incremental ATL integration tests.
-- ✅ TEMPO NO₂ DAP4/OpenDAP acquisition, resumable regional caching, moderate
-  QC, native-grid hourly aggregation, database integration, and successful
-  ATL testing through `run_aqforecast()`.
-- ✅ TEMPO O₃ Profile DAP4/OpenDAP acquisition with configurable profile layers,
-  cloud/angle QC, native-grid hourly aggregation, database integration, and
-  successful ATL testing through `run_aqforecast()`.
-- ✅ MCD12Q1 yearly land-cover acquisition with up to two years of source-year
-  fallback, native sinusoidal geolocation, categorical 0.005-degree regridding,
-  configurable `LW`/`QC` filters, yearly storage, and ATL database-update
-  testing.
-
-AirNow, OpenAQ, TROPOMI, VIIRS, PACE, TEMPO NO₂/O₃ Profile, MCD12Q1 land
-cover, and GOES-ABI now have complete source-specific acquisition and
-preprocessing paths. GEOS-CF is developed but incomplete pending local
-end-to-end testing; GEMS, GCAS, and TEMPO PM2.5 are deferred to future work.
+Completed implementation areas are recorded in `CHANGELOG.md`. In summary,
+the configuration foundation and the Phase 2 database-ingestion infrastructure
+are implemented, including source registration, integrity verification,
+incremental updates, operational reports, and scheduler integration. Several
+source adapters are production-ready for their configured access modes; GEOS-CF
+still requires local/NCCS end-to-end validation.
 
 ### In Progress
 
-- 🚧 GEOS-CF local/end-to-end validation and broader database integration fixtures.
+- 🚧 GEOS-CF local/NCCS and end-to-end validation.
 - 🚧 Forecasting and validation workflow implementation.
 
 ### Upcoming
 
-- Source-specific acquisition adapters and validation for any remaining Phase 2
-  sources.
-- Dataset-specific quality control, regridding, and aggregation.
-- Integration fixtures and broader database-manager coverage.
+- Full all-source database-update testing, including retries, partial failures,
+  and subsequent database access.
+- NCCS environment testing and installation/scheduling verification.
+- Documentation streamlining and the regional database-update example notebook.
 
 ## Technical Decisions
 
@@ -513,33 +399,6 @@ end-to-end testing; GEMS, GCAS, and TEMPO PM2.5 are deferred to future work.
 - **Developer tools**: pytest, yamllint, Black, and Flake8
 - **Deployment**: NASA NCCS (Discover/ADAPT)
 - **Version control**: Git (GitHub)
-
-## Data Sources Summary
-
-### Satellite Data
-
-| Source | Product | Variables | Resolution | Latency |
-| --- | --- | --- | --- | --- |
-| VIIRS/JPSS2 MAIAC | VJ219A2 V002 | `optical_depth_055` | 0.01° output grid | 1–2 days |
-| TROPOMI | S5P_L2 | NO₂, O₃ | 7 km | 1–2 days |
-| PACE OCI | PACE_OCI_L2_TRGAS V3.0 | `total_column_no2`, `total_column_o3` | 0.02° output grid | 1–2 days |
-| GOES-ABI | ABI-L2-AOD | AOD | 2 km | 1 hour |
-| TEMPO NO₂ | TEMPO_NO2_L3 | `vertical_column_troposphere` | native ~0.02° grid | 1 hour |
-| TEMPO O₃ Profile | TEMPO_O3PROF_L3 | configurable `ozone_profile_layer_*` | native ~0.04° grid | 1 hour |
-| TEMPO PM2.5 | TEMPO PM product | deferred beyond Phase 2 | 2–8 km | 1 hour |
-
-### Model Data
-
-| Source | Variables | Resolution | Forecast horizon |
-| --- | --- | --- | --- |
-| GEOS-CF | PM2.5, O₃, NO₂, meteorology | 25 km | 120 hours |
-
-### Ground Data
-
-| Source | Variables | Temporal resolution | Coverage |
-| --- | --- | --- | --- |
-| AirNow | PM2.5, PM10, NO₂, O₃, SO₂, CO | Hourly | U.S. |
-| OpenAQ | PM2.5, O₃, NO₂ | Hourly | Global |
 
 ## Resource Requirements
 
