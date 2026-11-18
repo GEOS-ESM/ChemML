@@ -123,16 +123,9 @@ databases for all configured input sources.
     cleanup of reports older than the retention period.
   - [x] Keep `config/inputs/input_data_config.yaml` aligned with the settings
     required to download and preprocess each implemented data source.
-  - [ ] Update project documentation files and streamline the remaining
-    deployment and workflow guidance.
-    - [x] Keep `PROJECT.md` up to date with the current implementation status.
-    - [x] Keep `AGENTS.md` up to date with the repository workflow and created files.
-    - [x] Keep `README.md` up to date with development status and repository components.
-    - [x] Keep `docs/configuration.md` up to date with source configuration settings.
-    - [x] Keep `docs/data_sources.md` up to date with source access and preprocessing.
-    - [ ] Add or verify an installation example for starting a regional input archive in `docs/installation.md`.
-    - [x] Keep `docs/user_guide.md` up to date with database-update examples.
-- [ ] Integration with `aqforecast` workflows
+- [x] Update and streamline project documentation, including deployment and
+  workflow guidance.
+- [x] Integration with `aqforecast` workflows
   - [x] Modify `run_aqforecast()` to expose a database-update mode now that a
     complete source-specific ingestion path exists.
   - [x] Add an incremental database update mode that automatically updates the
