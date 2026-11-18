@@ -21,6 +21,7 @@ from aqforecast.data_acquisition.openaq import OpenAQDataSource
 from aqforecast.data_acquisition.base import UnavailableDataSource
 from aqforecast.data_acquisition.base import AcquisitionError
 from aqforecast.data_management.catalog import DatasetCatalog
+from aqforecast.data_management.integrity import verify_database_integrity
 from aqforecast.preprocessing.airnow import AirNowPreprocessor
 from aqforecast.preprocessing.openaq import OpenAQPreprocessor
 from aqforecast.preprocessing.generic import GenericPreprocessor
@@ -208,6 +209,25 @@ class DatabaseManager:
         return Path(
             self.configuration["filepaths"]["data_sources"][source_key]
         ).expanduser()
+
+    def verify_database_integrity(
+        self,
+        source_key: str,
+        *,
+        expected_times: Optional[pd.DatetimeIndex] = None,
+    ) -> Dict[str, Any]:
+        """Verify one configured source database and return structured findings."""
+
+        configured = self.configuration.get("input_data", {}).get("datasets", {})
+        if source_key not in configured:
+            raise KeyError(f"no input-data configuration exists for {source_key}")
+        source = configured[source_key]
+        return verify_database_integrity(
+            source_key,
+            self._source_directory(source_key),
+            source,
+            expected_times=expected_times,
+        )
 
     def _read_database(self, source_key: str, source: Mapping[str, Any]) -> Any:
         directory = self._source_directory(source_key)
@@ -768,6 +788,28 @@ class DatabaseManager:
                     },
                 ).rebuild()
                 source_report["catalog_files"] = len(catalog["files"])
+                integrity = verify_database_integrity(
+                    source_key,
+                    directory,
+                    source,
+                    expected_times=expected,
+                )
+                source_report["integrity"] = integrity
+                for warning in integrity["warnings"]:
+                    report.warnings.append(f"{source_key}: {warning}")
+                    self.logger.warning("%s integrity warning: %s", source_key, warning)
+                if not integrity["valid"]:
+                    source_report["status"] = "failed"
+                    source_report["errors"] = integrity["errors"]
+                    report.warnings.extend(
+                        f"{source_key}: integrity error: {error}"
+                        for error in integrity["errors"]
+                    )
+                    self.logger.error(
+                        "%s database integrity verification failed: %s",
+                        source_key,
+                        integrity["errors"],
+                    )
             except AcquisitionError as error:
                 source_report["status"] = "failed"
                 source_report["errors"] = [error.issue]

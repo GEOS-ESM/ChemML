@@ -167,8 +167,8 @@ datasets:
     storage: {partition: "yearly", format: "netcdf", catalog_filename: "catalog.json"}
     access: {mode: "remote", temporary_directory: ".tmp", collection_short_name: "MCD12Q1", concept_id: "C2484079608-LPCLOUD", collection_version: "061", download_threads: 2, max_year_fallback: 2}
 
-  # Complete these definitions as the corresponding data-ingest and
-  # preprocessing codes are developed.
+  # These additional source definitions are retained for configuration
+  # validation and can be enabled as their ingest paths are used.
   PACE:
     source_key: "PACE"
     file_template: "PACE_{region_code}_{month_string}_grid_002_d.nc"

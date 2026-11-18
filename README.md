@@ -47,7 +47,7 @@ ChemML integrates multiple data sources to generate accurate, high-resolution ai
 - `aqforecast/utils/logging.py` provides shared console/file logging with credential redaction.
 - `aqforecast/utils/setup.py` provides a guided first-time setup flow that copies configuration files, collects paths and credentials, creates configured directories, and verifies the result.
 - `aqforecast/contracts.py` defines the shared request, result, and workflow-context data contracts.
-- `aqforecast/data_management/` provides the incremental partitioned database manager and regenerable per-source catalogs.
+- `aqforecast/data_management/` provides the incremental partitioned database manager, post-update integrity verification, and regenerable per-source catalogs.
 - `aqforecast/utils/regridding.py` provides the shared irregular-point
   regridder for dataset-specific latitude/longitude grids.
 - `aqforecast/utils/opendap.py` provides authenticated, bounding-box-subset

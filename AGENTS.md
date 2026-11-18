@@ -23,7 +23,7 @@ This repository is under active development as a set of codes implementing a mac
   pydap backend and applies coordinate-derived index slices before loading
   science arrays.
 - `aqforecast/utils/setup.py` contains the explicit first-time setup flow for copying configuration files, collecting paths and credentials, creating configured directories, and verifying configuration.
-- `aqforecast/data_management/` contains the incremental partitioned input-data database manager and regenerable per-source catalogs.
+- `aqforecast/data_management/` contains the incremental partitioned input-data database manager, post-update integrity verification, and regenerable per-source catalogs.
 - `aqforecast/data_acquisition/generic.py` contains local and remote acquisition adapter wrappers and shared acquisition behavior. Source-specific acquisition implementations belong in new modules under `aqforecast/data_acquisition/`, with corresponding preprocessing implementations in new modules under `aqforecast/preprocessing/`.
 - `aqforecast/data_acquisition/airnow.py` and `aqforecast/preprocessing/airnow.py` provide the AirNow source-specific implementation; `openaq.py` provides the corresponding OpenAQ implementation. Use these point-monitor providers as references for adding other datasets.
 - `aqforecast/data_acquisition/tropomi.py` and `aqforecast/preprocessing/tropomi.py` provide the implemented version-2 TROPOMI NO₂ and total-column O₃ satellite ingest.

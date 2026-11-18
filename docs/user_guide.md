@@ -169,6 +169,11 @@ Database files are stored using the partition and format configured in
 point data. Temporary downloads and staged writes use a per-run `.tmp`
 directory, which is cleaned after the update. A regenerated `catalog.json` is
 written in each source directory as a confirmation of the files on disk.
+Each update also returns an `integrity` section for every selected source.
+Availability gaps appear as warnings; malformed partitions, duplicate records,
+grid/schema mismatches, and catalog inconsistencies mark that source as failed.
+To check an existing database without acquiring data, use
+`DatabaseManager.verify_database_integrity(source_key)`.
 
 For configuration-only mode, a valid `run_aqforecast()` result contains:
 

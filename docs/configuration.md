@@ -223,11 +223,17 @@ adapter, after which processed data are merged using the default
 `fill_missing` policy. A regenerated `catalog.json` in each source directory
 records the files found, time coverage, variables, dimensions, and spatial
 extent; configuration remains authoritative.
+After each update, the manager also verifies the partitions and catalog.
+Missing timestamps are reported as warnings because remote sources can have
+availability gaps; malformed files, duplicate records, inconsistent grids,
+missing required variables, and catalog mismatches are reported as integrity
+errors.
 
 Detailed definitions currently exist for `ground_monitors`, `GEOS-CF`,
-`TROPOMI`, `PACE`, `VIIRS`, `TEMPO_NO2`, and `TEMPO_O3`. `land_cover` and
-`GOES-ABI` remain planned Phase 2 sources. `GEMS`, `GCAS`, and TEMPO PM2.5
-are deferred future datasets.
+`TROPOMI`, `PACE`, `VIIRS`, `TEMPO_NO2`, `TEMPO_O3`, `land_cover`, and
+`GOES-ABI`. GEOS-CF is developed but remains pending local end-to-end
+validation. `GEMS` and `GCAS` remain planned sources, while TEMPO PM2.5 is
+deferred beyond Phase 2.
 
 The current `ground_monitors` definition is the AirNow-compatible point-data
 example. AirNow acquisition first returns `aqs_id`, `lat`, `lon`, `time`,

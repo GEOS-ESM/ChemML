@@ -176,11 +176,12 @@ databases for all configured input sources.
     - [x] Apply quality control, fill-value handling, and class validation.
     - [x] Regrid or aggregate to the configured spatial resolution.
     - [x] Integrate the reference-period data with the existing database.
-- [ ] Common data acquisition functionality
-  - [ ] Implement post-update database integrity verification, including
+  - [ ] Common data acquisition functionality
+  - [x] Implement post-update database integrity verification, including
     timestamp completeness, required variables, coordinate/grid structure,
     duplicate detection, partition/catalog consistency, and explicit reporting
-    of any remaining gaps.
+    of any remaining gaps. Remaining source-availability gaps are reported as
+    warnings; structural integrity failures are reported as source failures.
   - [x] Add generic site-coordinate verification at both acquisition-output and
     database-management boundaries, using configured site IDs and tolerances
     rather than duplicating the checks in each dataset adapter.
