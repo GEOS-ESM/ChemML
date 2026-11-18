@@ -73,6 +73,25 @@ result = run_aqforecast(
 print(result["report"])
 ```
 
+To update the configured rolling window around the current UTC hour, use the
+incremental mode. It does not require explicit start or end times:
+
+```python
+result = run_aqforecast(
+    "config/default_config.yaml",
+    mode="incremental_database_update",
+    source_keys=["GEOS-CF", "ground_monitors"],
+    require_credentials=True,
+)
+print(result["report"])
+```
+
+The rolling window is controlled by `database.incremental_update` in
+`config/aqforecast/aqforecast_config.yaml`. The example configuration looks
+back two days and forward five days, aligned to the current UTC hour, and
+rejects windows longer than 14 days. A future cron or NCCS wrapper can invoke
+this mode at the desired cadence.
+
 ## Update the input-data database
 
 Database updates use a half-open UTC interval, `[start_time, end_time)`. By
@@ -174,6 +193,20 @@ Availability gaps appear as warnings; malformed partitions, duplicate records,
 grid/schema mismatches, and catalog inconsistencies mark that source as failed.
 To check an existing database without acquiring data, use
 `DatabaseManager.verify_database_integrity(source_key)`.
+
+For a scheduled rolling update, call `run_incremental_database_update()`:
+
+```python
+from aqforecast.orchestration import run_incremental_database_update
+
+report = run_incremental_database_update(configuration)
+```
+
+The function reads `database.incremental_update` from the AQ-forecast
+configuration, aligns the system time to the UTC hour, and updates the
+configured lookback/lookahead window. `max_window_days` rejects accidentally
+oversized requests. Scheduling is intentionally left to cron or an NCCS batch
+wrapper; there is no enable/disable flag in the Python configuration.
 
 For configuration-only mode, a valid `run_aqforecast()` result contains:
 

@@ -253,6 +253,8 @@ the data.
 - Confidence levels of 50% and 90%.
 - Optional input lags and additional features, currently including `time_of_day`.
 - Database update defaults, including the `fill_missing` conflict policy.
+- Rolling database-update windows, including lookback/lookahead durations,
+  UTC hourly alignment, and a maximum-window safeguard.
 
 This file should be kept synchronized with the forecasting implementation as its required settings are defined.
 

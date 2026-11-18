@@ -64,6 +64,29 @@ def test_aqforecast_runner_checks_credentials_when_required(monkeypatch) -> None
     assert calls["verify_remote"] is True
 
 
+def test_aqforecast_runner_supports_incremental_database_update(monkeypatch) -> None:
+    calls = {}
+
+    def fake_incremental_update(configuration, **kwargs):
+        calls["configuration"] = configuration
+        calls["kwargs"] = kwargs
+        return {"start_time": "2026-11-16T00:00:00+00:00", "sources": {}, "warnings": []}
+
+    monkeypatch.setattr(
+        "aqforecast.orchestration.run_incremental_database_update",
+        fake_incremental_update,
+    )
+    result = run_aqforecast(
+        DEFAULT_CONFIGURATION,
+        mode="incremental_database_update",
+        source_keys=["GEOS-CF"],
+    )
+
+    assert result["status"] == "database_updated"
+    assert result["report"]["start_time"] == "2026-11-16T00:00:00+00:00"
+    assert calls["kwargs"]["source_keys"] == ["GEOS-CF"]
+
+
 def test_resolve_experiment_name() -> None:
     configuration = load_configuration(DEFAULT_CONFIGURATION)
 

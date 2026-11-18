@@ -39,7 +39,8 @@ def run_aqforecast(
         loading the configuration. Leave false for runs that do not need them.
     mode:
         ``"forecast"`` preserves the configuration-only runner; use
-        ``"database_update"`` to run the implemented incremental ingest.
+        ``"database_update"`` for an explicit interval or
+        ``"incremental_database_update"`` for the configured rolling window.
     start_time, end_time, source_keys, conflict_policy, override:
         Options passed to database-update mode.
 
@@ -51,13 +52,16 @@ def run_aqforecast(
         rather than raised so callers can handle run status uniformly.
     """
 
-    if mode not in {"forecast", "database_update"}:
+    if mode not in {"forecast", "database_update", "incremental_database_update"}:
         return {
             "status": "invalid_mode",
             "message": f"Unsupported AQ-forecast mode: {mode!r}.",
             "configuration": None,
             "warnings": [],
-            "errors": ["mode must be 'forecast' or 'database_update'"],
+            "errors": [
+                "mode must be 'forecast', 'database_update', or "
+                "'incremental_database_update'"
+            ],
         }
     if mode == "database_update" and (start_time is None or end_time is None):
         return {
@@ -122,18 +126,27 @@ def run_aqforecast(
                 "errors": [issue.as_dict() for issue in error.report.errors],
             }
 
-    if mode == "database_update":
+    if mode in {"database_update", "incremental_database_update"}:
         from aqforecast.orchestration import run_database_update
+        from aqforecast.orchestration import run_incremental_database_update
 
         try:
-            report = run_database_update(
-                configuration,
-                start_time,
-                end_time,
-                source_keys=source_keys,
-                conflict_policy=conflict_policy,
-                override=override,
-            )
+            if mode == "incremental_database_update":
+                report = run_incremental_database_update(
+                    configuration,
+                    source_keys=source_keys,
+                    conflict_policy=conflict_policy,
+                    override=override,
+                )
+            else:
+                report = run_database_update(
+                    configuration,
+                    start_time,
+                    end_time,
+                    source_keys=source_keys,
+                    conflict_policy=conflict_policy,
+                    override=override,
+                )
         except (OSError, ValueError, RuntimeError) as error:
             return {
                 "status": "database_update_failed",

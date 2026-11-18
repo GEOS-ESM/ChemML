@@ -47,6 +47,7 @@ This repository is under active development as a set of codes implementing a mac
   default forecast mode remains configuration-only, while its explicit
   `database_update` mode runs the implemented incremental ingest workflow.
 - `aqforecast/orchestration/database_update.py` contains the standalone `run_database_update()` mode and `DatabaseUpdateStage`.
+- `aqforecast/orchestration/database_update.py` also contains `run_incremental_database_update()`, which computes a UTC-hour rolling update window from configuration; scheduling remains external.
 - `tests/` contains the pytest regression suite for configuration, database
   management, AirNow/OpenAQ/TROPOMI/VIIRS/PACE/TEMPO/MCD12Q1/GOES-ABI/GEOS-CF
   ingest, OpenDAP access, and shared regridding.

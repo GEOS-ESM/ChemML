@@ -213,7 +213,10 @@ databases for all configured input sources.
 - [ ] Integration with `aqforecast` workflows
   - [x] Modify `run_aqforecast()` to expose a database-update mode now that a
     complete source-specific ingestion path exists.
-  - [ ] Add an incremental database update mode that allows for automatic updating of the input datasets to bring them up to the "present", based on the time the code is run. Add configuration options for the number of days of overlap the function uses to ensure coverage (e.g., look back one day prior to the last time the update was run) and the maximum amount of time over which the update will be conducted (e.g., update for at most a week before giving an error).
+  - [x] Add an incremental database update mode that automatically updates the
+    input datasets around the current UTC hour, with configurable lookback,
+    lookahead, and maximum-window safeguards. Scheduling remains a future
+    script/cron task.
 - [ ] Examples and Scripting/Orchestration
   - [ ] Create a runnable data download script (`.sh` file) which can be scheduled to run at a fixed cadence (e.g., daily) to keep the database up to date.
   - [ ] Create a Python notebook illustrating how to populate the database and visualize the data currently available in the database. Use `docs/examples/deepsensor_demo/Deepsensor_demo_Oct2025.ipynb` as inspiration for the plots.

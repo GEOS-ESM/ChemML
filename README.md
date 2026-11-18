@@ -169,6 +169,13 @@ apply the shared concentration QC limits after unit conversion, and store
 monthly point-data CSV partitions. OpenAQ additionally reconciles multiple
 sensors at a site and reports competing valid sensor values.
 
+For a rolling update around the current UTC hour, use
+`run_aqforecast(mode="incremental_database_update")` or the lower-level
+`run_incremental_database_update(configuration)`. Its lookback, lookahead, and
+maximum-window safeguards are configured under
+`aqforecast.database.incremental_update`. Scheduling this function is left to
+the future cron/NCCS wrapper.
+
 ## Documentation
 
 Available and planned documentation is listed in the `docs/` directory. The
