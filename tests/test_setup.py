@@ -21,6 +21,7 @@ def test_setup_aqdatafusion_copies_configures_and_validates(tmp_path: Path) -> N
         input_fn=lambda _prompt: next(responses),
         secret_input_fn=lambda _prompt: next(secret_responses),
         output_fn=lambda _message: None,
+        download_basemap=False,
     )
 
     assert result["status"] == "configured"

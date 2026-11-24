@@ -57,3 +57,26 @@ def test_manage_credentials_does_not_require_optional_services(tmp_path: Path) -
     assert result["status"] == "updated"
     assert "openaq" not in credentials
     assert "airnow" not in credentials
+
+
+def test_manage_credentials_distinguishes_remote_verification_failure(tmp_path: Path, monkeypatch) -> None:
+    temporary_config = tmp_path / "config"
+    shutil.copytree(REPOSITORY_ROOT / "config", temporary_config)
+    regular_values = iter(["earthdata-user", "nccs-user", "nccs-project"])
+    secret_values = iter(["earthdata-password"])
+
+    monkeypatch.setattr(
+        "aqdatafusion.config_management.credentials._verify_remote",
+        lambda *args, **kwargs: {
+            "earthdata": {"status": "invalid", "message": "rejected"}
+        },
+    )
+    result = manage_credentials(
+        temporary_config / "default_config.yaml",
+        verify_remote=True,
+        input_fn=lambda _prompt: next(regular_values),
+        secret_input_fn=lambda _prompt: next(secret_values),
+    )
+
+    assert result["status"] == "invalid"
+    assert "remote verification failed" in result["message"]

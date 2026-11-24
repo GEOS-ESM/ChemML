@@ -44,6 +44,9 @@ DEFAULT_SOURCE_NAMES = (
     "GOES-ABI",
 )
 
+# Stored alongside source directories but not itself a data source.
+FILEPATH_METADATA_NAMES = {"cartopy_cache"}
+
 DEFERRED_SOURCES = set()
 PLACEHOLDER_PATTERN = re.compile(r"<[^>]+>")
 PATH_TEMPLATE_PATTERN = re.compile(r"\{([^{}]+)\}")
@@ -416,8 +419,9 @@ def _validate_filepaths(loaded: _LoadedConfiguration, report: ConfigurationRepor
     if not isinstance(sources, Mapping):
         _add_type_error(report, component, loaded, ("data_sources",), "must be a mapping")
         return
-    missing = set(DEFAULT_SOURCE_NAMES) - set(sources)
-    extra = set(sources) - set(DEFAULT_SOURCE_NAMES)
+    source_names = set(sources) - FILEPATH_METADATA_NAMES
+    missing = set(DEFAULT_SOURCE_NAMES) - source_names
+    extra = source_names - set(DEFAULT_SOURCE_NAMES)
     if missing:
         report.issues.append(ConfigurationIssue("error", loaded.files[component], "data_sources", f"missing sources: {', '.join(sorted(missing))}"))
     if extra:
@@ -480,7 +484,7 @@ def _validate_source_consistency(loaded: _LoadedConfiguration, report: Configura
     if not isinstance(filepaths, Mapping) or not isinstance(input_datasets, Mapping):
         return
 
-    filepath_names = set(filepaths)
+    filepath_names = set(filepaths) - FILEPATH_METADATA_NAMES
     dataset_names = set(input_datasets)
     if filepath_names != dataset_names:
         missing = sorted(filepath_names - dataset_names)
@@ -807,6 +811,8 @@ def _path_warnings(filepaths: Mapping[str, Any]) -> List[str]:
         if not isinstance(section, Mapping):
             continue
         for path_name, value in section.items():
+            if section_name == "data_sources" and path_name in FILEPATH_METADATA_NAMES:
+                continue
             if not isinstance(value, str) or PATH_TEMPLATE_PATTERN.search(value):
                 continue
             if not Path(value).exists():

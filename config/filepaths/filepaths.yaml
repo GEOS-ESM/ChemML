@@ -8,6 +8,7 @@ working:
   forecasts_directory: '{experiment_directory}/forecasts'
   validation_directory: '{experiment_directory}/validation'
 data_sources:
+  cartopy_cache: '{input}/{region_code}/cartopy_cache'
   ground_monitors: '{input}/{region_code}/ground_monitors'
   GEOS-CF: '{input}/{region_code}/GEOS-CF'
   TEMPO_NO2: '{input}/{region_code}/TEMPO_NO2'

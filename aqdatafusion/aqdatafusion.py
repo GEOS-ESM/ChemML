@@ -159,14 +159,23 @@ def run_aqdatafusion(
             key for key, value in report.get("sources", {}).items()
             if value.get("status") == "failed"
         ]
+        updated = [
+            key for key, value in report.get("sources", {}).items()
+            if value.get("status") == "updated"
+        ]
+        if failed:
+            message = "Input-data database update completed with source failures."
+        elif updated:
+            message = "Input-data database update completed."
+        else:
+            message = "Input-data database already covered the requested interval; no update was needed."
         return {
             "status": "database_update_failed" if failed else "database_updated",
-            "message": "Input-data database update completed."
-            if not failed
-            else "Input-data database update completed with source failures.",
+            "message": message,
             "configuration": configuration,
             "warnings": configuration.get("warnings", []) + report.get("warnings", []),
             "report": report,
+            **({"credentials": credential_check} if credential_check is not None else {}),
         }
 
     return {

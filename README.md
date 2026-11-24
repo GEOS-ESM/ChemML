@@ -30,6 +30,7 @@ development. See [PROJECT.md](PROJECT.md) for the roadmap and
   coordinate validation.
 - Explicit time-bounded and rolling database updates.
 - Human-readable per-run operational reports with configurable retention.
+- Public database loading and reusable Cartopy-backed data visualization.
 - Conda-based scheduler entry point suitable for cron or NCCS adaptation.
 - Modular acquisition, preprocessing, forecasting, validation, and orchestration
   interfaces for future workflow stages.
@@ -104,13 +105,13 @@ returns a nonzero status when the update fails.
 - [Agent and contributor guidance](AGENTS.md)
 - [Project roadmap](PROJECT.md)
 - [Change history](CHANGELOG.md)
+- [Data-acquisition example](docs/examples/01_data_acquisition.ipynb)
 
 The following resources are planned and intentionally linked here so they are
 not forgotten; the files do not yet exist:
 
 - [NCCS deployment reference](docs/nccs_deployment.md) — planned; file to be created.
 - [API reference](docs/api_reference.md) — planned; file to be created.
-- [Data-acquisition example](docs/examples/01_data_acquisition.ipynb) — planned; file to be created.
 - [Model-training example](docs/examples/02_model_training.ipynb) — planned; file to be created.
 - [Retrospective forecast example](docs/examples/03_retrospective_forecast.ipynb) — planned; file to be created.
 - [Real-time forecast example](docs/examples/04_realtime_forecast.ipynb) — planned; file to be created.

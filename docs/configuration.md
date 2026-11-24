@@ -104,6 +104,7 @@ Each data source is stored below its region-code directory, using the source nam
 
 ```yaml
 data_sources:
+  cartopy_cache: "{input}/{region_code}/cartopy_cache"
   ground_monitors: "{input}/{region_code}/ground_monitors"
   GEOS-CF: "{input}/{region_code}/GEOS-CF"
   TEMPO_NO2: "{input}/{region_code}/TEMPO_NO2"
@@ -117,7 +118,14 @@ data_sources:
   GOES-ABI: "{input}/{region_code}/GOES-ABI"
 ```
 
-Source names are case-sensitive and must match `source_key` values in `input_data_config.yaml`. File names are owned by the input-data configuration, not by this file.
+`cartopy_cache` is a region-level cache for the Natural Earth layers used by
+the shared plotting utilities. First-time setup creates it and attempts to
+download the configured layers when internet access is available. Source names
+are case-sensitive and must match `source_key` values in
+`input_data_config.yaml`. File names are owned by the input-data configuration,
+not by this file. Standard coastlines, borders, lakes, and state/province
+boundaries are cached for all regions; a North American major-roads layer is
+also attempted for regions where that Natural Earth layer is available.
 
 ## Input-data configuration
 

@@ -7,6 +7,9 @@ function, or configuration section, first check for an incomplete or
 mis-applied part of this rename. Forecast-specific concepts and settings may
 still appropriately use `forecast`.
 
+Use the `aqdatafusion_development` branch for future development changes and
+commits by default. Keep `main` reserved for reviewed and merged changes.
+
 ## Project Structure & Module Organization
 
 This repository is under active development as a set of codes implementing a machine-learning-based air-quality data-fusion workflow, including forecasting applications. It is not necessarily intended to become a standalone installable Python package.
@@ -20,6 +23,7 @@ This repository is under active development as a set of codes implementing a mac
 - `aqdatafusion/config_management/` contains reusable configuration validation and configuration-loading utilities.
 - `aqdatafusion/config_management/credentials.py` contains local credential collection and optional remote verification.
 - `aqdatafusion/utils/logging.py` contains shared console/file logging and credential redaction.
+- `aqdatafusion/utils/plotting.py` contains shared Cartopy-backed data maps and offline-safe Natural Earth cache handling.
 - `aqdatafusion/utils/operational_logging.py` writes human-readable per-run database-update reports and removes expired operational reports according to configured retention.
 - `aqdatafusion/utils/regridding.py` contains the generic irregular-point to
   latitude/longitude-grid regridder. Future source preprocessors should use

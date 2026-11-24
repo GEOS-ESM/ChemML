@@ -2,7 +2,7 @@
 
 **Repository**: <https://github.com/GEOS-ESM/ChemML.git>
 
-**Default development branch**: `main`
+**Default development branch**: `aqdatafusion_development`
 
 ## Project Overview
 
@@ -136,8 +136,8 @@ databases for all configured input sources.
 - [ ] Examples and Scripting/Orchestration
   - [x] Create `scripts/update_database_incremental.sh`, a Conda-activating
     scheduler entry point for configured rolling database updates.
-  - [ ] Create a Python notebook illustrating how to populate the database and visualize the data currently available in the database. Use `docs/examples/deepsensor_demo/Deepsensor_demo_Oct2025.ipynb` as inspiration for the plots.
-    - [ ] To support this, create a generalized plotting function in the `aqdatafusion/utils` folder. This function should use `cartopy` for basemaps. Be sure that base maps are downloaded and saved locally during first-time setup if an internet connection is available.
+  - [x] Create `docs/examples/01_data_acquisition.ipynb`, illustrating how to populate the database and visualize the data currently available in the database. Use `docs/examples/deepsensor_demo/Deepsensor_demo_Oct2025.ipynb` as inspiration for the plots.
+    - [x] Create a generalized plotting function in the `aqdatafusion/utils` folder using Cartopy for basemaps, with first-time local caching and offline fallback.
 - [ ] Testing and verification
   - [ ] Conduct an end-to-end database-update test covering acquisition,
     preprocessing, merging, partition writing, and catalog generation.
@@ -322,7 +322,7 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 - [ ] Create `docs/nccs_deployment.md`.
 - [ ] Create `docs/api_reference.md`.
 - [ ] Develop example Jupyter notebooks.
-- [ ] Create `docs/examples/01_data_acquisition.ipynb`.
+- [x] Create `docs/examples/01_data_acquisition.ipynb`.
 - [ ] Create `docs/examples/02_model_training.ipynb`.
 - [ ] Create `docs/examples/03_retrospective_forecast.ipynb`.
 - [ ] Create `docs/examples/04_realtime_forecast.ipynb`.
@@ -369,7 +369,7 @@ validation remains pending.
 - Full all-source database-update testing, including retries, partial failures,
   and subsequent database access.
 - NCCS environment testing and installation/scheduling verification.
-- Documentation streamlining and the regional database-update example notebook.
+- Documentation streamlining and additional workflow example notebooks.
 
 ## Technical Decisions
 

@@ -88,6 +88,28 @@ def test_aqdatafusion_runner_supports_incremental_database_update(monkeypatch) -
     assert calls["kwargs"]["source_keys"] == ["GEOS-CF"]
 
 
+def test_aqdatafusion_runner_reports_when_database_is_already_complete(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "aqdatafusion.orchestration.run_database_update",
+        lambda *args, **kwargs: {
+            "start_time": "2026-08-04T00:00:00+00:00",
+            "end_time": "2026-08-07T00:00:00+00:00",
+            "sources": {"GEOS-CF": {"status": "checked"}},
+            "warnings": [],
+        },
+    )
+
+    result = run_aqdatafusion(
+        DEFAULT_CONFIGURATION,
+        mode="database_update",
+        start_time="2026-08-04T00:00:00Z",
+        end_time="2026-08-07T00:00:00Z",
+    )
+
+    assert result["status"] == "database_updated"
+    assert "no update was needed" in result["message"]
+
+
 def test_resolve_experiment_name() -> None:
     configuration = load_configuration(DEFAULT_CONFIGURATION)
 

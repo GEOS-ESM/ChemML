@@ -23,6 +23,7 @@ from aqdatafusion.config_management.configuration import (
     load_configuration,
 )
 from aqdatafusion.config_management.credentials import manage_credentials
+from aqdatafusion.utils.plotting import prepare_cartopy_basemap
 
 
 InputFunction = Callable[[str], str]
@@ -117,6 +118,7 @@ def setup_aqdatafusion(
     source_config_directory: Optional[Union[str, Path]] = None,
     verify_remote: bool = False,
     prompt_optional_credentials: bool = False,
+    download_basemap: bool = True,
     input_fn: InputFunction = input,
     secret_input_fn: Optional[InputFunction] = None,
     output_fn: OutputFunction = print,
@@ -135,6 +137,9 @@ def setup_aqdatafusion(
         Request optional remote credential checks.
     prompt_optional_credentials:
         Also prompt for optional OpenAQ and AirNow credentials.
+    download_basemap:
+        Attempt to cache the standard Cartopy Natural Earth layers during
+        setup. Download failures are warnings and do not invalidate setup.
 
     Returns
     -------
@@ -206,6 +211,12 @@ def setup_aqdatafusion(
             directory.mkdir(parents=True, exist_ok=True)
             created_directories.append(directory)
 
+    basemap_result = prepare_cartopy_basemap(
+        configuration["filepaths"]["data_sources"]["cartopy_cache"],
+        download=download_basemap,
+        output_fn=output_fn,
+    )
+
     final_report = check_configuration(
         config_path,
         mode="check",
@@ -219,6 +230,7 @@ def setup_aqdatafusion(
         "created_directories": created_directories,
         "configuration_report": final_report,
         "credentials": credential_result,
+        "basemap": basemap_result,
     }
 
 
@@ -229,11 +241,13 @@ def main() -> int:
     parser.add_argument("--config-directory", default="config")
     parser.add_argument("--verify-remote", action="store_true")
     parser.add_argument("--prompt-optional-credentials", action="store_true")
+    parser.add_argument("--no-download-basemap", action="store_true")
     args = parser.parse_args()
     result = setup_aqdatafusion(
         args.config_directory,
         verify_remote=args.verify_remote,
         prompt_optional_credentials=args.prompt_optional_credentials,
+        download_basemap=not args.no_download_basemap,
     )
     report: ConfigurationReport = result["configuration_report"]
     print(report.format())

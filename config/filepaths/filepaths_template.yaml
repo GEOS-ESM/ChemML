@@ -15,6 +15,7 @@ working:
 data_sources:
   # Source roots only; file names are owned by input_data_config.yaml.
   # Each source uses its fixed name as the subfolder below the region code.
+  cartopy_cache: "{input}/{region_code}/cartopy_cache"
   ground_monitors: "{input}/{region_code}/ground_monitors"
   GEOS-CF: "{input}/{region_code}/GEOS-CF"
   TEMPO_NO2: "{input}/{region_code}/TEMPO_NO2"

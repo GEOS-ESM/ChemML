@@ -207,6 +207,21 @@ class DatabaseManager:
 
         return xr.open_mfdataset(files, combine="by_coords")
 
+    def read_database(self, source_key: str) -> Any:
+        """Read the current on-disk database for one configured source.
+
+        Point-monitor databases are returned as a :class:`pandas.DataFrame`;
+        gridded databases are returned as an lazily opened
+        :class:`xarray.Dataset`.  An empty DataFrame or ``None`` is returned
+        when no database files exist yet.  Callers are responsible for closing
+        an xarray Dataset when it is no longer needed.
+        """
+
+        configured = self.configuration.get("input_data", {}).get("datasets", {})
+        if source_key not in configured:
+            raise KeyError(f"no input-data configuration exists for {source_key}")
+        return self._read_database(source_key, configured[source_key])
+
     def _observed_times(self, data: Any, source: Mapping[str, Any]) -> pd.DatetimeIndex:
         time_name = source.get("coordinate_names", {}).get("time", "time")
         if data is None:

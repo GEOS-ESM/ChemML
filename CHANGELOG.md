@@ -24,6 +24,8 @@ All notable changes to this project are documented here. The format follows
   scheduler integration.
 - Configuration management, credential handling, shared regridding, and
   network-free regression and integration fixtures.
+- A database-acquisition example notebook, public database reading, and shared
+  offline-safe Cartopy plotting with first-time Natural Earth layer caching.
 
 ### Changed
 

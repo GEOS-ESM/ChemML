@@ -200,6 +200,53 @@ grid/schema mismatches, and catalog inconsistencies mark that source as failed.
 To check an existing database without acquiring data, use
 `DatabaseManager.verify_database_integrity(source_key)`.
 
+### Read and visualize an existing database
+
+Use the public `DatabaseManager.read_database()` method to inspect data already
+stored on disk without starting an acquisition. It returns a pandas DataFrame
+for point-monitor sources and an xarray Dataset for gridded sources:
+
+```python
+from aqdatafusion.config_management.configuration import load_configuration
+from aqdatafusion.data_management import DatabaseManager
+
+configuration = load_configuration("config/default_config.yaml")
+manager = DatabaseManager(configuration)
+ground_data = manager.read_database("ground_monitors")
+geos_cf_data = manager.read_database("GEOS-CF")
+print(ground_data.head())
+print(geos_cf_data)
+```
+
+The shared `plot_data_map()` helper in `aqdatafusion.utils` accepts either
+format and uses the configured regional bounds. It selects the nearest
+timestamp for both gridded and point data, averages over time by default, and
+selects the first auxiliary dimension (for example, GEOS-CF analysis/lead day
+zero) unless `dimension_selection` is supplied:
+
+```python
+from aqdatafusion.utils import plot_data_map
+
+figure, axes = plot_data_map(
+    geos_cf_data,
+    variable="no2",
+    configuration=configuration,
+    timestamp="2026-08-05T15:00:00Z",
+    dimension_selection={"forecast_lead_day": 0},
+    title="GEOS-CF NO₂",
+)
+```
+
+Cartopy coastlines, political boundaries, lakes, and available regional road
+layers are used by default. The helper uses the configured
+`filepaths.data_sources.cartopy_cache` directory and attempts to download
+missing Natural Earth layers. Set `download_basemap=False` for offline-only
+plotting; missing optional layers are omitted while the data plot remains
+available. The introductory
+[data-acquisition notebook](examples/01_data_acquisition.ipynb) demonstrates
+bounded updates, database summaries, maps, timestamp comparisons, and time
+series.
+
 For a scheduled rolling update, call `run_incremental_database_update()`:
 
 ```python

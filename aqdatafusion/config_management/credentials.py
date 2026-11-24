@@ -362,8 +362,27 @@ def manage_credentials(
         if result.get("status") == "invalid"
     ]
     status = "invalid" if invalid_remote else "updated"
-    message = "Credentials were saved and locally validated."
-    if verify_remote:
+    if invalid_remote:
+        message = (
+            "Credentials were saved and locally validated, but remote "
+            "verification failed for: " + ", ".join(invalid_remote) + "."
+        )
+    else:
+        unverified_remote = [
+            provider
+            for provider, result in verification.items()
+            if result.get("status") == "unverified"
+        ]
+        message = "Credentials were saved and locally validated."
+        if unverified_remote:
+            message += (
+                " Remote verification was inconclusive for: "
+                + ", ".join(unverified_remote)
+                + "."
+            )
+    if verify_remote and not invalid_remote and not unverified_remote:
+        message += " Remote credentials were verified."
+    elif verify_remote:
         message += " Remote verification was requested."
     return {
         "status": status,

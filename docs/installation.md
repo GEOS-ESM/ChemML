@@ -57,6 +57,12 @@ also be checked against their services. Use
 `--prompt-optional-credentials` to enter OpenAQ and AirNow credentials during
 setup. The remaining sections document the equivalent manual process.
 
+When internet access is available, setup also caches the Cartopy Natural Earth
+base layers under the configured `filepaths.data_sources.cartopy_cache` path.
+This download is best-effort; setup remains usable offline and plotting falls
+back to data and gridlines when those optional layers are unavailable. Use
+`--no-download-basemap` or `download_basemap=False` to skip the download.
+
 ## Configure credentials
 
 Copy the credentials template:
