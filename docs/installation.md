@@ -9,7 +9,7 @@ workflow is not yet implemented.
 ```bash
 git clone https://github.com/GEOS-ESM/ChemML.git
 cd ChemML
-git checkout CNPDF_aqforecast_development
+git checkout main
 ```
 
 ## Create the environment

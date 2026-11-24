@@ -40,7 +40,7 @@ Create the development environment and run the guided setup:
 ```bash
 git clone https://github.com/GEOS-ESM/ChemML.git
 cd ChemML
-git checkout CNPDF_aqforecast_development
+git checkout main
 conda env create --file environment.yml
 conda activate chemml
 python -m aqdatafusion.utils.setup

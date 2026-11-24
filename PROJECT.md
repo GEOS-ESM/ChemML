@@ -2,7 +2,7 @@
 
 **Repository**: <https://github.com/GEOS-ESM/ChemML.git>
 
-**Development branch**: `CNPDF_aqforecast_development`
+**Default development branch**: `main`
 
 ## Project Overview
 
