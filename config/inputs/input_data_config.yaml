@@ -1,0 +1,219 @@
+# Dataset-specific loading and alignment rules. Source selection is owned by aqdatafusion_config.yaml.
+
+datasets:
+  ground_monitors:
+    source_key: "ground_monitors"
+    file_template: "{provider}_{region_code}_{month_string}_point_h.csv"
+    variables: ["site_id", "lat", "lon", "time", "PM2.5", "NO2", "O3", "CO", "SO2", "PM10"]
+    site_id: "site_id"
+    site_coordinate_tolerance: 1.0e-6
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    quality_control:
+      bounds:
+        PM2.5: [0.0, 500.0]
+        PM10: [0.0, 1000.0]
+        NO2: [0.0, 1000.0]
+        O3: [0.0, 500.0]
+        SO2: [0.0, 1000.0]
+        CO: [0.0, 50000.0]
+    time:
+      type: "datetime"
+      frequency: "1h"
+      alignment: "reference_times"
+      tolerance: "30m"
+      timestamp_convention: "center"
+      availability: {mode: "continuous"}
+    regridding:
+      method: "none"
+    storage: {partition: "monthly", format: "csv", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp"}
+    openaq_request_pause_seconds: 2.0
+
+  GEOS-CF:
+    source_key: "GEOS-CF"
+    file_template: "GEOS-CF_{region_code}_{month_string}_grid_025_h.nc"
+    variables: ["no2", "tropcol_no2", "totcol_no2", "u2m", "v2m", "wndspd_2m", "t2m", "q2m", "rh", "cldtt", "tprec", "troppb", "zl", "zpbl"]
+    variable_prefix: "GEOS-CF_"
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", frequency: "1h", alignment: "reference_times", tolerance: "30m", timestamp_convention: "center", availability: {mode: "continuous"}}
+    regridding: {method: "none", latlon_resolution: 0.25}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access:
+      # Use mode: "local" with local_root on NCCS instead of OpenDAP remote mode.
+      mode: "remote"
+      base_url: "https://opendap.nccs.nasa.gov/dods/gmao/geos-cf/v2"
+      forecast_endpoint: "dated"
+      forecast_cycle_hour_utc: 9
+      forecast_lookback_days: 6
+      forecast_retention_days: 14
+      request_retries: 3
+      retry_pause_seconds: 1.0
+      request_chunk_hours: 24
+      request_variable_chunk_size: 3
+      # NCCS alternative: /discover/nobackup/projects/gmao/geos_cf/pub/v2
+      local_root: "/discover/nobackup/projects/gmao/geos_cf/pub/v2"
+      temporary_directory: ".tmp"
+      collections:
+        aqc: ["no2", "o3", "pm25_rh35"] # Additional variable options: "co", "pm10_rh35", "so2"
+        chm: [ ] # Variable options: "pm25bc_rh35", "pm25du_rh35", "pm25nh4_rh35", "pm25nit_rh35", "pm25oc_rh35", "pm25soa_rh35", "pm25ss_rh35", "pm25su_rh35"
+        met: ["q", "cldtt", "phis", "ps", "rh", "slp", "t", "tprec", "troppb", "ts", "u", "v", "zl", "zpbl"]
+        xgc: ["aod550_bc", "aod550_dust", "aod550_oc", "aod550_psc", "aod550_sla", "aod550_sna", "aod550_ss", "totcol_no2", "totcol_o3", "tropcol_no2", "tropcol_o3"] # Additional variable options: "pblcol_no2", "pblcol_o3"
+
+  TROPOMI:
+    source_key: "TROPOMI"
+    file_template: "TROPOMI_{region_code}_{month_string}_grid_005_d.nc"
+    variables: ["tropospheric_no2_column", "total_o3_column"]
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", frequency: "1D", aggregation: "daily_mean", alignment: "calendar_days", tolerance: "12h", timestamp_convention: "valid_data_center_hour", availability: {mode: "continuous"}}
+    quality_control:
+      mode: "moderate"
+      qa_min: 0.5
+      cloud_fraction_max: 0.5
+      solar_zenith_angle_max: 80.0
+      no2_min: -5.0e-5
+      o3_min: 0.05
+      o3_max: 0.25
+    regridding: {method: "target_grid", latlon_resolution: 0.05}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp", collection_version: "2", download_threads: 2}
+
+  GEMS:
+    source_key: "GEMS"
+    file_template: "GEMS_{region_code}_{month_string}_grid_008_h.nc"
+    variables: ["ColumnAmountNO2Trop", "ColumnAmountNO2"]
+    variable_prefix: "GEMS_"
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time:
+      type: "datetime"
+      frequency: "1h"
+      alignment: "reference_times"
+      tolerance: "30m"
+      timestamp_convention: "center"
+      availability: {mode: "daily_window", start: "08:00", end: "17:00", timezone: "Asia/Seoul"}
+    regridding: {method: "target_grid", latlon_resolution: 0.08}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp"}
+
+  TEMPO_NO2:
+    source_key: "TEMPO_NO2"
+    file_template: "TEMPO_NO2_{region_code}_{month_string}_grid_002_h.nc"
+    variables: ["vertical_column_troposphere"]
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time:
+      type: "datetime"
+      frequency: "1h"
+      alignment: "reference_times"
+      tolerance: "30m"
+      timestamp_convention: "center"
+      availability: {mode: "daily_window", start: "07:00", end: "19:00", timezone: "US/Eastern"}
+    regridding: {method: "none", latlon_resolution: 0.02}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp", cache_subdirectory: ".tmp", collection_short_name: "TEMPO_NO2_L3", concept_id: "C3685896708-LARC_CLOUD", group: "product", variables: ["vertical_column_troposphere", "main_data_quality_flag"]}
+    quality_control: {mode: "scientific", quality_flag_max: 1}
+
+  TEMPO_O3:
+    source_key: "TEMPO_O3"
+    file_template: "TEMPO_O3_{region_code}_{month_string}_grid_004_h.nc"
+    variables: ["ozone_profile_layer_24"]  # Derived variables follow profile_layers below.
+    # Profile names are 1-indexed; the source file's layer dimension is 0-indexed.
+    # Layer 24 is the lowest atmospheric layer (approximately 0-2 km).
+    profile_layers: [24]
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time:
+      type: "datetime"
+      frequency: "1h"
+      alignment: "reference_times"
+      tolerance: "30m"
+      timestamp_convention: "center"
+      availability: {mode: "daily_window", start: "07:00", end: "19:00", timezone: "US/Eastern"}
+    regridding: {method: "none", latlon_resolution: 0.04}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp", cache_subdirectory: ".tmp", collection_short_name: "TEMPO_O3PROF_L3", concept_id: "C3685896402-LARC_CLOUD", product_group: "product", support_group: "support_data", geolocation_group: "geolocation"}
+    quality_control: {mode: "moderate", cloud_fraction_max: 0.5, solar_zenith_angle_max: 80.0, viewing_zenith_angle_max: 80.0}
+
+  GCAS:
+    source_key: "GCAS"
+    file_template: "GCAS_{region_code}_{date_string}_grid_001_hourly.nc"
+    variables: ["no2_vertical_column_below_aircraft", "model_no2_vertical_column_below_aircraft"]
+    variable_prefix: "GCAS_"
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time:
+      type: "datetime"
+      frequency: "1h"
+      alignment: "reference_times"
+      tolerance: "30m"
+      timestamp_convention: "center"
+      availability: {mode: "daily_window", start: "08:00", end: "17:00", timezone: "Asia/Seoul"}
+    regridding: {method: "target_grid", latlon_resolution: 0.01}
+    storage: {partition: "daily", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp"}
+
+  land_cover:
+    source_key: "land_cover"
+    file_template: "MCD12Q1_{region_code}_{year_string}_grid_0005_a.nc"
+    variables: ["LC_Type1"]
+    variable_prefix: "MCD12Q1_"
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "year", aggregation: "reference_year", alignment: "reference_year", timestamp_convention: "year_start", availability: {mode: "yearly"}}
+    quality_control:
+      apply_lw_filter: false
+      apply_qc_filter: false
+      lw_min: 0
+      lw_max: 255
+      qc_min: 0
+      qc_max: 255
+      land_cover_invalid_values: [255]
+    regridding: {method: "target_grid", latlon_resolution: 0.005, categorical_variables: ["LC_Type1"]}
+    storage: {partition: "yearly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp", collection_short_name: "MCD12Q1", concept_id: "C2484079608-LPCLOUD", collection_version: "061", download_threads: 2, max_year_fallback: 2}
+
+  # These additional source definitions are retained for configuration
+  # validation and can be enabled as their ingest paths are used.
+  PACE:
+    source_key: "PACE"
+    file_template: "PACE_{region_code}_{month_string}_grid_002_d.nc"
+    variables: ["total_column_no2", "total_column_o3"]
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", frequency: "1D", aggregation: "daily_mean", alignment: "calendar_days", tolerance: "12h", timestamp_convention: "valid_data_center_hour", availability: {mode: "continuous"}}
+    quality_control:
+      mode: "moderate"
+      no2_good_value: 0
+      o3_good_value: 0
+    regridding: {method: "target_grid", latlon_resolution: 0.02}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp", collection_short_name: "PACE_OCI_L2_TRGAS", collection_version: "3.0", download_threads: 2}
+
+  VIIRS:
+    source_key: "VIIRS"
+    file_template: "VIIRS_{region_code}_{month_string}_grid_001_d.nc"
+    variables: ["optical_depth_055"]
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", frequency: "1D", aggregation: "daily_mean", alignment: "calendar_days", tolerance: "12h", timestamp_convention: "valid_data_center_hour", availability: {mode: "continuous"}}
+    quality_control:
+      mode: "moderate"
+      qa_quality_mask: 3
+      qa_quality_max: 1
+      aod_resolution_min: 0.0
+      aod_resolution_max: 6.0
+    regridding: {method: "target_grid", latlon_resolution: 0.01}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access: {mode: "remote", temporary_directory: ".tmp", collection_short_name: "VJ219A2", concept_id: "C2885060488-LPCLOUD", collection_version: "002", download_threads: 2}
+
+  GOES-ABI:
+    source_key: "GOES-ABI"
+    file_template: "GOES_ABI_{region_code}_{month_string}_grid_002_h.nc"
+    variables: ["aod550"]
+    coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
+    time: {type: "datetime", frequency: "1h", aggregation: "hourly_mean", alignment: "reference_times", tolerance: "30m", timestamp_convention: "center", availability: {mode: "continuous"}}
+    quality_control:
+      mode: "moderate"
+      dqf_max: 1
+      aod_min: 0.0
+      aod_max: 5.0
+    regridding: {method: "target_grid", latlon_resolution: 0.02}
+    storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
+    access:
+      mode: "remote"
+      temporary_directory: ".tmp"
+      product: "ABI-L2-AODC"
+      satellite_order: ["noaa-goes19", "noaa-goes16", "noaa-goes18", "noaa-goes17"]

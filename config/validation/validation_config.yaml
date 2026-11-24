@@ -1,0 +1,50 @@
+# Validation and cross-validation settings.
+
+cross_validation:
+  spatial:
+    enabled: true
+    folds: 5
+    fold_index: 0
+    split_unit: "monitoring_site"
+  temporal:
+    enabled: false
+    folds: 7
+    fold_index: 0
+  month_split:
+    enabled: false
+    train_month: 3
+  forecast:
+    enabled: true
+
+# Baselines to evaluate alongside the forecasting model.
+baseline_models:
+  - "GEOS-CF"
+  - "diel_cycle"
+  - "persistence"
+
+metrics:
+  - "bias"
+  - "mae"
+  - "rmse"
+  - "pearson_correlation"
+  - "r_squared"
+  - "r_squared_spatial_median"
+  - "r_squared_temporal_median"
+  - "normalized_residual_mean"
+  - "normalized_residual_standard_deviation"
+  - "normalized_residual_skewness"
+  - "normalized_residual_kurtosis"
+  - "confidence_interval_coverage"
+
+stratifications:
+  - "hour_of_day"
+  - "ground_monitor_site"
+
+plots:
+  - "prediction_mean_map"
+  - "prediction_standard_deviation_map"
+  - "observation_monitor_map"
+  - "prediction_observation_map_overlay"
+  - "metric_by_hour_of_day"
+  - "normalized_residual_histogram"
+  - "context_sensitivity_map"

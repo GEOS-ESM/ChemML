@@ -1,20 +1,51 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to this project are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and releases follow
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
 ### Added
-- vOct2025 Added several notebooks and codes related to running the Deepsensor package in Discover for analysis fo data from the ASIA-AQ campaign.
+
+- Incremental partitioned input-data database management with per-source
+  catalogs and integrity verification.
+- AirNow, OpenAQ, VIIRS, TROPOMI, PACE, TEMPO NO₂/O₃ Profiles, MCD12Q1,
+  GOES-ABI, and developed GEOS-CF acquisition/preprocessing paths.
+- Authenticated NASA Earthdata DAP4/OpenDAP access through xarray and pydap,
+  including resumable TEMPO subset caching and chunked GEOS-CF access.
+- Rolling database-update mode with configurable lookback, lookahead, and
+  maximum-window safeguards.
+- Human-readable per-run database-update reports with configurable retention.
+- Adapter registry supporting lazy built-in registration, custom registries,
+  and explicit adapter overrides.
+- `scripts/update_database_incremental.sh` for Conda-based cron or NCCS
+  scheduler integration.
+- Configuration management, credential handling, shared regridding, and
+  network-free regression and integration fixtures.
 
 ### Changed
 
+- `run_aqdatafusion()` now supports explicit and rolling database-update modes.
+- Source-specific adapter registration moved from `DatabaseManager` into a
+  reusable registry.
+- Documentation was organized by audience across the README, agent guidance,
+  roadmap, configuration reference, data-source reference, installation guide,
+  and user guide.
+
 ### Fixed
+
+- Timestamp normalization, monthly/yearly partition boundaries, leap-year
+  handling, duplicate merging, coordinate consistency, and catalog validation.
+- Operational cleanup now removes only expired per-run reports and preserves
+  the general application log.
 
 ### Removed
 
 ### Deprecated
 
+## Versioning notes
+
+No public release has been cut yet. Future release entries should use a
+version heading such as `## [0.1.0] - YYYY-MM-DD` and move the corresponding
+items out of `Unreleased`.

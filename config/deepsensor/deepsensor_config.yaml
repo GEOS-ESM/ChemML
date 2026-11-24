@@ -1,0 +1,27 @@
+# Settings passed to DeepSensor and its PyTorch training workflow.
+
+model:
+  architecture: "ConvNP"
+  unet_channels: [32, 32, 32, 32, 32]
+
+data_processor:
+  coordinate_names: ["lat", "lon"]
+  normalization_methods:
+    ground_monitors: "positive_semidefinite"
+    GEOS-CF: "mean_std"
+    TROPOMI: "positive_semidefinite"
+    GEMS: "positive_semidefinite"
+    GCAS: "positive_semidefinite"
+    land_cover: "min_max"
+
+task_loader:
+  context_sampling: "all"
+  target_sampling: "all"
+  ground_monitor_context_sampling: "split"
+  ground_monitor_target_sampling: "split"
+
+training:
+  learning_rate: 0.00005
+  maximum_epochs: 100
+  training_task_stride: 7
+  save_best_model: true

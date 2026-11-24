@@ -1,0 +1,21 @@
+roots:
+  input: /Users/cmalings/Documents/Projects/Active Projects/ASIA AQ/Deepsensor/ChemML_test/input
+  output: /Users/cmalings/Documents/Projects/Active Projects/ASIA AQ/Deepsensor/ChemML_test/output
+working:
+  experiment_directory: '{output}/{region_code}/{experiment_name}'
+  logs_directory: '{experiment_directory}/logs'
+  models_directory: '{experiment_directory}/models'
+  forecasts_directory: '{experiment_directory}/forecasts'
+  validation_directory: '{experiment_directory}/validation'
+data_sources:
+  ground_monitors: '{input}/{region_code}/ground_monitors'
+  GEOS-CF: '{input}/{region_code}/GEOS-CF'
+  TEMPO_NO2: '{input}/{region_code}/TEMPO_NO2'
+  TEMPO_O3: '{input}/{region_code}/TEMPO_O3'
+  GEMS: '{input}/{region_code}/GEMS'
+  TROPOMI: '{input}/{region_code}/TROPOMI'
+  PACE: '{input}/{region_code}/PACE'
+  VIIRS: '{input}/{region_code}/VIIRS'
+  land_cover: '{input}/{region_code}/land_cover'
+  GCAS: '{input}/{region_code}/GCAS'
+  GOES-ABI: '{input}/{region_code}/GOES-ABI'
