@@ -29,11 +29,11 @@ CONFIG_PATH="${CONFIG_PATH}" python - <<'PY'
 import os
 import sys
 
-from aqforecast import run_aqforecast
+from aqdatafusion import run_aqdatafusion
 
 
 config_path = os.environ["CONFIG_PATH"]
-result = run_aqforecast(
+result = run_aqdatafusion(
     config_path,
     mode="incremental_database_update",
     require_credentials=True,

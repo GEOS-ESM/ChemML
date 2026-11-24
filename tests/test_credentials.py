@@ -5,7 +5,7 @@ from pathlib import Path
 
 import yaml
 
-from aqforecast.config_management.credentials import manage_credentials
+from aqdatafusion.config_management.credentials import manage_credentials
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]

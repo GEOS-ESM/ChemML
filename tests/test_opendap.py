@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aqforecast.utils.opendap import _as_dap4_url, _bounding_indexers
+from aqdatafusion.utils.opendap import _as_dap4_url, _bounding_indexers
 
 
 def test_opendap_url_is_normalized_to_dap4():

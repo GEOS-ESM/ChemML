@@ -6,12 +6,12 @@ import shutil
 import pytest
 import yaml
 
-from aqforecast.config_management.configuration import ConfigurationError
-from aqforecast.config_management.configuration import check_configuration
-from aqforecast.config_management.configuration import load_configuration
-from aqforecast.config_management.configuration import _resolve_known_templates
-from aqforecast import run_aqforecast
-import aqforecast.aqforecast as aqforecast_runner
+from aqdatafusion.config_management.configuration import ConfigurationError
+from aqdatafusion.config_management.configuration import check_configuration
+from aqdatafusion.config_management.configuration import load_configuration
+from aqdatafusion.config_management.configuration import _resolve_known_templates
+from aqdatafusion import run_aqdatafusion
+import aqdatafusion.aqdatafusion as aqdatafusion_runner
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -30,19 +30,20 @@ def test_load_default_configuration() -> None:
     configuration = load_configuration(DEFAULT_CONFIGURATION)
 
     assert configuration["region"]["region_code"] == "Seoul"
-    assert configuration["aqforecast"]["inputs"]["GEOS-CF"]["enabled"] is True
+    assert configuration["experiment_name_template"] == "region_{region_code}_experiment_{experiment_code}"
+    assert configuration["aqdatafusion"]["inputs"]["GEOS-CF"]["enabled"] is True
     assert not configuration["warnings"]
 
 
-def test_aqforecast_runner_loads_configuration() -> None:
-    result = run_aqforecast(DEFAULT_CONFIGURATION)
+def test_aqdatafusion_runner_loads_configuration() -> None:
+    result = run_aqdatafusion(DEFAULT_CONFIGURATION)
 
     assert result["status"] == "configuration_loaded"
     assert "not been implemented yet" in result["message"]
     assert result["configuration"]["experiment_name"] == "region_Seoul_experiment_baseline"
 
 
-def test_aqforecast_runner_checks_credentials_when_required(monkeypatch) -> None:
+def test_aqdatafusion_runner_checks_credentials_when_required(monkeypatch) -> None:
     calls = {}
 
     def fake_manage_credentials(config_path, *, verify_remote):
@@ -55,8 +56,8 @@ def test_aqforecast_runner_checks_credentials_when_required(monkeypatch) -> None
             "errors": ["test credential failure"],
         }
 
-    monkeypatch.setattr(aqforecast_runner, "manage_credentials", fake_manage_credentials)
-    result = run_aqforecast(DEFAULT_CONFIGURATION, require_credentials=True)
+    monkeypatch.setattr(aqdatafusion_runner, "manage_credentials", fake_manage_credentials)
+    result = run_aqdatafusion(DEFAULT_CONFIGURATION, require_credentials=True)
 
     assert result["status"] == "credentials_failed"
     assert result["errors"] == ["test credential failure"]
@@ -64,7 +65,7 @@ def test_aqforecast_runner_checks_credentials_when_required(monkeypatch) -> None
     assert calls["verify_remote"] is True
 
 
-def test_aqforecast_runner_supports_incremental_database_update(monkeypatch) -> None:
+def test_aqdatafusion_runner_supports_incremental_database_update(monkeypatch) -> None:
     calls = {}
 
     def fake_incremental_update(configuration, **kwargs):
@@ -73,10 +74,10 @@ def test_aqforecast_runner_supports_incremental_database_update(monkeypatch) -> 
         return {"start_time": "2026-11-16T00:00:00+00:00", "sources": {}, "warnings": []}
 
     monkeypatch.setattr(
-        "aqforecast.orchestration.run_incremental_database_update",
+        "aqdatafusion.orchestration.run_incremental_database_update",
         fake_incremental_update,
     )
-    result = run_aqforecast(
+    result = run_aqdatafusion(
         DEFAULT_CONFIGURATION,
         mode="incremental_database_update",
         source_keys=["GEOS-CF"],

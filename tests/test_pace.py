@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 from netCDF4 import Dataset
 
-from aqforecast.contracts import DataRequest, DatasetBundle
-from aqforecast.data_acquisition.pace import SHORT_NAME, PaceTraceGasDataSource
-from aqforecast.preprocessing.pace import PaceTraceGasPreprocessor
+from aqdatafusion.contracts import DataRequest, DatasetBundle
+from aqdatafusion.data_acquisition.pace import SHORT_NAME, PaceTraceGasDataSource
+from aqdatafusion.preprocessing.pace import PaceTraceGasPreprocessor
 
 
 def _configuration():

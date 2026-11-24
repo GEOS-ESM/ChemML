@@ -12,7 +12,7 @@ and result evaluation remain under development.
 Run the configuration checker before a run:
 
 ```bash
-python aqforecast/config_management/configuration.py config/default_config.yaml
+python aqdatafusion/config_management/configuration.py config/default_config.yaml
 ```
 
 Checking mode reports structural errors and warnings without modifying files.
@@ -22,7 +22,7 @@ credentials are explicitly required.
 Interactive mode prompts for fixable missing or invalid values:
 
 ```bash
-python aqforecast/config_management/configuration.py \
+python aqdatafusion/config_management/configuration.py \
     config/default_config.yaml --interactive
 ```
 
@@ -30,14 +30,14 @@ If credentials are needed, collect them separately with
 `manage_credentials()` as described in the configuration reference. Credential
 verification is optional and remote verification requires internet access.
 
-## Run the current AQ-forecast skeleton
+## Run the current AQ-data-fusion skeleton
 
-The runner is exposed as `run_aqforecast()`:
+The runner is exposed as `run_aqdatafusion()`:
 
 ```python
-from aqforecast import run_aqforecast
+from aqdatafusion import run_aqdatafusion
 
-result = run_aqforecast("config/default_config.yaml")
+result = run_aqdatafusion("config/default_config.yaml")
 print(result["status"])
 print(result["message"])
 ```
@@ -45,7 +45,7 @@ print(result["message"])
 When a run needs credentials, request credential collection and verification:
 
 ```python
-result = run_aqforecast(
+result = run_aqdatafusion(
     "config/default_config.yaml",
     require_credentials=True,
 )
@@ -62,7 +62,7 @@ The implemented database-update mode is also available through the same
 runner:
 
 ```python
-result = run_aqforecast(
+result = run_aqdatafusion(
     "config/default_config.yaml",
     mode="database_update",
     start_time="2026-08-04T00:00:00Z",
@@ -77,7 +77,7 @@ To update the configured rolling window around the current UTC hour, use the
 incremental mode. It does not require explicit start or end times:
 
 ```python
-result = run_aqforecast(
+result = run_aqdatafusion(
     "config/default_config.yaml",
     mode="incremental_database_update",
     source_keys=["GEOS-CF", "ground_monitors"],
@@ -87,7 +87,7 @@ print(result["report"])
 ```
 
 The rolling window is controlled by `database.incremental_update` in
-`config/aqforecast/aqforecast_config.yaml`. The example configuration looks
+`config/aqdatafusion/aqdatafusion_config.yaml`. The example configuration looks
 back two days and forward five days, aligned to the current UTC hour, and
 rejects windows longer than 14 days. A cron or NCCS wrapper can invoke this
 mode at the desired cadence; the repository includes a Bash scheduler
@@ -97,7 +97,7 @@ entry point described below.
 
 Database updates use a half-open UTC interval, `[start_time, end_time)`. By
 default, every input marked `enabled: true` in
-`config/aqforecast/aqforecast_config.yaml` is checked. Existing partitioned
+`config/aqdatafusion/aqdatafusion_config.yaml` is checked. Existing partitioned
 files are inspected for expected timestamps, missing intervals are requested
 from the registered source adapters, processed data are merged using the
 `fill_missing` policy, and each source catalog is regenerated.
@@ -106,8 +106,8 @@ The update operation can be started from Python after loading the resolved
 configuration:
 
 ```python
-from aqforecast.config_management.configuration import load_configuration
-from aqforecast.orchestration import run_database_update
+from aqdatafusion.config_management.configuration import load_configuration
+from aqdatafusion.orchestration import run_database_update
 
 configuration = load_configuration("config/default_config.yaml")
 report = run_database_update(
@@ -138,8 +138,8 @@ automatically. Only one ground-monitor provider is active for a region. Use the
 local credentials file and select only `ground_monitors` while testing:
 
 ```python
-from aqforecast.config_management.configuration import load_configuration
-from aqforecast.orchestration import run_database_update
+from aqdatafusion.config_management.configuration import load_configuration
+from aqdatafusion.orchestration import run_database_update
 
 configuration = load_configuration(
     "config/testing_config.yaml",
@@ -202,12 +202,12 @@ To check an existing database without acquiring data, use
 For a scheduled rolling update, call `run_incremental_database_update()`:
 
 ```python
-from aqforecast.orchestration import run_incremental_database_update
+from aqdatafusion.orchestration import run_incremental_database_update
 
 report = run_incremental_database_update(configuration)
 ```
 
-The function reads `database.incremental_update` from the AQ-forecast
+The function reads `database.incremental_update` from the AQ-data-fusion
 configuration, aligns the system time to the UTC hour, and updates the
 configured lookback/lookahead window. `max_window_days` rejects accidentally
 oversized requests. Scheduling is intentionally left to cron or an NCCS batch
@@ -220,13 +220,13 @@ the operation and UTC run-start time, for example
 contains the generated path under `operational_report_path`. Reports older than
 `database.operational_logging.retain_days` are removed during a later update;
 the default retention period is 365 days. Cleanup only targets these
-per-operation text reports and does not remove the general `aqforecast.log`.
+per-operation text reports and does not remove the general `aqdatafusion.log`.
 
 ### Schedule rolling database updates
 
 The repository includes `scripts/update_database_incremental.sh` as a
 scheduler entry point. It activates the `chemml` Conda environment and runs
-`run_aqforecast(mode="incremental_database_update")` with credential checking
+`run_aqdatafusion(mode="incremental_database_update")` with credential checking
 enabled. It uses `config/default_config.yaml` by default; edit the
 `CONFIG_PATH` line in the script to select another master configuration.
 
@@ -248,7 +248,7 @@ when Conda is unavailable. Detailed per-run reports are written to the
 configured `logs_directory`; cron installation and scheduler-specific setup
 remain operator responsibilities.
 
-For configuration-only mode, a valid `run_aqforecast()` result contains:
+For configuration-only mode, a valid `run_aqdatafusion()` result contains:
 
 - `status`: `configuration_loaded`.
 - `message`: explains that configuration-only mode does not start a database update.

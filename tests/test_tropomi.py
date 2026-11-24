@@ -9,13 +9,13 @@ import pandas as pd
 import xarray as xr
 from netCDF4 import Dataset
 
-from aqforecast.contracts import DataRequest, DatasetBundle
-from aqforecast.data_acquisition.tropomi import (
+from aqdatafusion.contracts import DataRequest, DatasetBundle
+from aqdatafusion.data_acquisition.tropomi import (
     NO2_SHORT_NAME,
     O3_SHORT_NAME,
     TropomiDataSource,
 )
-from aqforecast.preprocessing.tropomi import TropomiPreprocessor
+from aqdatafusion.preprocessing.tropomi import TropomiPreprocessor
 
 
 def _configuration():

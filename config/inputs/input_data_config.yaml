@@ -1,4 +1,4 @@
-# Dataset-specific loading and alignment rules. Source selection is owned by aqforecast_config.yaml.
+# Dataset-specific loading and alignment rules. Source selection is owned by aqdatafusion_config.yaml.
 
 datasets:
   ground_monitors:

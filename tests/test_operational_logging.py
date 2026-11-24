@@ -3,13 +3,13 @@
 import os
 from datetime import datetime, timedelta, timezone
 
-from aqforecast.utils.operational_logging import write_database_update_report
+from aqdatafusion.utils.operational_logging import write_database_update_report
 
 
 def _configuration(log_directory, retain_days=365):
     return {
         "filepaths": {"working": {"logs_directory": str(log_directory)}},
-        "aqforecast": {"database": {"operational_logging": {"retain_days": retain_days}}},
+        "aqdatafusion": {"database": {"operational_logging": {"retain_days": retain_days}}},
     }
 
 
@@ -52,7 +52,7 @@ def test_operational_report_contains_source_summary_warnings_and_errors(tmp_path
 def test_operational_report_cleanup_removes_only_expired_reports(tmp_path):
     old_report = tmp_path / "database_update_20240101T000000.000000Z.txt"
     old_report.write_text("old", encoding="utf-8")
-    unrelated = tmp_path / "aqforecast.log"
+    unrelated = tmp_path / "aqdatafusion.log"
     unrelated.write_text("keep", encoding="utf-8")
     old_time = (datetime.now(timezone.utc) - timedelta(days=3)).timestamp()
     os.utime(old_report, (old_time, old_time))

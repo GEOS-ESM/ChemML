@@ -6,13 +6,13 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from aqforecast.contracts import DatasetBundle
-from aqforecast.data_acquisition.geos_cf import (
+from aqdatafusion.contracts import DatasetBundle
+from aqdatafusion.data_acquisition.geos_cf import (
     _decode_geos_cf_time,
     _open_chunked_subset,
     _remote_url,
 )
-from aqforecast.preprocessing.geos_cf import GeosCfPreprocessor
+from aqdatafusion.preprocessing.geos_cf import GeosCfPreprocessor
 
 
 def _configuration(tmp_path: Path) -> dict:
@@ -65,7 +65,7 @@ def test_geos_cf_subset_is_split_by_time_and_variable(monkeypatch) -> None:
             coords={"time": [start + pd.Timedelta(minutes=30)], "lat": [33.0], "lon": [-84.0]},
         )
 
-    monkeypatch.setattr("aqforecast.data_acquisition.geos_cf._open_subset", fake_open)
+    monkeypatch.setattr("aqdatafusion.data_acquisition.geos_cf._open_subset", fake_open)
     result = _open_chunked_subset(
         "https://example.test/data",
         ["co", "no2"],

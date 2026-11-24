@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from aqforecast.data_management.catalog import DatasetCatalog
-from aqforecast.data_management.integrity import verify_database_integrity
+from aqdatafusion.data_management.catalog import DatasetCatalog
+from aqdatafusion.data_management.integrity import verify_database_integrity
 
 
 def _grid_source():

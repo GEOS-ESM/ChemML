@@ -39,15 +39,15 @@ and output roots, collects the required credentials, creates the configured
 directories, and verifies the result with the configuration checker:
 
 ```bash
-python -m aqforecast.utils.setup
+python -m aqdatafusion.utils.setup
 ```
 
 The same flow can be started from Python:
 
 ```python
-from aqforecast.utils import setup_aqforecast
+from aqdatafusion.utils import setup_aqdatafusion
 
-result = setup_aqforecast()
+result = setup_aqdatafusion()
 if result["status"] != "configured":
     result["configuration_report"].format()
 ```
@@ -74,7 +74,7 @@ configuration without credentials.
 Credentials can also be collected and optionally verified from Python:
 
 ```python
-from aqforecast.config_management import manage_credentials
+from aqdatafusion.config_management import manage_credentials
 
 result = manage_credentials(
     "config/default_config.yaml",
@@ -121,7 +121,7 @@ ground-monitoring provider, and IANA timezone.
 ## Select component configurations
 
 Review `config/default_config.yaml`. It selects the region, credentials,
-filepath, input-data, AQ-forecast, DeepSensor, and validation configurations.
+filepath, input-data, AQ-data-fusion, DeepSensor, and validation configurations.
 See [the configuration reference](configuration.md) for the ownership and
 structure of each component file.
 
@@ -130,14 +130,14 @@ structure of each component file.
 Run the read-only configuration check:
 
 ```bash
-python aqforecast/config_management/configuration.py \
+python aqdatafusion/config_management/configuration.py \
     config/default_config.yaml
 ```
 
 Use interactive mode to fill fixable missing or invalid settings:
 
 ```bash
-python aqforecast/config_management/configuration.py \
+python aqdatafusion/config_management/configuration.py \
     config/default_config.yaml --interactive
 ```
 

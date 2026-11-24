@@ -26,7 +26,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
-- `run_aqforecast()` now supports explicit and rolling database-update modes.
+- `run_aqdatafusion()` now supports explicit and rolling database-update modes.
 - Source-specific adapter registration moved from `DatabaseManager` into a
   reusable registry.
 - Documentation was organized by audience across the README, agent guidance,

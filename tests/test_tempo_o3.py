@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from aqforecast.contracts import DataRequest, DatasetBundle
-from aqforecast.data_acquisition.tempo_o3 import SHORT_NAME, TempoO3ProfileDataSource
-from aqforecast.preprocessing.tempo_o3 import TempoO3ProfilePreprocessor
+from aqdatafusion.contracts import DataRequest, DatasetBundle
+from aqdatafusion.data_acquisition.tempo_o3 import SHORT_NAME, TempoO3ProfileDataSource
+from aqdatafusion.preprocessing.tempo_o3 import TempoO3ProfilePreprocessor
 
 
 def _configuration(tmp_path: Path) -> dict:
@@ -93,7 +93,7 @@ def test_tempo_o3_acquisition_caches_three_opendap_groups(monkeypatch, tmp_path:
             names = ("eff_cloud_fraction",) if kwargs["group"] == "support_data" else ("solar_zenith_angle", "viewing_zenith_angle")
             return xr.Dataset({name: (("time", "latitude", "longitude"), np.ones((1, 2, 2))) for name in names}, coords={"time": [0], "latitude": [33.02, 33.06], "longitude": [-84.98, -84.94]}, attrs={"time_coverage_start": "2026-05-01T17:03:00Z"})
 
-    monkeypatch.setattr("aqforecast.data_acquisition.tempo_o3.EarthdataOpenDAPClient", FakeClient)
+    monkeypatch.setattr("aqdatafusion.data_acquisition.tempo_o3.EarthdataOpenDAPClient", FakeClient)
     source = TempoO3ProfileDataSource()
     first = source.acquire(_request(), _configuration(tmp_path))
     second = source.acquire(_request(), _configuration(tmp_path))

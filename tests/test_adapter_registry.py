@@ -1,6 +1,6 @@
 """Tests for source-adapter registry construction and overrides."""
 
-from aqforecast.data_management import DatabaseManager, SourceRegistry, default_source_registry
+from aqdatafusion.data_management import DatabaseManager, SourceRegistry, default_source_registry
 
 
 class SyntheticSource:

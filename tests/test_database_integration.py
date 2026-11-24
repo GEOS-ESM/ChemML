@@ -7,9 +7,9 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from aqforecast.contracts import DatasetBundle
-from aqforecast.data_acquisition.base import AcquisitionError
-from aqforecast.data_management import DatabaseManager
+from aqdatafusion.contracts import DatasetBundle
+from aqdatafusion.data_acquisition.base import AcquisitionError
+from aqdatafusion.data_management import DatabaseManager
 
 
 class SyntheticAdapter:
@@ -68,7 +68,7 @@ class SyntheticAdapter:
 def _configuration(root: Path):
     return {
         "region": {"region_code": "ATL"},
-        "aqforecast": {"inputs": {"points": {"enabled": True}, "grid": {"enabled": True}, "broken": {"enabled": True}}},
+        "aqdatafusion": {"inputs": {"points": {"enabled": True}, "grid": {"enabled": True}, "broken": {"enabled": True}}},
         "filepaths": {
             "data_sources": {
                 "points": str(root / "points"),

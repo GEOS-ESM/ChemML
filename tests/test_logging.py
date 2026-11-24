@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from aqforecast.utils.logging import configure_logging
+from aqdatafusion.utils.logging import configure_logging
 
 
 def test_configure_logging_writes_to_configured_directory_and_redacts_credentials(
@@ -14,11 +14,13 @@ def test_configure_logging_writes_to_configured_directory_and_redacts_credential
     configuration = {
         "filepaths": {"working": {"logs_directory": str(log_directory)}},
         "credentials": {"earthdata": {"password": "secret-password"}},
+        "aqdatafusion": {"logging": {"prefix": "customfusion"}},
+        "experiment_name": "region_Seoul_experiment_baseline",
     }
 
     logger = configure_logging(
         configuration,
-        logger_name="test.aqforecast.logging",
+        logger_name="test.aqdatafusion.logging",
         console=False,
         create_directory=True,
     )
@@ -26,7 +28,7 @@ def test_configure_logging_writes_to_configured_directory_and_redacts_credential
     for handler in logger.handlers:
         handler.flush()
 
-    contents = (log_directory / "aqforecast.log").read_text(encoding="utf-8")
+    contents = (log_directory / "region_Seoul_experiment_baseline_log.log").read_text(encoding="utf-8")
     assert "secret-password" not in contents
     assert "[REDACTED]" in contents
 

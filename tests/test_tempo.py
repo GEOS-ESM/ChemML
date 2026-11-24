@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from aqforecast.contracts import DataRequest, DatasetBundle
-from aqforecast.data_acquisition.tempo import SHORT_NAME, TempoNo2DataSource
-from aqforecast.preprocessing.tempo import TempoNo2Preprocessor
+from aqdatafusion.contracts import DataRequest, DatasetBundle
+from aqdatafusion.data_acquisition.tempo import SHORT_NAME, TempoNo2DataSource
+from aqdatafusion.preprocessing.tempo import TempoNo2Preprocessor
 
 
 def _configuration(tmp_path: Path) -> dict:
@@ -114,7 +114,7 @@ def test_tempo_acquisition_caches_open_dap_subsets(monkeypatch, tmp_path: Path) 
             return _subset("2026-05-01T17:03:00Z")
 
     monkeypatch.setattr(
-        "aqforecast.data_acquisition.tempo.EarthdataOpenDAPClient", FakeClient
+        "aqdatafusion.data_acquisition.tempo.EarthdataOpenDAPClient", FakeClient
     )
     configuration = _configuration(tmp_path)
     source = TempoNo2DataSource()

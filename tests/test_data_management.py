@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 import xarray as xr
 
-from aqforecast.data_management import DatabaseManager
+from aqdatafusion.data_management import DatabaseManager
 
 SOURCE = {
     "site_id": "site_id",

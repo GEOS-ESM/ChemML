@@ -1,0 +1,54 @@
+# Air-quality data-fusion behavior. Dataset variables and file names belong in input_data_config.yaml.
+
+logging:
+  prefix: "aqdatafusion"
+
+inputs:
+  ground_monitors:
+    enabled: true
+    use_as_context: true
+    training_fraction: 0.8
+  GEOS-CF:
+    enabled: true
+  TROPOMI:
+    enabled: true
+  VIIRS:
+    enabled: true
+  PACE:
+    enabled: true
+  TEMPO_NO2:
+    enabled: true
+  TEMPO_O3:
+    enabled: true
+  GEMS:
+    enabled: false
+  GCAS:
+    enabled: false
+  land_cover:
+    enabled: true
+  GOES-ABI:
+    enabled: true
+
+forecast:
+  lead_times_hours: [1, 3, 6, 12, 24, 48, 72]
+  output_variables: ["pm25", "o3", "no2"]
+  confidence_levels: [0.5, 0.9]
+
+feature_engineering:
+  input_lags_hours: {}
+  additional_features:
+    - "time_of_day"
+
+database:
+  default_conflict_policy: "fill_missing"
+  update_enabled_inputs_by_default: true
+  # Used by run_incremental_database_update(); scheduling is handled by the
+  # scheduler entry point in scripts/update_database_incremental.sh.
+  incremental_update:
+    lookback_days: 2
+    lookahead_days: 5
+    max_window_days: 14
+    timezone: "UTC"
+    time_alignment: "hour"
+  operational_logging:
+    retain_days: 365

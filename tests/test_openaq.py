@@ -4,10 +4,10 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
-from aqforecast.contracts import DataRequest, DatasetBundle
-from aqforecast.data_acquisition.openaq import OpenAQDataSource
-from aqforecast.data_management import DatabaseManager
-from aqforecast.preprocessing.openaq import OpenAQPreprocessor
+from aqdatafusion.contracts import DataRequest, DatasetBundle
+from aqdatafusion.data_acquisition.openaq import OpenAQDataSource
+from aqdatafusion.data_management import DatabaseManager
+from aqdatafusion.preprocessing.openaq import OpenAQPreprocessor
 
 
 class FakeResponse:

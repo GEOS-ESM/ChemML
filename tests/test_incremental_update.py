@@ -3,7 +3,7 @@
 import pandas as pd
 import pytest
 
-from aqforecast.orchestration import run_incremental_database_update
+from aqdatafusion.orchestration import run_incremental_database_update
 
 
 class RecordingManager:
@@ -22,7 +22,7 @@ class RecordingManager:
 
 def _configuration(tmp_path=None):
     configuration = {
-        "aqforecast": {
+        "aqdatafusion": {
             "database": {
                 "default_conflict_policy": "preserve_existing",
                 "incremental_update": {
@@ -44,7 +44,7 @@ def _configuration(tmp_path=None):
 def test_incremental_update_uses_aligned_rolling_window(monkeypatch, tmp_path):
     manager = RecordingManager(_configuration(tmp_path))
     monkeypatch.setattr(
-        "aqforecast.orchestration.database_update.DatabaseManager",
+        "aqdatafusion.orchestration.database_update.DatabaseManager",
         lambda configuration, **kwargs: manager,
     )
 
@@ -65,7 +65,7 @@ def test_incremental_update_uses_aligned_rolling_window(monkeypatch, tmp_path):
 
 def test_incremental_update_rejects_window_over_maximum():
     configuration = _configuration()
-    configuration["aqforecast"]["database"]["incremental_update"]["max_window_days"] = 6
+    configuration["aqdatafusion"]["database"]["incremental_update"]["max_window_days"] = 6
 
     with pytest.raises(ValueError, match="exceeds max_window_days"):
         run_incremental_database_update(configuration, now="2026-11-18T00:00:00Z")
@@ -82,7 +82,7 @@ def test_incremental_update_rejects_window_over_maximum():
 )
 def test_incremental_update_rejects_invalid_settings(setting, value, message):
     configuration = _configuration()
-    configuration["aqforecast"]["database"]["incremental_update"][setting] = value
+    configuration["aqdatafusion"]["database"]["incremental_update"][setting] = value
 
     with pytest.raises(ValueError, match=message):
         run_incremental_database_update(configuration, now="2026-11-18T00:00:00Z")

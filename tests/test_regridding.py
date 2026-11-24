@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from aqforecast.utils.regridding import regrid_irregular_to_grid
+from aqdatafusion.utils.regridding import regrid_irregular_to_grid
 
 
 def _configuration():

@@ -15,6 +15,6 @@ configuration_files:
   credentials: "credentials/credentials.yaml"
   filepaths: "filepaths/filepaths.yaml"
   deepsensor: "deepsensor/deepsensor_config.yaml"
-  aqforecast: "aqforecast/aqforecast_config.yaml"
+  aqdatafusion: "aqdatafusion/aqdatafusion_config.yaml"
   validation: "validation/validation_config.yaml"
   input_data: "inputs/input_data_config.yaml"

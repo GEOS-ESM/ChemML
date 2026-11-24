@@ -7,10 +7,10 @@ from types import SimpleNamespace
 import numpy as np
 import pandas as pd
 
-from aqforecast.contracts import DataRequest, DatasetBundle
-from aqforecast.data_acquisition.land_cover import LandCoverDataSource, SHORT_NAME
-from aqforecast.preprocessing import land_cover
-from aqforecast.preprocessing.land_cover import LandCoverPreprocessor
+from aqdatafusion.contracts import DataRequest, DatasetBundle
+from aqdatafusion.data_acquisition.land_cover import LandCoverDataSource, SHORT_NAME
+from aqdatafusion.preprocessing import land_cover
+from aqdatafusion.preprocessing.land_cover import LandCoverPreprocessor
 
 
 def _configuration():

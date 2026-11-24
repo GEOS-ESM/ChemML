@@ -2,20 +2,20 @@
 
 from pathlib import Path
 
-from aqforecast.utils.setup import setup_aqforecast
+from aqdatafusion.utils.setup import setup_aqdatafusion
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_setup_aqforecast_copies_configures_and_validates(tmp_path: Path) -> None:
+def test_setup_aqdatafusion_copies_configures_and_validates(tmp_path: Path) -> None:
     target_config = tmp_path / "config"
     input_root = tmp_path / "input"
     output_root = tmp_path / "output"
     responses = iter([str(input_root), str(output_root), "earthdata-user", "nccs-user", "nccs-project"])
     secret_responses = iter(["earthdata-password"])
 
-    result = setup_aqforecast(
+    result = setup_aqdatafusion(
         target_config,
         source_config_directory=REPOSITORY_ROOT / "config",
         input_fn=lambda _prompt: next(responses),

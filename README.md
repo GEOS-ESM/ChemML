@@ -1,6 +1,6 @@
 # ChemML
 
-ChemML is a developing air-quality estimation and forecasting workflow. It is
+ChemML is a developing air-quality estimation and data-fusion workflow. It is
 designed to combine satellite observations, numerical model output, and ground
 monitoring data with DeepSensor-based machine learning to produce probabilistic
 PM2.5, ozone, and NO₂ forecasts at user-defined spatial resolution.
@@ -43,7 +43,7 @@ cd ChemML
 git checkout CNPDF_aqforecast_development
 conda env create --file environment.yml
 conda activate chemml
-python -m aqforecast.utils.setup
+python -m aqdatafusion.utils.setup
 ```
 
 The setup flow creates or copies configuration files, collects credentials and
@@ -53,15 +53,15 @@ paths, creates configured directories, and validates the result. See the
 Validate a configuration with:
 
 ```bash
-python aqforecast/config_management/configuration.py config/default_config.yaml
+python aqdatafusion/config_management/configuration.py config/default_config.yaml
 ```
 
 Run a bounded database update from Python:
 
 ```python
-from aqforecast import run_aqforecast
+from aqdatafusion import run_aqdatafusion
 
-result = run_aqforecast(
+result = run_aqdatafusion(
     "config/default_config.yaml",
     mode="database_update",
     start_time="2026-08-04T00:00:00Z",
@@ -74,7 +74,7 @@ print(result["status"])
 Run the configured rolling update:
 
 ```python
-result = run_aqforecast(
+result = run_aqdatafusion(
     "config/default_config.yaml",
     mode="incremental_database_update",
     require_credentials=True,

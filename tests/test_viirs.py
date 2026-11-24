@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 from netCDF4 import Dataset
 
-from aqforecast.contracts import DataRequest, DatasetBundle
-from aqforecast.data_acquisition.viirs import CONCEPT_ID, SHORT_NAME, ViirsAodDataSource
-from aqforecast.preprocessing.viirs import ViirsAodPreprocessor
+from aqdatafusion.contracts import DataRequest, DatasetBundle
+from aqdatafusion.data_acquisition.viirs import CONCEPT_ID, SHORT_NAME, ViirsAodDataSource
+from aqdatafusion.preprocessing.viirs import ViirsAodPreprocessor
 
 
 def _configuration():

@@ -5,10 +5,10 @@ from datetime import datetime, timezone
 import pandas as pd
 import requests
 
-from aqforecast.contracts import DataRequest
-from aqforecast.data_acquisition.airnow import AirNowDataSource
-from aqforecast.data_management import DatabaseManager
-from aqforecast.preprocessing.airnow import AirNowPreprocessor
+from aqdatafusion.contracts import DataRequest
+from aqdatafusion.data_acquisition.airnow import AirNowDataSource
+from aqdatafusion.data_management import DatabaseManager
+from aqdatafusion.preprocessing.airnow import AirNowPreprocessor
 
 
 class FakeResponse:
@@ -136,7 +136,7 @@ def test_airnow_acquisition_uses_verified_request_and_preserves_units():
 
 def test_airnow_retries_transient_request_failure(monkeypatch):
     session = FlakySession(RESPONSE)
-    monkeypatch.setattr("aqforecast.data_acquisition.airnow.time.sleep", lambda _: None)
+    monkeypatch.setattr("aqdatafusion.data_acquisition.airnow.time.sleep", lambda _: None)
     source = AirNowDataSource(session=session, max_retries=2)
     request = DataRequest(
         "ground_monitors",
@@ -156,7 +156,7 @@ def test_airnow_standardized_output_round_trips_through_database(tmp_path):
     configuration = {
         **CONFIGURATION,
         "region": {**CONFIGURATION["region"], "region_code": "ATL"},
-        "aqforecast": {"inputs": {"ground_monitors": {"enabled": True}}},
+        "aqdatafusion": {"inputs": {"ground_monitors": {"enabled": True}}},
         "filepaths": {"data_sources": {"ground_monitors": str(tmp_path / "ground_monitors")}},
         "input_data": {
             "datasets": {

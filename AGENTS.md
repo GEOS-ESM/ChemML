@@ -1,8 +1,15 @@
 # Repository Guidelines
 
+The system-wide package and configuration namespace was renamed from
+`aqforecast` to `aqdatafusion`. The old function names and import paths are not
+supported for compatibility; if a future error mentions a missing package,
+function, or configuration section, first check for an incomplete or
+mis-applied part of this rename. Forecast-specific concepts and settings may
+still appropriately use `forecast`.
+
 ## Project Structure & Module Organization
 
-This repository is under active development as a set of codes implementing a machine-learning-based air-quality forecasting workflow. It is not necessarily intended to become a standalone installable Python package.
+This repository is under active development as a set of codes implementing a machine-learning-based air-quality data-fusion workflow, including forecasting applications. It is not necessarily intended to become a standalone installable Python package.
 
 - `docs/examples/deepsensor_demo/` contains progressively refined Jupyter demonstrations and the Conda environment specification (`deepsensor_cenv.yml`).
 - `docs/examples/deepsensor_run/` contains the Discover batch runner (`ASIAAQ_Deepsensor_Run.py`) and notebooks for configuring and interpreting batches.
@@ -10,46 +17,46 @@ This repository is under active development as a set of codes implementing a mac
   for implementation guidance, including dataset/API access instructions. Its
   contents are local notes and must not be committed.
 - `config/` contains the master configuration and component YAML files.
-- `aqforecast/config_management/` contains reusable configuration validation and configuration-loading utilities.
-- `aqforecast/config_management/credentials.py` contains local credential collection and optional remote verification.
-- `aqforecast/utils/logging.py` contains shared console/file logging and credential redaction.
-- `aqforecast/utils/operational_logging.py` writes human-readable per-run database-update reports and removes expired operational reports according to configured retention.
-- `aqforecast/utils/regridding.py` contains the generic irregular-point to
+- `aqdatafusion/config_management/` contains reusable configuration validation and configuration-loading utilities.
+- `aqdatafusion/config_management/credentials.py` contains local credential collection and optional remote verification.
+- `aqdatafusion/utils/logging.py` contains shared console/file logging and credential redaction.
+- `aqdatafusion/utils/operational_logging.py` writes human-readable per-run database-update reports and removes expired operational reports according to configured retention.
+- `aqdatafusion/utils/regridding.py` contains the generic irregular-point to
   latitude/longitude-grid regridder. Future source preprocessors should use
   this utility for regridding rather than duplicating source-specific binning
   logic; it uses each dataset's configured `regridding.latlon_resolution` and
   preserves non-spatial dimensions.
-- `aqforecast/utils/opendap.py` contains the reusable authenticated NASA
+- `aqdatafusion/utils/opendap.py` contains the reusable authenticated NASA
   Earthdata DAP4 subset client. It uses Earthaccess sessions with xarray's
   pydap backend and applies coordinate-derived index slices before loading
   science arrays.
-- `aqforecast/utils/setup.py` contains the explicit first-time setup flow for copying configuration files, collecting paths and credentials, creating configured directories, and verifying configuration.
-- `aqforecast/data_management/` contains the incremental partitioned input-data database manager, post-update integrity verification, and regenerable per-source catalogs.
-- `aqforecast/data_management/registry.py` contains the lazy built-in acquisition/preprocessor registry; custom `SourceRegistry` instances can be passed to `DatabaseManager` for new sources or tests.
-- `aqforecast/data_acquisition/generic.py` contains local and remote acquisition adapter wrappers and shared acquisition behavior. Source-specific acquisition implementations belong in new modules under `aqforecast/data_acquisition/`, with corresponding preprocessing implementations in new modules under `aqforecast/preprocessing/`.
-- `aqforecast/data_acquisition/airnow.py` and `aqforecast/preprocessing/airnow.py` provide the AirNow source-specific implementation; `openaq.py` provides the corresponding OpenAQ implementation. Use these point-monitor providers as references for adding other datasets.
-- `aqforecast/data_acquisition/tropomi.py` and `aqforecast/preprocessing/tropomi.py` provide the implemented version-2 TROPOMI NO₂ and total-column O₃ satellite ingest.
-- `aqforecast/data_acquisition/viirs.py` and `aqforecast/preprocessing/viirs.py` provide the implemented VIIRS/JPSS2 VJ219A2 version-002 AOD ingest.
-- `aqforecast/data_acquisition/pace.py` and `aqforecast/preprocessing/pace.py` provide the implemented PACE OCI trace-gas ingest.
-- `aqforecast/data_acquisition/tempo.py` and `aqforecast/preprocessing/tempo.py` provide the implemented TEMPO NO₂ DAP4/OpenDAP ingest, including resumable subset caching.
-- `aqforecast/data_acquisition/tempo_o3.py` and `aqforecast/preprocessing/tempo_o3.py` provide the implemented configurable-layer TEMPO O₃ Profile DAP4/OpenDAP ingest.
-- `aqforecast/data_acquisition/land_cover.py` and `aqforecast/preprocessing/land_cover.py` provide the implemented MCD12Q1 yearly land-cover ingest, including source-year fallback and categorical regridding from the native sinusoidal grid.
-- `aqforecast/data_acquisition/goes_abi.py` and `aqforecast/preprocessing/goes_abi.py` provide the implemented NOAA S3 GOES-ABI AOD ingest, including ordered GOES-19/16/18/17 fallback, fixed-grid geolocation, DQF filtering, configurable 0.02-degree regridding, and hourly center-timestamp aggregation.
-- `aqforecast/data_acquisition/geos_cf.py` and `aqforecast/preprocessing/geos_cf.py` provide the GEOS-CF v2 analysis/forecast ingest, including chunked public OpenDAP access, optional NCCS-local access, native-grid processing, and `forecast_lead_day` indexing. Local/NCCS end-to-end validation remains an environment-specific task tracked in `PROJECT.md`.
-- `aqforecast/preprocessing/generic.py` contains shared fill-value and basic quality-control preprocessing.
-- `aqforecast/contracts.py` contains the shared data contracts (`DataRequest`,
+- `aqdatafusion/utils/setup.py` contains the explicit first-time setup flow for copying configuration files, collecting paths and credentials, creating configured directories, and verifying configuration.
+- `aqdatafusion/data_management/` contains the incremental partitioned input-data database manager, post-update integrity verification, and regenerable per-source catalogs.
+- `aqdatafusion/data_management/registry.py` contains the lazy built-in acquisition/preprocessor registry; custom `SourceRegistry` instances can be passed to `DatabaseManager` for new sources or tests.
+- `aqdatafusion/data_acquisition/generic.py` contains local and remote acquisition adapter wrappers and shared acquisition behavior. Source-specific acquisition implementations belong in new modules under `aqdatafusion/data_acquisition/`, with corresponding preprocessing implementations in new modules under `aqdatafusion/preprocessing/`.
+- `aqdatafusion/data_acquisition/airnow.py` and `aqdatafusion/preprocessing/airnow.py` provide the AirNow source-specific implementation; `openaq.py` provides the corresponding OpenAQ implementation. Use these point-monitor providers as references for adding other datasets.
+- `aqdatafusion/data_acquisition/tropomi.py` and `aqdatafusion/preprocessing/tropomi.py` provide the implemented version-2 TROPOMI NO₂ and total-column O₃ satellite ingest.
+- `aqdatafusion/data_acquisition/viirs.py` and `aqdatafusion/preprocessing/viirs.py` provide the implemented VIIRS/JPSS2 VJ219A2 version-002 AOD ingest.
+- `aqdatafusion/data_acquisition/pace.py` and `aqdatafusion/preprocessing/pace.py` provide the implemented PACE OCI trace-gas ingest.
+- `aqdatafusion/data_acquisition/tempo.py` and `aqdatafusion/preprocessing/tempo.py` provide the implemented TEMPO NO₂ DAP4/OpenDAP ingest, including resumable subset caching.
+- `aqdatafusion/data_acquisition/tempo_o3.py` and `aqdatafusion/preprocessing/tempo_o3.py` provide the implemented configurable-layer TEMPO O₃ Profile DAP4/OpenDAP ingest.
+- `aqdatafusion/data_acquisition/land_cover.py` and `aqdatafusion/preprocessing/land_cover.py` provide the implemented MCD12Q1 yearly land-cover ingest, including source-year fallback and categorical regridding from the native sinusoidal grid.
+- `aqdatafusion/data_acquisition/goes_abi.py` and `aqdatafusion/preprocessing/goes_abi.py` provide the implemented NOAA S3 GOES-ABI AOD ingest, including ordered GOES-19/16/18/17 fallback, fixed-grid geolocation, DQF filtering, configurable 0.02-degree regridding, and hourly center-timestamp aggregation.
+- `aqdatafusion/data_acquisition/geos_cf.py` and `aqdatafusion/preprocessing/geos_cf.py` provide the GEOS-CF v2 analysis/forecast ingest, including chunked public OpenDAP access, optional NCCS-local access, native-grid processing, and `forecast_lead_day` indexing. Local/NCCS end-to-end validation remains an environment-specific task tracked in `PROJECT.md`.
+- `aqdatafusion/preprocessing/generic.py` contains shared fill-value and basic quality-control preprocessing.
+- `aqdatafusion/contracts.py` contains the shared data contracts (`DataRequest`,
   `DatasetBundle`, `ForecastRequest`, `ForecastResult`, `ValidationResult`,
   and `WorkflowContext`) used to keep future stages composable.
-- `aqforecast/data_acquisition/`, `aqforecast/preprocessing/`,
-  `aqforecast/forecasting/`, `aqforecast/validation/`, and
-  `aqforecast/orchestration/` contain the stage interfaces. Database updating
+- `aqdatafusion/data_acquisition/`, `aqdatafusion/preprocessing/`,
+  `aqdatafusion/forecasting/`, `aqdatafusion/validation/`, and
+  `aqdatafusion/orchestration/` contain the stage interfaces. Database updating
   is the first implemented orchestration workflow; most source-specific and
   forecasting implementations remain planned.
-- `aqforecast/aqforecast.py` contains the `run_aqforecast()` entry point. Its
+- `aqdatafusion/aqdatafusion.py` contains the `run_aqdatafusion()` entry point. Its
   default forecast mode remains configuration-only, while its explicit bounded
   and incremental database-update modes run the implemented ingest workflow.
-- `aqforecast/orchestration/database_update.py` contains the standalone `run_database_update()` mode and `DatabaseUpdateStage`.
-- `aqforecast/orchestration/database_update.py` also contains `run_incremental_database_update()`, which computes a UTC-hour rolling update window from configuration; scheduling remains external.
+- `aqdatafusion/orchestration/database_update.py` contains the standalone `run_database_update()` mode and `DatabaseUpdateStage`.
+- `aqdatafusion/orchestration/database_update.py` also contains `run_incremental_database_update()`, which computes a UTC-hour rolling update window from configuration; scheduling remains external.
 - `scripts/update_database_incremental.sh` is the scheduler entry point for rolling database updates. It activates the `chemml` Conda environment and points to `config/default_config.yaml` by default; edit its `CONFIG_PATH` line for another master configuration.
 - `tests/` contains the pytest regression suite for configuration, database
   management, AirNow/OpenAQ/TROPOMI/VIIRS/PACE/TEMPO/MCD12Q1/GOES-ABI/GEOS-CF
@@ -104,9 +111,9 @@ There is no project build command. For local checks:
 - `yamllint -d relaxed --no-warnings .github/workflows/*.yml .yamllint.yml config/default_config.yaml config/*/*.yaml` validates YAML in the same style as CI.
 - Activate the `chemml` Conda environment before running Python commands during development: `conda activate chemml`.
 - `python -m pytest tests/` runs the Python regression tests from the activated `chemml` environment.
-- `python aqforecast/config_management/configuration.py config/default_config.yaml` checks the referenced configuration files.
-- `python aqforecast/config_management/configuration.py config/default_config.yaml --interactive` interactively fills fixable missing or invalid configuration values.
-- `python -m aqforecast.utils.setup` runs the guided first-time setup flow after the conda environment is activated.
+- `python aqdatafusion/config_management/configuration.py config/default_config.yaml` checks the referenced configuration files.
+- `python aqdatafusion/config_management/configuration.py config/default_config.yaml --interactive` interactively fills fixable missing or invalid configuration values.
+- `python -m aqdatafusion.utils.setup` runs the guided first-time setup flow after the conda environment is activated.
 - Open notebooks with Jupyter in the environment described by `docs/examples/deepsensor_demo/deepsensor_cenv.yml`; run cells incrementally and confirm referenced data paths are available.
 - On NCCS Discover, run a configured batch entry with `python docs/examples/deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
 - Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`. AirNow or OpenAQ is automatically registered for regions whose `ground_monitoring.provider` selects that provider; TROPOMI, VIIRS, PACE, TEMPO NO₂, and TEMPO O₃ are automatically registered when their configured datasets are selected.
@@ -144,7 +151,7 @@ AirNow acquisition/preprocessing modules as the concrete example of this
 boundary: acquisition returns a preliminary `DatasetBundle`, preprocessing
 applies source-specific normalization and QC, and the database manager owns
 merging and partitioning. Keep the current
-configuration-only `run_aqforecast()` behavior intact until a complete stage
+configuration-only `run_aqdatafusion()` behavior intact until a complete stage
 is ready to be integrated. The database-update mode is a separate explicit
 operation and must not run during package import. Do not make package imports
 perform downloads, create directories, train models, or require credentials.

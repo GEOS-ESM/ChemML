@@ -9,8 +9,8 @@ ChemML uses `config/default_config.yaml` as the entry point for a collection of 
 ```text
 config/
 ├── default_config.yaml
-├── aqforecast/
-│   └── aqforecast_config.yaml
+├── aqdatafusion/
+│   └── aqdatafusion_config.yaml
 ├── credentials/
 │   ├── credentials.yaml
 │   └── credentials_template.yaml
@@ -36,7 +36,7 @@ configuration_files:
   credentials: "credentials/credentials.yaml"
   filepaths: "filepaths/filepaths.yaml"
   deepsensor: "deepsensor/deepsensor_config.yaml"
-  aqforecast: "aqforecast/aqforecast_config.yaml"
+  aqdatafusion: "aqdatafusion/aqdatafusion_config.yaml"
   validation: "validation/validation_config.yaml"
   input_data: "inputs/input_data_config.yaml"
 ```
@@ -151,9 +151,9 @@ regridding settings. Source behavior and preprocessing details are summarized
 in [docs/data_sources.md](data_sources.md); update commands and database
 semantics are described in [docs/user_guide.md](user_guide.md).
 
-## Air-quality forecasting configuration
+## Air-quality data-fusion configuration
 
-`config/aqforecast/aqforecast_config.yaml` selects inputs and owns forecast behavior. Its current settings include:
+`config/aqdatafusion/aqdatafusion_config.yaml` selects inputs and owns forecast behavior. Its current settings include:
 
 - Enabled input categories and whether ground monitors are used as context.
 - The ground-monitor training fraction.
@@ -167,6 +167,11 @@ semantics are described in [docs/user_guide.md](user_guide.md).
 - Operational report retention, configured by
   `database.operational_logging.retain_days` (365 days by default). Reports
   are written beneath the resolved `filepaths.working.logs_directory`.
+- The logging prefix, configured by `logging.prefix` (`aqdatafusion` by
+  default). This controls the default logger namespace.
+- The default log filename is derived from the resolved
+  `experiment_name_template` as `<experiment_name>_log.log`. An explicit
+  `log_filename` passed to `configure_logging()` still overrides this default.
 
 This file should be kept synchronized with the forecasting implementation as its required settings are defined.
 
@@ -205,7 +210,7 @@ This file should be kept up to date as the Phase 5 validation system, baseline i
 | `credentials/credentials.yaml` | Local credentials and account identifiers |
 | `filepaths/filepaths.yaml` | Machine-specific roots and source directories |
 | `inputs/input_data_config.yaml` | Dataset files, variables, timestamps, coordinates, and regridding |
-| `aqforecast/aqforecast_config.yaml` | Input selection, forecast outputs, lags, and features |
+| `aqdatafusion/aqdatafusion_config.yaml` | Input selection, forecast outputs, lags, and features |
 | `deepsensor/deepsensor_config.yaml` | DeepSensor model, processing, task-loader, and training settings |
 | `validation/validation_config.yaml` | Cross-validation, baselines, metrics, stratifications, and plots |
 

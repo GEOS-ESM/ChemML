@@ -6,11 +6,11 @@
 
 ## Project Overview
 
-ChemML is a high-resolution air-quality forecasting system that combines satellite observations, numerical model outputs, and ground-based measurements using deep learning. The system is designed to produce probabilistic forecasts of PM2.5, O₃, and NO₂ at fine spatial resolution (for example, 1 km) over user-defined regions.
+ChemML is a high-resolution air-quality data-fusion system that combines satellite observations, numerical model outputs, and ground-based measurements using deep learning. Forecasting is one application; the system is also intended to support retrospective assessment and other analyses of PM2.5, O₃, and NO₂ at fine spatial resolution (for example, 1 km) over user-defined regions.
 
 ### Project Goals
 
-1. **Primary goal**: Develop an operational air-quality forecasting system using machine learning.
+1. **Primary goal**: Develop an operational air-quality data-fusion system using machine learning, with forecasting as one application.
 2. **Secondary goals**:
    - Integrate multiple NASA Earth observation datasets.
    - Provide uncertainty quantification through ensemble forecasting.
@@ -59,7 +59,7 @@ ChemML is a high-resolution air-quality forecasting system that combines satelli
 - [x] Implement a startup/install function that guides users through creating configuration files, entering credentials, creating configured directories, and verifying the setup.
 - [x] Write initial configuration documentation.
 - [x] Add an initial configuration regression test.
-- [x] Create the initial AQ-forecast runner skeleton that loads configuration and returns run status.
+- [x] Create the initial AQ-data-fusion runner skeleton that loads configuration and returns run status.
 - [x] Add credential-management tests.
 
 **Deliverables**:
@@ -125,8 +125,8 @@ databases for all configured input sources.
     required to download and preprocess each implemented data source.
 - [x] Update and streamline project documentation, including deployment and
   workflow guidance.
-- [x] Integration with `aqforecast` workflows
-  - [x] Modify `run_aqforecast()` to expose a database-update mode now that a
+- [x] Integration with `aqdatafusion` workflows
+  - [x] Modify `run_aqdatafusion()` to expose a database-update mode now that a
     complete source-specific ingestion path exists.
   - [x] Add an incremental database update mode that automatically updates the
     input datasets around the current UTC hour, with configurable lookback,
@@ -136,7 +136,7 @@ databases for all configured input sources.
   - [x] Create `scripts/update_database_incremental.sh`, a Conda-activating
     scheduler entry point for configured rolling database updates.
   - [ ] Create a Python notebook illustrating how to populate the database and visualize the data currently available in the database. Use `docs/examples/deepsensor_demo/Deepsensor_demo_Oct2025.ipynb` as inspiration for the plots.
-    - [ ] To support this, create a generalized plotting function in the `aqforecast/utils` folder. This function should use `cartopy` for basemaps. Be sure that base maps are downloaded and saved locally during first-time setup if an internet connection is available.
+    - [ ] To support this, create a generalized plotting function in the `aqdatafusion/utils` folder. This function should use `cartopy` for basemaps. Be sure that base maps are downloaded and saved locally during first-time setup if an internet connection is available.
 - [ ] Testing and verification
   - [ ] Conduct an end-to-end database-update test covering acquisition,
     preprocessing, merging, partition writing, and catalog generation.
@@ -218,9 +218,9 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 - [ ] Implement a cross-validation framework.
 - [ ] Create the DeepSensor forecasting system.
 - [ ] Implement the inference pipeline.
-- [ ] Integrate the future forecasting stages with `run_aqforecast()`.
+- [ ] Integrate the future forecasting stages with `run_aqdatafusion()`.
 - [ ] Update `config/deepsensor/deepsensor_config.yaml` once the Phase 4 DeepSensor implementation defines the required configuration settings.
-- [ ] Keep `config/aqforecast/aqforecast_config.yaml` up to date as the forecasting model and its required settings are developed.
+- [ ] Keep `config/aqdatafusion/aqdatafusion_config.yaml` up to date as the forecasting model and its required settings are developed.
 - [ ] Optimize GPU training on NCCS.
 - [ ] Create model-training scripts.
 - [ ] Develop a model-versioning system.
