@@ -61,6 +61,11 @@ def _cleanup_reports(directory: Path, started_at: datetime, retain_days: float) 
 def _source_summary(source_key: str, source: Mapping[str, Any]) -> list[str]:
     status = source.get("status", "unknown")
     lines = [f"{source_key}: {status.upper()}"]
+    wall_time = source.get("wall_time_seconds")
+    if isinstance(wall_time, (int, float)):
+        lines.append(f"  Wall time: {wall_time:.3f} seconds")
+    elif wall_time is not None:
+        lines.append(f"  Wall time: {wall_time} seconds")
     written = source.get("written_files", [])
     lines.append(f"  Written files: {len(written)}")
     if written:

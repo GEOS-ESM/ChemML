@@ -24,6 +24,7 @@ def test_operational_report_contains_source_summary_warnings_and_errors(tmp_path
                 "written_files": ["GEOS-CF_ATL_202611.nc"],
                 "missing_timestamps": ["2026-11-20T00:00:00+00:00"],
                 "catalog_files": 1,
+                "wall_time_seconds": 12.345,
                 "integrity": {"valid": True},
             },
             "broken": {
@@ -43,6 +44,7 @@ def test_operational_report_contains_source_summary_warnings_and_errors(tmp_path
     assert path.name == "incremental_database_update_20261118T190000.000000Z.txt"
     assert not warnings
     assert "GEOS-CF: UPDATED" in contents
+    assert "Wall time: 12.345 seconds" in contents
     assert "broken: FAILED" in contents
     assert "one forecast timestamp was unavailable" in contents
     assert "service unavailable" in contents

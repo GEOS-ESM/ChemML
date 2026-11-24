@@ -14,7 +14,8 @@ The configuration system, partitioned input-data database, integrity checks,
 incremental updates, operational reports, and scheduled-update entry point are
 implemented. AirNow, OpenAQ, VIIRS, TROPOMI, PACE, TEMPO NO₂/O₃ Profiles,
 MCD12Q1 land cover, and GOES-ABI ingestion paths are implemented. GEOS-CF
-ingestion is developed but still requires local/NCCS end-to-end validation.
+ingestion is developed; see [PROJECT.md](PROJECT.md) for implementation-testing
+status.
 
 Forecasting, validation, and DeepSensor workflow integration remain under
 development. See [PROJECT.md](PROJECT.md) for the roadmap and

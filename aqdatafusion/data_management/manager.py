@@ -6,6 +6,7 @@ import json
 import logging
 import re
 import shutil
+import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -610,6 +611,7 @@ class DatabaseManager:
         )
         run_id = uuid.uuid4().hex
         for source_key in selected:
+            source_started = time.perf_counter()
             if source_key not in configured:
                 report.warnings.append(
                     f"{source_key}: no input-data configuration exists"
@@ -779,6 +781,9 @@ class DatabaseManager:
                 self.logger.exception("Database update failed for %s", source_key)
             finally:
                 shutil.rmtree(temp, ignore_errors=True)
+                source_report["wall_time_seconds"] = round(
+                    time.perf_counter() - source_started, 3
+                )
             report.sources[source_key] = source_report
         self.logger.info(
             "Database update completed: %s",

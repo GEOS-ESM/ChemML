@@ -4,7 +4,8 @@ ChemML is under active development. Configuration validation, bounded and
 incremental input-data database updates, operational reports, and scheduler
 support are available. AirNow, OpenAQ, TROPOMI, VIIRS, PACE, TEMPO, MCD12Q1,
 and GOES-ABI acquisition and preprocessing paths are implemented; GEOS-CF
-still requires local/NCCS end-to-end validation. Model training, forecasting,
+ingestion is developed. See [PROJECT.md](../PROJECT.md) for
+implementation-testing status. Model training, forecasting,
 and result evaluation remain under development.
 
 ## Validate a configuration
@@ -220,7 +221,9 @@ the operation and UTC run-start time, for example
 contains the generated path under `operational_report_path`. Reports older than
 `database.operational_logging.retain_days` are removed during a later update;
 the default retention period is 365 days. Cleanup only targets these
-per-operation text reports and does not remove the general `aqdatafusion.log`.
+per-operation text reports and does not remove the general experiment log.
+Each source result also records its elapsed wall time in seconds, both in the
+structured report and in the source summary section of the text report.
 
 ### Schedule rolling database updates
 
@@ -267,8 +270,8 @@ evaluation yet.
 
 The current operational workflow covers configuration and input-data database
 updates. DeepSensor conditioning, model training, forecasting, and validation
-are not yet implemented. GEOS-CF still requires local/NCCS end-to-end
-validation, and full all-source database-update testing remains open.
+are not yet implemented. See [PROJECT.md](../PROJECT.md) for implementation-
+testing status and remaining validation work.
 
 ## Tests
 

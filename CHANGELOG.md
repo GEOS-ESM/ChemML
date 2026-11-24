@@ -17,6 +17,7 @@ All notable changes to this project are documented here. The format follows
 - Rolling database-update mode with configurable lookback, lookahead, and
   maximum-window safeguards.
 - Human-readable per-run database-update reports with configurable retention.
+- Per-source wall-time measurements in database-update reports.
 - Adapter registry supporting lazy built-in registration, custom registries,
   and explicit adapter overrides.
 - `scripts/update_database_incremental.sh` for Conda-based cron or NCCS

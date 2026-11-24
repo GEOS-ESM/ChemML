@@ -126,6 +126,11 @@ def test_update_isolates_source_failure_and_writes_month_boundary(tmp_path):
     assert report.sources["points"]["status"] == "updated"
     assert report.sources["grid"]["status"] == "updated"
     assert report.sources["broken"]["status"] == "failed"
+    assert all(
+        isinstance(report.sources[key]["wall_time_seconds"], float)
+        and report.sources[key]["wall_time_seconds"] >= 0
+        for key in ("points", "grid", "broken")
+    )
     assert report.sources["broken"]["errors"][0]["retryable"] is True
     assert not list((tmp_path / "broken" / ".tmp").iterdir())
     assert len(adapters["points"].calls) == 1

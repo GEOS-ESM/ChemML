@@ -92,6 +92,7 @@ databases for all configured input sources.
   VIIRS, GOES-ABI, TROPOMI, PACE, TEMPO NO₂, TEMPO O₃ Profiles, and MCD12Q1
   land cover, including database integration and source-specific regression
   coverage.
+- [x] Validate GEOS-CF remote OpenDAP database updates.
 - [ ] Complete GEOS-CF local NCCS and end-to-end database-update validation.
 - [x] Common data acquisition functionality
   - [x] Implement post-update database integrity verification, including
@@ -355,7 +356,8 @@ the configuration foundation and the Phase 2 database-ingestion infrastructure
 are implemented, including source registration, integrity verification,
 incremental updates, operational reports, and scheduler integration. Several
 source adapters are production-ready for their configured access modes; GEOS-CF
-still requires local/NCCS end-to-end validation.
+remote OpenDAP updates have been validated, while local/NCCS end-to-end
+validation remains pending.
 
 ### In Progress
 
