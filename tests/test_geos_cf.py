@@ -12,6 +12,8 @@ from aqdatafusion.data_acquisition.geos_cf import (
     _open_chunked_subset,
     _remote_url,
     _geos_cf_filename_time,
+    _geos_cf_filename_timestamps,
+    _geos_cf_local_file_is_relevant,
     _select_latest_revision_paths,
     _select_requested_variables,
 )
@@ -82,6 +84,24 @@ def test_geos_cf_variable_selection_is_case_insensitive() -> None:
     assert selected["pm25_rh35"].item() == 1.0
 
 
+def test_geos_cf_variable_selection_uses_surface_variable_aliases() -> None:
+    dataset = xr.Dataset({
+        "U": (("time",), [1.0]),
+        "V": (("time",), [2.0]),
+        "T": (("time",), [3.0]),
+        "Q": (("time",), [4.0]),
+    })
+
+    selected = _select_requested_variables(
+        dataset, ["u2m", "v2m", "t2m", "q2m"], "missing variable"
+    )
+
+    assert set(selected.data_vars) == {"u2m", "v2m", "t2m", "q2m"}
+    assert [selected[name].item() for name in ("u2m", "v2m", "t2m", "q2m")] == [
+        1.0, 2.0, 3.0, 4.0
+    ]
+
+
 def test_geos_cf_selects_highest_local_revision(tmp_path: Path) -> None:
     revision_zero = tmp_path / "GEOS.cf.fcst.xgc_tavg_1hr_glo_L1440x721_slv.20261124_09z+20261129_0830z.R0.nc4"
     revision_two = tmp_path / "GEOS.cf.fcst.xgc_tavg_1hr_glo_L1440x721_slv.20261124_09z+20261129_0830z.R2.nc4"
@@ -104,6 +124,34 @@ def test_geos_cf_filename_time_parses_forecast_timestamp() -> None:
 
     assert _geos_cf_filename_time(path) == pd.Timestamp("2026-11-29T07:30:00Z")
     assert _geos_cf_filename_time(Path("GEOS.cf.ana.aqc.nc4")) is None
+
+
+def test_geos_cf_local_filename_filters_use_stream_specific_dates() -> None:
+    start = pd.Timestamp("2026-11-22T00:00:00Z")
+    end = pd.Timestamp("2026-11-24T00:00:00Z")
+    analysis = Path("GEOS.cf.ana.aqc_tavg_1hr_glo_L1440x721_slv.20261122_0030z.nc4")
+    forecast = Path(
+        "GEOS.cf.fcst.aqc_tavg_1hr_glo_L1440x721_slv.20261118_09z"
+        "+20261122_0730z.R0.nc4"
+    )
+    late_forecast = Path(
+        "GEOS.cf.fcst.aqc_tavg_1hr_glo_L1440x721_slv.20261118_09z"
+        "+20261129_0730z.R0.nc4"
+    )
+
+    assert _geos_cf_filename_timestamps(forecast) == (
+        pd.Timestamp("2026-11-18T09:00:00Z"),
+        pd.Timestamp("2026-11-22T07:30:00Z"),
+    )
+    assert _geos_cf_local_file_is_relevant(
+        analysis, "ana", pd.Timestamp("2026-11-22", tz="UTC"), start, end
+    )
+    assert _geos_cf_local_file_is_relevant(
+        forecast, "fcst", pd.Timestamp("2026-11-18", tz="UTC"), start, end
+    )
+    assert not _geos_cf_local_file_is_relevant(
+        late_forecast, "fcst", pd.Timestamp("2026-11-18", tz="UTC"), start, end
+    )
 
 
 def test_geos_cf_forecast_initialization_falls_back_to_filename() -> None:

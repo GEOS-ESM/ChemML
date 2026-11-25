@@ -371,6 +371,8 @@ when their data availability and integration requirements are ready:
 - [ ] GCAS ingest and preprocessing.
 - [ ] TEMPO PM2.5 ingest and preprocessing — deferred until April 2027 because
   the product is not expected to be available before then.
+- [ ] VIIRS aerosol-optical-depth ingest for additional satellite products,
+  including VNP19A2 and VJ119A2, alongside the current VJ219A2 implementation.
 
 ## Current Development Status
 

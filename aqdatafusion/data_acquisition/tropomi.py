@@ -13,6 +13,10 @@ from aqdatafusion.data_acquisition.generic import RemoteDataSource
 
 NO2_SHORT_NAME = "S5P_L2__NO2____HiR"
 O3_SHORT_NAME = "S5P_L2__O3_TOT_HiR"
+NO2_NRT_SHORT_NAME = "S5P_L2_NO2___HiR_NRT"
+O3_NRT_SHORT_NAME = "S5P_L2__O3_TOT_HiR_NRT"
+NO2_CONCEPT_ID = "C4392195910-GES_DISC"
+O3_CONCEPT_ID = "C4392196116-GES_DISC"
 
 
 class TropomiDataSource(RemoteDataSource):
@@ -66,7 +70,13 @@ class TropomiDataSource(RemoteDataSource):
         )
         version = access.get("collection_version")
         granules: dict[str, list[Any]] = {}
-        for product, short_name in (("no2", NO2_SHORT_NAME), ("o3", O3_SHORT_NAME)):
+        selected_short_names: dict[str, str] = {}
+        selected_concept_ids: dict[str, str | None] = {"no2": None, "o3": None}
+        products = (
+            ("no2", NO2_SHORT_NAME, NO2_NRT_SHORT_NAME, NO2_CONCEPT_ID),
+            ("o3", O3_SHORT_NAME, O3_NRT_SHORT_NAME, O3_CONCEPT_ID),
+        )
+        for product, short_name, nrt_short_name, concept_id in products:
             search_kwargs: dict[str, Any] = {
                 "short_name": short_name,
                 "temporal": temporal,
@@ -86,6 +96,37 @@ class TropomiDataSource(RemoteDataSource):
                     retryable=True,
                     details=str(error),
                 ) from error
+            selected_short_names[product] = short_name
+            if not granules[product]:
+                nrt_search_kwargs = {**search_kwargs, "short_name": nrt_short_name}
+                try:
+                    granules[product] = list(earthaccess.search_data(**nrt_search_kwargs))
+                except Exception as error:
+                    raise AcquisitionError(
+                        f"Earthdata search failed for {nrt_short_name}",
+                        kind="search",
+                        retryable=True,
+                        details=str(error),
+                    ) from error
+                if granules[product]:
+                    selected_short_names[product] = nrt_short_name
+            if not granules[product]:
+                try:
+                    granules[product] = list(earthaccess.search_data(
+                        concept_id=concept_id,
+                        temporal=temporal,
+                        bounding_box=bbox,
+                        count=-1,
+                    ))
+                except Exception as error:
+                    raise AcquisitionError(
+                        f"Earthdata search failed for {concept_id}",
+                        kind="search",
+                        retryable=True,
+                        details=str(error),
+                    ) from error
+                if granules[product]:
+                    selected_concept_ids[product] = concept_id
 
         all_granules = granules["no2"] + granules["o3"]
         if not all_granules:
@@ -130,10 +171,8 @@ class TropomiDataSource(RemoteDataSource):
             paths,
             {
                 "files_by_product": files_by_product,
-                "earthdata_short_names": {
-                    "no2": NO2_SHORT_NAME,
-                    "o3": O3_SHORT_NAME,
-                },
+                "earthdata_short_names": selected_short_names,
+                "earthdata_concept_ids": selected_concept_ids,
                 "warnings": warnings,
             },
             [],
@@ -152,4 +191,12 @@ def _bounding_box(configuration: Mapping[str, Any]) -> tuple[float, float, float
     return (float(longitude[0]), float(latitude[0]), float(longitude[1]), float(latitude[1]))
 
 
-__all__ = ["NO2_SHORT_NAME", "O3_SHORT_NAME", "TropomiDataSource"]
+__all__ = [
+    "NO2_SHORT_NAME",
+    "O3_SHORT_NAME",
+    "NO2_NRT_SHORT_NAME",
+    "O3_NRT_SHORT_NAME",
+    "NO2_CONCEPT_ID",
+    "O3_CONCEPT_ID",
+    "TropomiDataSource",
+]

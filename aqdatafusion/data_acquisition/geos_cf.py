@@ -44,6 +44,12 @@ DEFAULT_COLLECTIONS = {
     ),
 }
 COLLECTION_NAMES = tuple(DEFAULT_COLLECTIONS)
+VARIABLE_ALIASES = {
+    "u2m": ("U",),
+    "v2m": ("V",),
+    "t2m": ("T",),
+    "q2m": ("Q",),
+}
 
 
 class GeosCfDataSource(RemoteDataSource):
@@ -230,28 +236,36 @@ class GeosCfDataSource(RemoteDataSource):
             raise AcquisitionError("GEOS-CF local mode requires access.local_root", kind="configuration")
         root = Path(str(root_value)).expanduser()
         records: list[xr.Dataset] = []
-        # Local operational files are organized by day.  Glob rather than
-        # inventing a cycle-specific filename so both .nc4 and .nc4.cmprs
-        # layouts can be used on NCCS.
-        for day in pd.date_range(start.normalize(), end.normalize(), freq="1D"):
-            for stream in ("ana", "fcst"):
+        # Local operational files are organized by day.  Analysis files are
+        # stored under their valid date; forecast files are stored under the
+        # initialization date, so forecast discovery includes the five-day
+        # initialization lookback.
+        last_day = (end - pd.Timedelta(nanoseconds=1)).normalize()
+        stream_days = {
+            "ana": pd.date_range(start.normalize(), last_day, freq="1D"),
+            "fcst": pd.date_range(
+                (start - pd.Timedelta(days=5)).normalize(), last_day, freq="1D"
+            ),
+        }
+        for stream in ("ana", "fcst"):
+            for day in stream_days[stream]:
                 opened: list[xr.Dataset] = []
                 for collection, variables in collections.items():
                     pattern = f"{stream}*/Y{day.year:04d}/M{day.month:02d}/D{day.day:02d}/*{collection}_tavg_1hr_glo_L1440x721_slv*"
-                    paths = _select_latest_revision_paths(root.glob(pattern))
-                    if not paths:
+                    candidate_paths = _select_latest_revision_paths(root.glob(pattern))
+                    if not candidate_paths:
                         warnings.append({
                             "kind": "availability", "stream": stream, "collection": collection,
                             "message": f"No local GEOS-CF files found for {stream}/{collection} on {day.date()}",
                         })
                         continue
+                    paths = [
+                        path for path in candidate_paths
+                        if _geos_cf_local_file_is_relevant(path, stream, day, start, end)
+                    ]
+                    if not paths:
+                        continue
                     for path in paths:
-                        filename_time = _geos_cf_filename_time(path)
-                        if (
-                            filename_time is not None
-                            and not (start <= filename_time < end)
-                        ):
-                            continue
                         try:
                             subset = _open_local_subset(path, variables, bounds, start, end)
                             subset.attrs["source_url"] = str(path)
@@ -407,11 +421,18 @@ def _select_requested_variables(
     rename: dict[str, str] = {}
     for requested in variables:
         requested_name = str(requested)
-        if requested_name in dataset.data_vars:
-            actual = requested_name
-        else:
-            matches = by_casefold.get(requested_name.casefold(), [])
-            actual = matches[0] if len(matches) == 1 else None
+        actual = None
+        candidates = (requested_name,) + VARIABLE_ALIASES.get(
+            requested_name.casefold(), ()
+        )
+        for candidate in candidates:
+            if candidate in dataset.data_vars:
+                actual = candidate
+                break
+            matches = by_casefold.get(candidate.casefold(), [])
+            if len(matches) == 1:
+                actual = matches[0]
+                break
         if actual is None:
             continue
         selected.append(actual)
@@ -454,15 +475,55 @@ def _select_latest_revision_paths(paths: Sequence[Path]) -> list[Path]:
 
 
 def _geos_cf_filename_time(path: Path) -> pd.Timestamp | None:
-    """Return the forecast file's trailing ``+YYYYMMDD_HHMMz`` timestamp."""
+    """Return a forecast file's trailing ``+YYYYMMDD_HHMMz`` timestamp."""
 
-    match = re.search(r"\+(\d{8})_(\d{2})(\d{2})?z(?:\.|$)", path.name, re.IGNORECASE)
-    if match is None:
-        return None
-    minute = match.group(3) or "00"
-    return pd.Timestamp(
-        f"{match.group(1)} {match.group(2)}:{minute}", tz="UTC"
+    _, trailing = _geos_cf_filename_timestamps(path)
+    return trailing
+
+
+def _geos_cf_filename_timestamps(
+    path: Path,
+) -> tuple[pd.Timestamp | None, pd.Timestamp | None]:
+    """Return leading initialization/valid and trailing forecast timestamps."""
+
+    matches = re.findall(
+        r"(?<!\d)(\d{8})_(\d{2})(\d{2})?z",
+        path.name,
+        flags=re.IGNORECASE,
     )
+    if not matches:
+        return None, None
+
+    def parse(match: tuple[str, str, str | None]) -> pd.Timestamp:
+        date, hour, minute = match
+        return pd.Timestamp(
+            f"{date} {hour}:{minute or '00'}", tz="UTC"
+        )
+
+    leading = parse(matches[0])
+    trailing = parse(matches[-1]) if "+" in path.name else None
+    return leading, trailing
+
+
+def _geos_cf_local_file_is_relevant(
+    path: Path,
+    stream: str,
+    directory_day: pd.Timestamp,
+    start: pd.Timestamp,
+    end: pd.Timestamp,
+) -> bool:
+    """Check filename timestamps and directory date for a local GEOS-CF file."""
+
+    leading, trailing = _geos_cf_filename_timestamps(path)
+    if leading is None:
+        return True
+    if leading.normalize() != directory_day.normalize():
+        return False
+    if stream == "ana":
+        return start <= leading < end
+    if trailing is None:
+        return False
+    return start <= trailing < end and start - pd.Timedelta(days=5) <= leading < end
 
 
 def _coordinate_indexers(dataset: xr.Dataset, bounds: tuple[float, float, float, float]) -> dict[str, slice]:

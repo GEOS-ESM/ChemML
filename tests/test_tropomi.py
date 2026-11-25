@@ -11,7 +11,11 @@ from netCDF4 import Dataset
 
 from aqdatafusion.contracts import DataRequest, DatasetBundle
 from aqdatafusion.data_acquisition.tropomi import (
+    NO2_CONCEPT_ID,
+    NO2_NRT_SHORT_NAME,
     NO2_SHORT_NAME,
+    O3_CONCEPT_ID,
+    O3_NRT_SHORT_NAME,
     O3_SHORT_NAME,
     TropomiDataSource,
 )
@@ -152,3 +156,97 @@ def test_tropomi_acquisition_uses_configured_short_names(monkeypatch, tmp_path: 
     assert {call["short_name"] for call in calls} == {NO2_SHORT_NAME, O3_SHORT_NAME}
     assert all(call["version"] == "2" for call in calls)
     assert set(bundle.metadata["files_by_product"]) == {"no2", "o3"}
+
+
+def test_tropomi_acquisition_falls_back_to_nrt_products(monkeypatch, tmp_path: Path) -> None:
+    calls = []
+
+    class Granule:
+        def __init__(self, name):
+            self.name = name
+
+    fake = SimpleNamespace(login=lambda **kwargs: True)
+
+    def search_data(**kwargs):
+        calls.append(kwargs)
+        if kwargs["short_name"] == NO2_NRT_SHORT_NAME:
+            return [Granule(NO2_NRT_SHORT_NAME)]
+        if kwargs["short_name"] == O3_NRT_SHORT_NAME:
+            return [Granule(O3_NRT_SHORT_NAME)]
+        return []
+
+    def download(granules, local_path, threads):
+        paths = []
+        for granule in granules:
+            product = "NO2" if "NO2" in granule.name else "O3"
+            path = Path(local_path) / f"{product}_NRT_sample.nc"
+            path.touch()
+            paths.append(path)
+        return paths
+
+    fake.search_data = search_data
+    fake.download = download
+    monkeypatch.setitem(sys.modules, "earthaccess", fake)
+    request = DataRequest(
+        "TROPOMI", "ATL", start_time=pd.Timestamp("2026-08-04", tz="UTC").to_pydatetime(),
+        end_time=pd.Timestamp("2026-08-05", tz="UTC").to_pydatetime(),
+        metadata={"temporary_directory": str(tmp_path)},
+    )
+
+    bundle = TropomiDataSource().acquire(request, _configuration())
+
+    assert [call["short_name"] for call in calls] == [
+        NO2_SHORT_NAME, NO2_NRT_SHORT_NAME, O3_SHORT_NAME, O3_NRT_SHORT_NAME
+    ]
+    assert bundle.metadata["earthdata_short_names"] == {
+        "no2": NO2_NRT_SHORT_NAME,
+        "o3": O3_NRT_SHORT_NAME,
+    }
+
+
+def test_tropomi_acquisition_falls_back_to_concept_ids(monkeypatch, tmp_path: Path) -> None:
+    calls = []
+
+    class Granule:
+        def __init__(self, name):
+            self.name = name
+
+    fake = SimpleNamespace(login=lambda **kwargs: True)
+
+    def search_data(**kwargs):
+        calls.append(kwargs)
+        if kwargs.get("concept_id") == NO2_CONCEPT_ID:
+            return [Granule("NO2_concept_sample.nc")]
+        if kwargs.get("concept_id") == O3_CONCEPT_ID:
+            return [Granule("O3_concept_sample.nc")]
+        return []
+
+    def download(granules, local_path, threads):
+        paths = []
+        for granule in granules:
+            path = Path(local_path) / granule.name
+            path.touch()
+            paths.append(path)
+        return paths
+
+    fake.search_data = search_data
+    fake.download = download
+    monkeypatch.setitem(sys.modules, "earthaccess", fake)
+    request = DataRequest(
+        "TROPOMI", "ATL", start_time=pd.Timestamp("2026-08-04", tz="UTC").to_pydatetime(),
+        end_time=pd.Timestamp("2026-08-05", tz="UTC").to_pydatetime(),
+        metadata={"temporary_directory": str(tmp_path)},
+    )
+
+    bundle = TropomiDataSource().acquire(request, _configuration())
+
+    assert [call["short_name"] for call in calls if "short_name" in call] == [
+        NO2_SHORT_NAME, NO2_NRT_SHORT_NAME, O3_SHORT_NAME, O3_NRT_SHORT_NAME
+    ]
+    assert [call["concept_id"] for call in calls if "concept_id" in call] == [
+        NO2_CONCEPT_ID, O3_CONCEPT_ID
+    ]
+    assert bundle.metadata["earthdata_concept_ids"] == {
+        "no2": NO2_CONCEPT_ID,
+        "o3": O3_CONCEPT_ID,
+    }

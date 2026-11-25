@@ -32,7 +32,7 @@ datasets:
   GEOS-CF:
     source_key: "GEOS-CF"
     file_template: "GEOS-CF_{region_code}_{month_string}_grid_025_h.nc"
-    variables: ["no2", "tropcol_no2", "totcol_no2", "u2m", "v2m", "wndspd_2m", "t2m", "q2m", "rh", "cldtt", "tprec", "troppb", "zl", "zpbl"]
+    variables: ["no2", "tropcol_no2", "totcol_no2", "u2m", "v2m", "t2m", "q2m", "rh", "cldtt", "tprec", "troppb", "zl", "zpbl"]
     variable_prefix: "GEOS-CF_"
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
     time: {type: "datetime", frequency: "1h", alignment: "reference_times", tolerance: "30m", timestamp_convention: "center", availability: {mode: "continuous"}}
