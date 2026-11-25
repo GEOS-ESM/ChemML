@@ -103,6 +103,21 @@ def test_geos_cf_variable_selection_uses_surface_variable_aliases() -> None:
     ]
 
 
+def test_geos_cf_native_surface_names_are_canonicalized() -> None:
+    dataset = xr.Dataset({
+        "u": (("time",), [1.0]),
+        "v": (("time",), [2.0]),
+        "t": (("time",), [3.0]),
+        "q": (("time",), [4.0]),
+    })
+
+    selected = _select_requested_variables(
+        dataset, ["u", "v", "t", "q"], "missing variable"
+    )
+
+    assert set(selected.data_vars) == {"u2m", "v2m", "t2m", "q2m"}
+
+
 def test_geos_cf_selects_highest_local_revision(tmp_path: Path) -> None:
     revision_zero = tmp_path / "GEOS.cf.fcst.xgc_tavg_1hr_glo_L1440x721_slv.20261124_09z+20261129_0830z.R0.nc4"
     revision_two = tmp_path / "GEOS.cf.fcst.xgc_tavg_1hr_glo_L1440x721_slv.20261124_09z+20261129_0830z.R2.nc4"

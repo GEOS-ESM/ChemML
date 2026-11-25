@@ -50,6 +50,16 @@ VARIABLE_ALIASES = {
     "t2m": ("T",),
     "q2m": ("Q",),
 }
+VARIABLE_CANONICAL_NAMES = {
+    "u": "u2m",
+    "u2m": "u2m",
+    "v": "v2m",
+    "v2m": "v2m",
+    "t": "t2m",
+    "t2m": "t2m",
+    "q": "q2m",
+    "q2m": "q2m",
+}
 
 
 class GeosCfDataSource(RemoteDataSource):
@@ -251,6 +261,8 @@ class GeosCfDataSource(RemoteDataSource):
             for day in stream_days[stream]:
                 opened_collections: list[xr.Dataset] = []
                 for collection, variables in collections.items():
+                    if not variables:
+                        continue
                     collection_records: list[xr.Dataset] = []
                     pattern = f"{stream}*/Y{day.year:04d}/M{day.month:02d}/D{day.day:02d}/*{collection}_tavg_1hr_glo_L1440x721_slv*"
                     candidate_paths = _select_latest_revision_paths(root.glob(pattern))
@@ -434,6 +446,9 @@ def _select_requested_variables(
     rename: dict[str, str] = {}
     for requested in variables:
         requested_name = str(requested)
+        canonical_name = VARIABLE_CANONICAL_NAMES.get(
+            requested_name.casefold(), requested_name
+        )
         actual = None
         candidates = (requested_name,) + VARIABLE_ALIASES.get(
             requested_name.casefold(), ()
@@ -449,8 +464,8 @@ def _select_requested_variables(
         if actual is None:
             continue
         selected.append(actual)
-        if actual != requested_name:
-            rename[actual] = requested_name
+        if actual != canonical_name:
+            rename[actual] = canonical_name
 
     if not selected:
         raise ValueError(missing_message)
