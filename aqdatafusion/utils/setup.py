@@ -111,6 +111,19 @@ def _set_filepath_roots(
         yaml.safe_dump(configuration, stream, sort_keys=False, default_flow_style=False)
 
 
+def _existing_filepath_root(
+    configuration: Mapping[str, Any], name: str
+) -> Optional[str]:
+    """Return an existing configured root when it is a usable directory."""
+
+    filepaths = configuration.get("filepaths", {})
+    roots = filepaths.get("roots", {}) if isinstance(filepaths, Mapping) else {}
+    value = roots.get(name) if isinstance(roots, Mapping) else None
+    if isinstance(value, str) and value.strip() and Path(value).expanduser().is_dir():
+        return str(Path(value).expanduser())
+    return None
+
+
 def _configured_paths(configuration: Mapping[str, Any]) -> List[Path]:
     """Collect resolved roots, working directories, and source directories."""
 
@@ -177,21 +190,35 @@ def setup_aqdatafusion(
     if not source_directory.is_dir():
         raise FileNotFoundError(f"source configuration directory does not exist: {source_directory}")
     target_directory.mkdir(parents=True, exist_ok=True)
+    master_path = target_directory / master_filename
+    filepaths_path = target_directory / "filepaths" / "filepaths.yaml"
+    reuse_existing_paths = master_path.is_file() and filepaths_path.is_file()
 
     copied_files = _copy_missing_configuration_files(
         source_directory, target_directory, master_filename
     )
     config_path = target_directory / master_filename
-    filepaths_path = target_directory / "filepaths" / "filepaths.yaml"
     if not config_path.is_file():
         raise FileNotFoundError(f"master configuration was not installed: {config_path}")
     if not filepaths_path.is_file():
         raise FileNotFoundError(f"filepath configuration was not installed: {filepaths_path}")
 
     output_fn("ChemML first-time setup")
-    output_fn("Choose the roots for input data and generated output.")
-    input_path = _prompt_for_path(input_fn, output_fn, "input data root")
-    output_path = _prompt_for_path(input_fn, output_fn, "output root")
+    existing_configuration = (
+        load_configuration(config_path, require_credentials=False)
+        if reuse_existing_paths
+        else {}
+    )
+    input_path = _existing_filepath_root(existing_configuration, "input")
+    if input_path is None:
+        input_path = _prompt_for_path(input_fn, output_fn, "input data root")
+    else:
+        output_fn(f"Reusing existing input data root: {input_path}")
+    output_path = _existing_filepath_root(existing_configuration, "output")
+    if output_path is None:
+        output_path = _prompt_for_path(input_fn, output_fn, "output root")
+    else:
+        output_fn(f"Reusing existing output root: {output_path}")
     _set_filepath_roots(filepaths_path, input_path, output_path)
 
     interactive_report = check_configuration(

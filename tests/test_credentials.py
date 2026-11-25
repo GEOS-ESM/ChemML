@@ -62,8 +62,10 @@ def test_manage_credentials_does_not_require_optional_services(tmp_path: Path) -
 def test_manage_credentials_distinguishes_remote_verification_failure(tmp_path: Path, monkeypatch) -> None:
     temporary_config = tmp_path / "config"
     shutil.copytree(REPOSITORY_ROOT / "config", temporary_config)
-    regular_values = iter(["earthdata-user", "nccs-user", "nccs-project"])
-    secret_values = iter(["earthdata-password"])
+    regular_values = iter([
+        "earthdata-user", "nccs-user", "nccs-project", "earthdata-user-new"
+    ])
+    secret_values = iter(["earthdata-password", "earthdata-password-new"])
 
     monkeypatch.setattr(
         "aqdatafusion.config_management.credentials._verify_remote",
@@ -80,3 +82,4 @@ def test_manage_credentials_distinguishes_remote_verification_failure(tmp_path: 
 
     assert result["status"] == "invalid"
     assert "remote verification failed" in result["message"]
+    assert "earthdata.username" in result["updated_fields"]

@@ -340,6 +340,52 @@ def manage_credentials(
             "errors": sorted(set(local_errors)),
         }
 
+    verification: Dict[str, Dict[str, str]] = {}
+    if verify_remote:
+        verification = _verify_remote(credentials, timeout, max_retries=remote_retries)
+        invalid_remote = [
+            provider
+            for provider, result in verification.items()
+            if result.get("status") == "invalid"
+        ]
+        if invalid_remote:
+            invalid_fields = [
+                field
+                for field in fields
+                if field[0] in invalid_remote
+            ]
+            for section, key, secret in invalid_fields:
+                value = _prompt_for_credential(
+                    section,
+                    key,
+                    secret,
+                    input_fn=input_fn,
+                    secret_input_fn=secret_input_fn,
+                )
+                if not _configured(value):
+                    prompt_errors.append(
+                        f"{section}.{key} was left blank or contains a placeholder"
+                    )
+                    continue
+                _set_value(credentials, section, key, value)
+                updated_fields.append(f"{section}.{key}")
+            local_errors = prompt_errors + _local_credential_errors(
+                credentials, REQUIRED_CREDENTIALS
+            )
+            if local_errors:
+                return {
+                    "status": "invalid",
+                    "message": "Required credentials are incomplete.",
+                    "credentials_file": str(credentials_path),
+                    "updated_fields": updated_fields,
+                    "verification": verification,
+                    "warnings": configuration.get("warnings", []),
+                    "errors": sorted(set(local_errors)),
+                }
+            verification = _verify_remote(
+                credentials, timeout, max_retries=remote_retries
+            )
+
     if not credentials_path.parent.is_dir():
         raise FileNotFoundError(
             f"credentials directory does not exist: {credentials_path.parent}"
@@ -351,11 +397,6 @@ def manage_credentials(
     except OSError as exc:
         output_fn(f"Warning: could not restrict credentials-file permissions: {exc}")
 
-    verification = (
-        _verify_remote(credentials, timeout, max_retries=remote_retries)
-        if verify_remote
-        else {}
-    )
     invalid_remote = [
         provider
         for provider, result in verification.items()
