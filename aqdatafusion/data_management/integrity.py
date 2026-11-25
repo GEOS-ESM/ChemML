@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any, Mapping, Optional
 
@@ -38,6 +39,50 @@ def _files(directory: Path, file_format: str) -> list[Path]:
     return sorted(
         path for path in directory.rglob(f"*{suffix}") if ".tmp" not in path.parts
     )
+
+
+def _filename_pattern(source: Mapping[str, Any]) -> re.Pattern[str] | None:
+    """Build a matcher for the partition family owned by ``source``."""
+
+    template = source.get("file_template")
+    if not template:
+        return None
+    tokens = {
+        "region_code": r"[^/]+",
+        "provider": r"[^/]+",
+        "date_string": r"\d{8}",
+        "month_string": r"\d{6}",
+        "year_string": r"\d{4}",
+    }
+    pattern = re.escape(str(template))
+    for name, value in tokens.items():
+        pattern = pattern.replace(re.escape("{" + name + "}"), value)
+    pattern = re.sub(r"\\\{[^{}]+\\\}", r"[^/]+", pattern)
+    return re.compile(r"^" + pattern + r"$")
+
+
+def configured_file_matches(path: Path, source: Mapping[str, Any]) -> bool:
+    """Return whether a partition belongs to the configured filename family."""
+
+    matcher = _filename_pattern(source)
+    return matcher is None or bool(matcher.match(path.name))
+
+
+def _configured_resolution(source: Mapping[str, Any]) -> float | None:
+    value = source.get("regridding", {}).get("latlon_resolution")
+    try:
+        resolution = float(value)
+    except (TypeError, ValueError):
+        return None
+    return resolution if np.isfinite(resolution) and resolution > 0 else None
+
+
+def _observed_resolution(values: np.ndarray) -> float | None:
+    if values.ndim != 1 or len(values) < 2:
+        return None
+    differences = np.abs(np.diff(values.astype(float)))
+    differences = differences[np.isfinite(differences) & (differences > 0)]
+    return float(np.median(differences)) if len(differences) else None
 
 
 def _axis_values(dataset: Any, name: str) -> Optional[np.ndarray]:
@@ -104,6 +149,8 @@ def verify_database_integrity(
     longitude_name = str(coordinate_names.get("longitude", "lon"))
     configured_variables = _configured_variables(source)
     files = _files(directory, file_format)
+    active_files = [path for path in files if configured_file_matches(path, source)]
+    inactive_files = [path for path in files if path not in active_files]
     errors: list[str] = []
     warnings: list[str] = []
     observed: list[pd.Timestamp] = []
@@ -111,7 +158,7 @@ def verify_database_integrity(
     grids: Optional[tuple[np.ndarray, np.ndarray]] = None
     file_checks: list[dict[str, Any]] = []
 
-    for path in files:
+    for path in active_files:
         check: dict[str, Any] = {"path": str(path.relative_to(directory)), "valid": True}
         try:
             if file_format == "csv":
@@ -163,9 +210,11 @@ def verify_database_integrity(
                         if not present.intersection(_variable_candidates(name, source))
                     ]
                     if missing_variables:
-                        raise ValueError(
-                            "missing variables: " + ", ".join(missing_variables)
-                        )
+                        message = "missing variables: " + ", ".join(missing_variables)
+                        if source.get("integrity", {}).get("missing_variables") == "warning":
+                            warnings.append(f"{path.name}: {message}")
+                        else:
+                            raise ValueError(message)
                     times = _utc_times(dataset[time_name].values)
                     if times.isna().any():
                         raise ValueError("contains invalid timestamps")
@@ -212,6 +261,51 @@ def verify_database_integrity(
         finally:
             file_checks.append(check)
 
+    for path in inactive_files:
+        check = {
+            "path": str(path.relative_to(directory)),
+            "valid": True,
+            "status": "retained_inactive_partition",
+        }
+        if file_format == "netcdf" and _configured_resolution(source) is not None:
+            try:
+                import xarray as xr
+
+                with xr.open_dataset(path) as dataset:
+                    resolutions = [
+                        _observed_resolution(_axis_values(dataset, name))
+                        for name in (latitude_name, longitude_name)
+                    ]
+                configured_resolution = _configured_resolution(source)
+                if (
+                    configured_resolution is not None
+                    and all(value is not None for value in resolutions)
+                    and any(
+                        not np.isclose(value, configured_resolution)
+                        for value in resolutions
+                    )
+                ):
+                    warnings.append(
+                        f"{path.name}: retained partition uses a different spatial "
+                        f"resolution than configured ({configured_resolution:g} degrees)"
+                    )
+                else:
+                    warnings.append(
+                        f"{path.name}: retained partition does not match the configured "
+                        "filename template and was not merged"
+                    )
+            except Exception as error:
+                warnings.append(
+                    f"{path.name}: retained partition does not match the configured "
+                    f"filename template and was not merged ({error})"
+                )
+        else:
+            warnings.append(
+                f"{path.name}: retained partition does not match the configured "
+                "filename template and was not merged"
+            )
+        file_checks.append(check)
+
     observed_index = _utc_times(observed).dropna().unique().sort_values()
     timestamp_check: dict[str, Any] = {
         "observed_count": int(len(observed_index)),
@@ -249,7 +343,12 @@ def verify_database_integrity(
             for entry in entries:
                 path_name = str(entry.get("path"))
                 file_check = checks_by_path.get(path_name)
-                if file_check and file_check.get("valid") and "timestamp_count" in entry:
+                if (
+                    file_check
+                    and file_check.get("valid")
+                    and file_check.get("status") != "retained_inactive_partition"
+                    and "timestamp_count" in entry
+                ):
                     if int(entry["timestamp_count"]) != int(file_check["timestamp_count"]):
                         errors.append(
                             f"catalog timestamp count disagrees with partition: {path_name}"
@@ -272,10 +371,10 @@ def verify_database_integrity(
             "timestamps": timestamp_check,
             "files": file_checks,
             "catalog": catalog_check,
-            "coordinates": {"grid_consistent": grids is not None or not files},
+            "coordinates": {"grid_consistent": grids is not None or not active_files},
             "required_variables": {"configured": configured_variables},
             "duplicates": {"checked": True},
-            "partitions": {"count": len(files)},
+            "partitions": {"count": len(files), "active_count": len(active_files)},
         },
     }
 

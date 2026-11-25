@@ -177,8 +177,9 @@ PM10 to µg/m³ and trace gases to ppb, applies the same configured bounds as
 AirNow, and reconciles multiple sensors by filling missing values and selecting
 the highest sensor ID when valid values conflict.
 
-The default behavior fills missing timestamps and values while preserving
-existing data. Implemented dataset-specific adapters are registered
+The default behavior fills missing timestamps and values and replaces an
+existing point-monitor record when the same unique site ID and timestamp are
+returned by a newer acquisition. Implemented dataset-specific adapters are registered
 automatically when their configured sources are selected. Use
 `conflict_policy="replace_partition"` or
 `override=True` only when an affected partition should be replaced. AirNow is

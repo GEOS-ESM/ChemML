@@ -163,10 +163,9 @@ databases for all configured input sources.
   `scripts/update_database_incremental.sh`, the data-acquisition notebook, and
   the shared Cartopy plotting function with local caching and offline fallback.
 - [ ] Testing and verification
-  - [ ] Conduct an end-to-end database-update test covering acquisition,
+  - [x] Conduct an end-to-end database-update test covering acquisition,
     preprocessing, merging, partition writing, and catalog generation.
-    After all intended datasets have acquisition implementations, conduct an
-    all-up database-update test covering every implemented dataset over a period
+  - [x] Conduct an all-up database-update test covering every implemented dataset over a period
     that crosses a month boundary. Verify multi-source downloads, database
     merging, monthly partitioning, catalogs, and subsequent data access.
   - [ ] Test data acquisition on NCCS. Schedule ongoing data ingest:

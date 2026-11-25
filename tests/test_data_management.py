@@ -58,8 +58,40 @@ def test_point_merge_uses_site_id_as_identity() -> None:
     merged = manager._merge(existing, incoming, SOURCE, "fill_missing")
 
     assert len(merged) == 2
-    assert merged.set_index("site_id").loc["A", "value"] == 1.0
+    assert merged.set_index("site_id").loc["A", "value"] == 3.0
     assert merged.set_index("site_id").loc["B", "value"] == 2.0
+
+
+def test_point_merge_normalizes_site_id_types_and_keeps_newest_row() -> None:
+    manager = _manager()
+    existing = pd.DataFrame(
+        [
+            {
+                "site_id": 130590002,
+                "lat": 1.0,
+                "lon": 2.0,
+                "time": "2025-01-01T00:00:00Z",
+                "value": 1.0,
+            }
+        ]
+    )
+    incoming = pd.DataFrame(
+        [
+            {
+                "site_id": "130590002",
+                "lat": 1.0,
+                "lon": 2.0,
+                "time": "2025-01-01T00:00:00Z",
+                "value": 9.0,
+            }
+        ]
+    )
+
+    merged = manager._merge(existing, incoming, SOURCE, "fill_missing")
+
+    assert len(merged) == 1
+    assert merged.iloc[0]["site_id"] == "130590002"
+    assert merged.iloc[0]["value"] == 9.0
 
 
 def test_site_coordinate_mismatch_is_rejected() -> None:

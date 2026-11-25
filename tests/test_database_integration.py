@@ -179,6 +179,39 @@ def test_overlapping_updates_fill_second_month_without_duplicates(tmp_path):
     assert len(grid.calls) == 2
 
 
+def test_changed_grid_filename_keeps_old_partition_out_of_merge(tmp_path):
+    configuration = _configuration(tmp_path)
+    source = configuration["input_data"]["datasets"]["grid"]
+    source["file_template"] = "grid_{region_code}_{month_string}_grid_0025.nc"
+    source["regridding"] = {"method": "target_grid", "latlon_resolution": 0.025}
+
+    old_directory = tmp_path / "grid"
+    old_directory.mkdir()
+    old = xr.Dataset(
+        {"grid_value": (("time", "lat", "lon"), [[[99.0]]])},
+        coords={"time": ["2026-01-01"], "lat": [33.0], "lon": [-84.0]},
+    )
+    old.to_netcdf(old_directory / "grid_ATL_202601_grid_002.nc")
+
+    grid = SyntheticAdapter("grid")
+    manager = DatabaseManager(configuration, data_sources={"grid": grid})
+    report = manager.update(
+        "2026-01-01T01:00:00Z",
+        "2026-01-01T02:00:00Z",
+        source_keys=["grid"],
+    )
+
+    assert report.sources["grid"]["status"] == "updated"
+    assert (old_directory / "grid_ATL_202601_grid_002.nc").exists()
+    assert (old_directory / "grid_ATL_202601_grid_0025.nc").exists()
+    with xr.open_dataset(old_directory / "grid_ATL_202601_grid_002.nc") as old_result:
+        assert old_result["grid_value"].item() == 99.0
+    with xr.open_dataset(old_directory / "grid_ATL_202601_grid_0025.nc") as new_result:
+        assert new_result.sizes["time"] == 1
+        assert new_result["grid_value"].item() == 0.0
+    assert any("does not match the configured filename template" in warning for warning in report.warnings)
+
+
 def test_partial_source_gap_is_warned_then_filled_on_a_later_update(tmp_path):
     configuration = _configuration(tmp_path)
     points = SyntheticAdapter("points", omit_first_timestamp=True)

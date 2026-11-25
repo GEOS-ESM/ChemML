@@ -20,7 +20,10 @@ from aqdatafusion.contracts import DataRequest, DatasetBundle
 from aqdatafusion.data_acquisition.base import UnavailableDataSource
 from aqdatafusion.data_acquisition.base import AcquisitionError
 from aqdatafusion.data_management.catalog import DatasetCatalog
-from aqdatafusion.data_management.integrity import verify_database_integrity
+from aqdatafusion.data_management.integrity import (
+    configured_file_matches,
+    verify_database_integrity,
+)
 from aqdatafusion.data_management.registry import SourceRegistry, default_source_registry
 from aqdatafusion.preprocessing.generic import GenericPreprocessor
 from aqdatafusion.data_management.validation import validate_site_coordinates
@@ -160,6 +163,18 @@ class DatabaseManager:
             self.configuration["filepaths"]["data_sources"][source_key]
         ).expanduser()
 
+    def _source_with_context(
+        self, source_key: str, source: Mapping[str, Any]
+    ) -> Mapping[str, Any]:
+        region = self.configuration.get("region", {})
+        return {
+            **source,
+            "region_code": region.get("region_code", "region"),
+            "provider": region.get("ground_monitoring", {}).get(
+                "provider", "provider"
+            ),
+        }
+
     def verify_database_integrity(
         self,
         source_key: str,
@@ -175,7 +190,7 @@ class DatabaseManager:
         return verify_database_integrity(
             source_key,
             self._source_directory(source_key),
-            source,
+            self._source_with_context(source_key, source),
             expected_times=expected_times,
         )
 
@@ -189,20 +204,30 @@ class DatabaseManager:
             else []
         )
         files = [path for path in files if ".tmp" not in path.parts]
+        files = [
+            path
+            for path in files
+            if configured_file_matches(
+                path, self._source_with_context(source_key, source)
+            )
+        ]
         if not files:
             return pd.DataFrame() if file_format == "csv" else None
         if file_format == "csv":
             frames = []
+            site_id_name = self._site_id_name(source)
+            dtype = {site_id_name: "string"} if site_id_name else None
             for path in files:
                 try:
-                    frame = pd.read_csv(path)
+                    frame = pd.read_csv(path, dtype=dtype)
                 except pd.errors.EmptyDataError as error:
                     raise ValueError(
                         f"input CSV file {path} is empty; provide a header-only "
                         "file or remove it before retrying"
                     ) from error
                 frames.append(frame)
-            return pd.concat(frames, ignore_index=True)
+            combined = pd.concat(frames, ignore_index=True)
+            return self._normalize_site_ids(combined, source)
         import xarray as xr
 
         return xr.open_mfdataset(files, combine="by_coords")
@@ -241,6 +266,18 @@ class DatabaseManager:
 
         site_id = source.get("site_id")
         return str(site_id) if site_id else None
+
+    def _normalize_site_ids(
+        self, data: pd.DataFrame, source: Mapping[str, Any]
+    ) -> pd.DataFrame:
+        """Use one stable string representation for point-site identities."""
+
+        site_id_name = self._site_id_name(source)
+        if site_id_name is None or site_id_name not in data.columns:
+            return data
+        normalized = data.copy()
+        normalized[site_id_name] = normalized[site_id_name].astype("string")
+        return normalized
 
     def _validate_site_coordinates(
         self, data: Any, source: Mapping[str, Any], label: str
@@ -434,9 +471,11 @@ class DatabaseManager:
         if isinstance(incoming, DatasetBundle):
             incoming = incoming.data
         if isinstance(incoming, pd.DataFrame):
-            incoming = incoming.copy()
+            incoming = self._normalize_site_ids(incoming, source)
             if incoming.empty:
                 return existing if existing is not None else incoming
+            if isinstance(existing, pd.DataFrame):
+                existing = self._normalize_site_ids(existing, source)
             self._validate_site_coordinates(existing, source, "existing data")
             self._validate_site_coordinates(incoming, source, "incoming data")
             self._validate_site_coordinate_match(existing, incoming, source)
@@ -450,7 +489,9 @@ class DatabaseManager:
                     if site_id_name
                     else [time_name, "lat", "lon"]
                 )
-                return incoming.drop_duplicates(subset=identity).reset_index(drop=True)
+                return incoming.drop_duplicates(
+                    subset=identity, keep="last"
+                ).reset_index(drop=True)
             existing = existing.copy()
             existing[time_name] = pd.to_datetime(existing[time_name], utc=True)
             combined = pd.concat([existing, incoming], ignore_index=True)
@@ -462,18 +503,8 @@ class DatabaseManager:
                 ]
             combined = combined.drop_duplicates(
                 subset=identity,
-                keep=(
-                    "last"
-                    if policy in {"replace_partition", "replace_all"}
-                    else "first"
-                ),
+                keep="first" if policy == "preserve_existing" else "last",
             )
-            if policy == "fill_missing":
-                combined = (
-                    pd.concat([existing, incoming])
-                    .groupby(identity, as_index=False)
-                    .first()
-                )
             return combined.sort_values(time_name).reset_index(drop=True)
         import xarray as xr
 
@@ -757,7 +788,7 @@ class DatabaseManager:
                 integrity = verify_database_integrity(
                     source_key,
                     directory,
-                    source,
+                    self._source_with_context(source_key, source),
                     expected_times=expected,
                 )
                 source_report["integrity"] = integrity

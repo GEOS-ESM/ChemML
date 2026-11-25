@@ -32,6 +32,11 @@ All notable changes to this project are documented here. The format follows
 - `run_aqdatafusion()` now supports explicit and rolling database-update modes.
 - Source-specific adapter registration moved from `DatabaseManager` into a
   reusable registry.
+- Database updates now keep partitions from older filename/grid families out of
+  active merges, retain them with warnings, and allow configured GEOS-CF
+  missing variables to be reported as availability warnings.
+- Point-monitor merges now normalize site IDs and let newer records replace
+  older records with the same site ID and timestamp.
 - Documentation was organized by audience across the README, agent guidance,
   roadmap, configuration reference, data-source reference, installation guide,
   and user guide.

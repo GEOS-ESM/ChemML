@@ -63,6 +63,23 @@ def test_integrity_rejects_missing_variable(tmp_path):
     assert any("missing variables" in error for error in result["errors"])
 
 
+def test_integrity_can_report_missing_variables_as_warnings(tmp_path):
+    directory = tmp_path / "grid"
+    directory.mkdir()
+    source = {**_grid_source(), "integrity": {"missing_variables": "warning"}}
+    xr.Dataset(
+        {"other": (("time", "lat", "lon"), [[[1.0]]])},
+        coords={"time": ["2026-01-01"], "lat": [1.0], "lon": [2.0]},
+    ).to_netcdf(directory / "part.nc")
+    DatasetCatalog("grid", directory, source).rebuild()
+
+    result = verify_database_integrity("grid", directory, source)
+
+    assert result["valid"]
+    assert result["errors"] == []
+    assert any("missing variables" in warning for warning in result["warnings"])
+
+
 def test_integrity_rejects_duplicate_point_records(tmp_path):
     directory = tmp_path / "points"
     directory.mkdir()

@@ -37,6 +37,7 @@ datasets:
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
     time: {type: "datetime", frequency: "1h", alignment: "reference_times", tolerance: "30m", timestamp_convention: "center", availability: {mode: "continuous"}}
     regridding: {method: "none", latlon_resolution: 0.25}
+    integrity: {missing_variables: "warning"}
     storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
     access:
       # Use mode: "local" with local_root on NCCS instead of OpenDAP remote mode.
@@ -201,7 +202,7 @@ datasets:
 
   GOES-ABI:
     source_key: "GOES-ABI"
-    file_template: "GOES_ABI_{region_code}_{month_string}_grid_002_h.nc"
+    file_template: "GOES_ABI_{region_code}_{month_string}_grid_0025_h.nc"
     variables: ["aod550"]
     coordinate_names: {latitude: "lat", longitude: "lon", time: "time"}
     time: {type: "datetime", frequency: "1h", aggregation: "hourly_mean", alignment: "reference_times", tolerance: "30m", timestamp_convention: "center", availability: {mode: "continuous"}}
@@ -210,7 +211,7 @@ datasets:
       dqf_max: 1
       aod_min: 0.0
       aod_max: 5.0
-    regridding: {method: "target_grid", latlon_resolution: 0.02}
+    regridding: {method: "target_grid", latlon_resolution: 0.025}
     storage: {partition: "monthly", format: "netcdf", catalog_filename: "catalog.json"}
     access:
       mode: "remote"
