@@ -260,3 +260,25 @@ def test_xarray_merge_resolves_duplicate_incoming_timestamps() -> None:
     assert merged.sizes["time"] == 1
     assert merged["value"].item() == 1.0
     assert merged.time.dtype.kind == "M"
+
+
+def test_xarray_merge_normalizes_numeric_cf_time_coordinate() -> None:
+    manager = _manager()
+    source = {"coordinate_names": {"time": "time"}}
+    existing = xr.Dataset(
+        {"value": (("time", "lat", "lon"), [[[1.0]]])},
+        coords={"time": [0.0], "lat": [33.01], "lon": [-84.99]},
+    )
+    existing.time.encoding["units"] = "days since 2026-08-04 00:00:00"
+    incoming = xr.Dataset(
+        {"value": (("time", "lat", "lon"), [[[2.0]]])},
+        coords={"time": ["2026-08-05T00:00:00"], "lat": [33.01], "lon": [-84.99]},
+    )
+
+    merged = manager._merge(existing, incoming, source, "fill_missing")
+
+    assert merged.time.dtype.kind == "M"
+    assert list(merged.time.values) == [
+        pd.Timestamp("2026-08-04T00:00:00").to_datetime64(),
+        pd.Timestamp("2026-08-05T00:00:00").to_datetime64(),
+    ]

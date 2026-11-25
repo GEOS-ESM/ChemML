@@ -71,6 +71,36 @@ def _utc_nanoseconds(values: pd.DatetimeIndex) -> Any:
     return index.tz_localize(None).astype("datetime64[ns]").asi8
 
 
+def _normalize_xarray_time(dataset: Any, time_name: str) -> Any:
+    """Normalize an xarray time coordinate to timezone-naive datetimes.
+
+    Older NetCDF partitions may expose a decoded time coordinate as a numeric
+    array while newly acquired data use ``datetime64``.  If CF units are
+    available, decode numeric values using those units before concatenating;
+    otherwise retain the existing pandas numeric-timestamp interpretation.
+    """
+
+    import xarray as xr
+
+    if time_name not in dataset.coords:
+        return dataset
+    coordinate = dataset[time_name]
+    values = coordinate.values
+    if pd.api.types.is_numeric_dtype(coordinate.dtype):
+        units = coordinate.encoding.get("units") or coordinate.attrs.get("units")
+        if units and " since " in str(units).lower():
+            decoded = xr.coding.times.decode_cf_datetime(
+                values,
+                str(units),
+                calendar=coordinate.encoding.get(
+                    "calendar", coordinate.attrs.get("calendar", "standard")
+                ),
+            )
+            values = decoded
+    timestamps = pd.DatetimeIndex(pd.to_datetime(values, utc=True))
+    return dataset.assign_coords({time_name: timestamps.tz_localize(None)})
+
+
 class DatabaseManager:
     """Maintain partitioned CSV/NetCDF databases for configured sources.
 
@@ -515,7 +545,11 @@ class DatabaseManager:
         if policy == "replace_all":
             return incoming
         if source.get("time", {}).get("aggregation") == "daily_mean":
+            existing = _normalize_xarray_time(existing, time_name)
+            incoming = _normalize_xarray_time(incoming, time_name)
             return self._merge_daily_xarray(existing, incoming, time_name, policy)
+        existing = _normalize_xarray_time(existing, time_name)
+        incoming = _normalize_xarray_time(incoming, time_name)
         combined = xr.concat([existing, incoming], dim=time_name).sortby(time_name)
         unique_times = (
             pd.DatetimeIndex(pd.to_datetime(combined[time_name].values, utc=True))
