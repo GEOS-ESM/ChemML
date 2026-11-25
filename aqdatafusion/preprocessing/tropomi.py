@@ -156,7 +156,7 @@ def _read_and_filter(
             valid_value = value > float(quality.get("no2_min", -5e-5))
         else:
             value = _array(product_group, "ozone_total_vertical_column")
-            cloud = _array(inputs, "cloud_fraction_crb")
+            cloud = _array(inputs, "cloud_fraction_crb", "cloud_fraction")
             value_name = "total_o3_column"
             valid_value = (
                 (value > float(quality.get("o3_min", 0.05)))
@@ -189,8 +189,14 @@ def _read_and_filter(
         return frame, days, selected_times, {"region_pixels": int(region.sum()), "qc_valid_pixels": int(qc_mask.sum()), "grid_cells": 0}
 
 
-def _array(group: Any, name: str) -> np.ndarray:
-    value = group.variables[name][:]
+def _array(group: Any, name: str, *alternate_names: str) -> np.ndarray:
+    selected_name = next(
+        (candidate for candidate in (name, *alternate_names) if candidate in group.variables),
+        None,
+    )
+    if selected_name is None:
+        raise KeyError(name)
+    value = group.variables[selected_name][:]
     if np.ma.isMaskedArray(value):
         value = value.astype(float).filled(np.nan)
     return np.asarray(value).squeeze()

@@ -51,7 +51,7 @@ def _configuration():
     }
 
 
-def _write_granule(path: Path, product: str) -> None:
+def _write_granule(path: Path, product: str, nrt_cloud_name: bool = False) -> None:
     with Dataset(path, "w") as root:
         product_group = root.createGroup("PRODUCT")
         support = product_group.createGroup("SUPPORT_DATA")
@@ -78,7 +78,9 @@ def _write_granule(path: Path, product: str) -> None:
         solar[:] = 20.0
         cloud = variable(
             details if product == "no2" else inputs,
-            "cloud_fraction_crb_nitrogendioxide_window" if product == "no2" else "cloud_fraction_crb",
+            "cloud_fraction_crb_nitrogendioxide_window"
+            if product == "no2"
+            else ("cloud_fraction" if nrt_cloud_name else "cloud_fraction_crb"),
         )
         cloud[:] = [[[0.1, 0.6], [0.1, 0.1]]]
         time_utc = product_group.createVariable("time_utc", str, ("time", "scanline"))
@@ -111,6 +113,18 @@ def test_tropomi_preprocessor_qc_regrids_and_names(tmp_path: Path) -> None:
     assert int(result.data["tropospheric_no2_column"].notnull().sum()) == 2
     assert int(result.data["total_o3_column"].notnull().sum()) == 2
     assert result.metadata["timestamps_utc"] is True
+
+
+def test_tropomi_o3_preprocessing_accepts_nrt_cloud_fraction_name(tmp_path: Path) -> None:
+    o3 = tmp_path / "O3_NRT.nc"
+    _write_granule(o3, "o3", nrt_cloud_name=True)
+
+    result = TropomiPreprocessor().preprocess(
+        DatasetBundle("TROPOMI", [o3], {"files_by_product": {"no2": [], "o3": [str(o3)]}}),
+        _configuration(),
+    )
+
+    assert "total_o3_column" in result.data
 
 
 def test_tropomi_acquisition_uses_configured_short_names(monkeypatch, tmp_path: Path) -> None:
