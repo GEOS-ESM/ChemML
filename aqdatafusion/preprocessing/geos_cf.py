@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any, Mapping
 
 import numpy as np
@@ -31,6 +32,8 @@ class GeosCfPreprocessor:
                 continue
             stream = str(record.attrs.get("geos_cf_stream", "ana")).casefold()
             initialization = record.attrs.get("forecast_initialization_time")
+            if stream == "fcst" and not initialization:
+                initialization = _filename_initialization(record.attrs.get("source_url"))
             current = record.copy(deep=True)
             if "lev" in current.dims and current.sizes["lev"] == 1:
                 current = current.squeeze("lev", drop=True)
@@ -95,6 +98,20 @@ def _forecast_leads(times: np.ndarray, initialization: Any) -> np.ndarray:
     if np.any((leads < 1) | (leads > 5)):
         raise ValueError("GEOS-CF forecast valid time is outside lead days 1-5")
     return leads
+
+
+def _filename_initialization(source_url: Any) -> str | None:
+    """Extract forecast initialization from a GEOS-CF source filename or URL."""
+
+    if not source_url:
+        return None
+    match = re.search(r"(?<!\d)(\d{8})_(\d{2})(\d{2})?z", str(source_url), re.IGNORECASE)
+    if match is None:
+        return None
+    minute = match.group(3) or "00"
+    return pd.Timestamp(
+        f"{match.group(1)} {match.group(2)}:{minute}", tz="UTC"
+    ).isoformat()
 
 
 def _combine_by_valid_time(frames: list[xr.Dataset]) -> xr.Dataset:

@@ -246,8 +246,16 @@ class GeosCfDataSource(RemoteDataSource):
                         })
                         continue
                     for path in paths:
+                        filename_time = _geos_cf_filename_time(path)
+                        if (
+                            filename_time is not None
+                            and not (start <= filename_time < end)
+                        ):
+                            continue
                         try:
-                            opened.append(_open_local_subset(path, variables, bounds, start, end))
+                            subset = _open_local_subset(path, variables, bounds, start, end)
+                            subset.attrs["source_url"] = str(path)
+                            opened.append(subset)
                         except (OSError, ValueError, RuntimeError) as error:
                             warnings.append({"kind": "availability", "stream": stream, "collection": collection, "path": str(path), "message": str(error)})
                 if opened:
@@ -443,6 +451,18 @@ def _select_latest_revision_paths(paths: Sequence[Path]) -> list[Path]:
         ):
             latest[identity] = (revision, path)
     return [candidate[1] for candidate in sorted(latest.values(), key=lambda item: str(item[1]))]
+
+
+def _geos_cf_filename_time(path: Path) -> pd.Timestamp | None:
+    """Return the forecast file's trailing ``+YYYYMMDD_HHMMz`` timestamp."""
+
+    match = re.search(r"\+(\d{8})_(\d{2})(\d{2})?z(?:\.|$)", path.name, re.IGNORECASE)
+    if match is None:
+        return None
+    minute = match.group(3) or "00"
+    return pd.Timestamp(
+        f"{match.group(1)} {match.group(2)}:{minute}", tz="UTC"
+    )
 
 
 def _coordinate_indexers(dataset: xr.Dataset, bounds: tuple[float, float, float, float]) -> dict[str, slice]:

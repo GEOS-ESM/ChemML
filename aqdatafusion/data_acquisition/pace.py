@@ -12,6 +12,7 @@ from aqdatafusion.data_acquisition.generic import RemoteDataSource
 
 
 SHORT_NAME = "PACE_OCI_L2_TRGAS"
+NRT_SHORT_NAME = "PACE_OCI_L2_TRGAS_NRT"
 
 
 class PaceTraceGasDataSource(RemoteDataSource):
@@ -61,25 +62,45 @@ class PaceTraceGasDataSource(RemoteDataSource):
             request.start_time.isoformat().replace("+00:00", "Z"),
             request.end_time.isoformat().replace("+00:00", "Z"),
         )
+        standard_short_name = access.get("collection_short_name", SHORT_NAME)
         search_kwargs: dict[str, Any] = {
-            "short_name": access.get("collection_short_name", SHORT_NAME),
+            "short_name": standard_short_name,
             "temporal": temporal,
             "bounding_box": _bounding_box(configuration),
             "count": -1,
         }
         if access.get("collection_version"):
             search_kwargs["version"] = str(access["collection_version"])
+        selected_short_name = str(standard_short_name)
         try:
-            granules = earthaccess.search_data(**search_kwargs)
+            granules = list(earthaccess.search_data(**search_kwargs))
         except Exception as error:
             raise AcquisitionError(
-                "Earthdata search failed for PACE_OCI_L2_TRGAS",
+                f"Earthdata search failed for {standard_short_name}",
                 kind="search",
                 retryable=True,
                 details=str(error),
             ) from error
         if not granules:
-            return DatasetBundle(self.source_key, [], {"granules": 0}, [])
+            nrt_search_kwargs = {**search_kwargs, "short_name": NRT_SHORT_NAME}
+            try:
+                granules = list(earthaccess.search_data(**nrt_search_kwargs))
+            except Exception as error:
+                raise AcquisitionError(
+                    f"Earthdata search failed for {NRT_SHORT_NAME}",
+                    kind="search",
+                    retryable=True,
+                    details=str(error),
+                ) from error
+            if granules:
+                selected_short_name = NRT_SHORT_NAME
+        if not granules:
+            return DatasetBundle(
+                self.source_key,
+                [],
+                {"granules": 0, "earthdata_short_name": selected_short_name},
+                [],
+            )
 
         temporary_directory = Path(
             request.metadata.get("temporary_directory")
@@ -94,7 +115,7 @@ class PaceTraceGasDataSource(RemoteDataSource):
             )
         except Exception as error:
             raise AcquisitionError(
-                "Earthdata download failed for PACE_OCI_L2_TRGAS",
+                f"Earthdata download failed for {selected_short_name}",
                 kind="download",
                 retryable=True,
                 details=str(error),
@@ -104,7 +125,7 @@ class PaceTraceGasDataSource(RemoteDataSource):
             self.source_key,
             paths,
             {
-                "earthdata_short_name": SHORT_NAME,
+                "earthdata_short_name": selected_short_name,
                 "earthdata_version": access.get("collection_version", "3.0"),
                 "granules": len(paths),
                 "requested_start_time": request.start_time.isoformat(),
@@ -125,4 +146,4 @@ def _bounding_box(configuration: Mapping[str, Any]) -> tuple[float, float, float
     return (float(longitude[0]), float(latitude[0]), float(longitude[1]), float(latitude[1]))
 
 
-__all__ = ["SHORT_NAME", "PaceTraceGasDataSource"]
+__all__ = ["SHORT_NAME", "NRT_SHORT_NAME", "PaceTraceGasDataSource"]

@@ -9,7 +9,7 @@ import pandas as pd
 from netCDF4 import Dataset
 
 from aqdatafusion.contracts import DataRequest, DatasetBundle
-from aqdatafusion.data_acquisition.pace import SHORT_NAME, PaceTraceGasDataSource
+from aqdatafusion.data_acquisition.pace import NRT_SHORT_NAME, SHORT_NAME, PaceTraceGasDataSource
 from aqdatafusion.preprocessing.pace import PaceTraceGasPreprocessor
 
 
@@ -104,3 +104,37 @@ def test_pace_acquisition_uses_standard_collection(monkeypatch, tmp_path: Path) 
     assert calls[0]["short_name"] == SHORT_NAME
     assert calls[0]["version"] == "3.0"
     assert bundle.data[0].name.startswith("PACE_OCI.")
+
+
+def test_pace_acquisition_falls_back_to_nrt_collection(monkeypatch, tmp_path: Path) -> None:
+    calls = []
+
+    class Granule:
+        def data_links(self):
+            return ["https://example.test/PACE_OCI_NRT.20260501T183120.L2.TRGAS.V3_0.nc"]
+
+    fake = SimpleNamespace(login=lambda **kwargs: True)
+
+    def search_data(**kwargs):
+        calls.append(kwargs)
+        return [] if kwargs["short_name"] == SHORT_NAME else [Granule()]
+
+    def download(granules, local_path, threads):
+        path = Path(local_path) / "PACE_OCI_NRT.20260501T183120.L2.TRGAS.V3_0.nc"
+        path.touch()
+        return [path]
+
+    fake.search_data = search_data
+    fake.download = download
+    monkeypatch.setitem(sys.modules, "earthaccess", fake)
+    request = DataRequest(
+        "PACE", "ATL", ["total_column_no2", "total_column_o3"],
+        pd.Timestamp("2026-05-01", tz="UTC").to_pydatetime(),
+        pd.Timestamp("2026-05-02", tz="UTC").to_pydatetime(),
+        metadata={"temporary_directory": str(tmp_path)},
+    )
+
+    bundle = PaceTraceGasDataSource().acquire(request, _configuration())
+
+    assert [call["short_name"] for call in calls] == [SHORT_NAME, NRT_SHORT_NAME]
+    assert bundle.metadata["earthdata_short_name"] == NRT_SHORT_NAME

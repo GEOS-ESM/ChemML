@@ -11,10 +11,11 @@ from aqdatafusion.data_acquisition.geos_cf import (
     _decode_geos_cf_time,
     _open_chunked_subset,
     _remote_url,
+    _geos_cf_filename_time,
     _select_latest_revision_paths,
     _select_requested_variables,
 )
-from aqdatafusion.preprocessing.geos_cf import GeosCfPreprocessor
+from aqdatafusion.preprocessing.geos_cf import GeosCfPreprocessor, _filename_initialization
 
 
 def _configuration(tmp_path: Path) -> dict:
@@ -93,6 +94,49 @@ def test_geos_cf_selects_highest_local_revision(tmp_path: Path) -> None:
     ])
 
     assert selected == [compressed_revision_one, revision_two]
+
+
+def test_geos_cf_filename_time_parses_forecast_timestamp() -> None:
+    path = Path(
+        "GEOS.cf.fcst.xgc_tavg_1hr_glo_L1440x721_slv.20261124_09z"
+        "+20261129_0730z.R0.nc4"
+    )
+
+    assert _geos_cf_filename_time(path) == pd.Timestamp("2026-11-29T07:30:00Z")
+    assert _geos_cf_filename_time(Path("GEOS.cf.ana.aqc.nc4")) is None
+
+
+def test_geos_cf_forecast_initialization_falls_back_to_filename() -> None:
+    source_url = (
+        "/discover/geos/fcst/GEOS.cf.fcst.xgc_tavg_1hr_glo_L1440x721_slv."
+        "20261124_09z+20261129_0730z.R0.nc4"
+    )
+
+    assert _filename_initialization(source_url) == "2026-11-24T09:00:00+00:00"
+
+
+def test_geos_cf_preprocessor_uses_filename_initialization(tmp_path: Path) -> None:
+    record = _record(
+        "fcst",
+        ["2026-11-24T09:30:00", "2026-11-25T09:30:00"],
+        [10.0, 20.0],
+    )
+    record.attrs["source_url"] = (
+        "GEOS.cf.fcst.xgc_tavg_1hr_glo_L1440x721_slv.20261124_09z+"
+        "20261129_0730z.R0.nc4"
+    )
+    bundle = DatasetBundle(
+        "GEOS-CF",
+        [record],
+        {
+            "request_start_time": "2026-11-24T09:30:00Z",
+            "request_end_time": "2026-11-26T10:00:00Z",
+        },
+    )
+
+    result = GeosCfPreprocessor().preprocess(bundle, _configuration(tmp_path))
+
+    assert result.data.sizes["forecast_lead_day"] == 6
 
 
 def test_geos_cf_subset_is_split_by_time_and_variable(monkeypatch) -> None:
