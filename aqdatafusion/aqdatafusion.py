@@ -21,6 +21,7 @@ def run_aqdatafusion(
     config_path: Union[str, Path] = "config/default_config.yaml",
     *,
     require_credentials: bool = False,
+    prompt_credentials: bool = True,
     mode: str = "forecast",
     start_time: Optional[Any] = None,
     end_time: Optional[Any] = None,
@@ -37,6 +38,9 @@ def run_aqdatafusion(
     require_credentials:
         Require the local credentials file and required credential values while
         loading the configuration. Leave false for runs that do not need them.
+    prompt_credentials:
+        Allow credential prompts when credentials are missing or remotely
+        invalid. Set false for non-interactive scheduled runs.
     mode:
         ``"forecast"`` preserves the configuration-only runner; use
         ``"database_update"`` for an explicit interval or
@@ -91,8 +95,9 @@ def run_aqdatafusion(
             credential_check = manage_credentials(
                 config_path,
                 verify_remote=True,
+                **({"prompt_credentials": False} if not prompt_credentials else {}),
             )
-        except (ConfigurationError, OSError, ValueError) as error:
+        except (ConfigurationError, OSError, ValueError, EOFError) as error:
             return {
                 "status": "credentials_failed",
                 "message": "Credentials could not be collected or verified.",

@@ -83,3 +83,24 @@ def test_manage_credentials_distinguishes_remote_verification_failure(tmp_path: 
     assert result["status"] == "invalid"
     assert "remote verification failed" in result["message"]
     assert "earthdata.username" in result["updated_fields"]
+
+
+def test_manage_credentials_noninteractive_does_not_prompt(tmp_path: Path) -> None:
+    temporary_config = tmp_path / "config"
+    shutil.copytree(REPOSITORY_ROOT / "config", temporary_config)
+    credentials_path = temporary_config / "credentials" / "credentials.yaml"
+    if credentials_path.exists():
+        credentials_path.unlink()
+
+    def unexpected_prompt(_prompt: str) -> str:
+        raise AssertionError("non-interactive credential collection prompted")
+
+    result = manage_credentials(
+        temporary_config / "default_config.yaml",
+        prompt_credentials=False,
+        input_fn=unexpected_prompt,
+        secret_input_fn=unexpected_prompt,
+    )
+
+    assert result["status"] == "invalid"
+    assert any(error.startswith("earthdata.username ") for error in result["errors"])

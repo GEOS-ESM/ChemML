@@ -37,6 +37,7 @@ result = run_aqdatafusion(
     config_path,
     mode="incremental_database_update",
     require_credentials=True,
+    prompt_credentials=False,
 )
 
 print(result.get("message", "Incremental database update completed."))

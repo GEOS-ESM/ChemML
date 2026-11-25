@@ -282,6 +282,7 @@ def manage_credentials(
     prompt_optional: bool = False,
     timeout: float = 10.0,
     remote_retries: int = 2,
+    prompt_credentials: bool = True,
     input_fn: CredentialInput = input,
     secret_input_fn: Optional[CredentialInput] = None,
     output_fn: Callable[[str], None] = print,
@@ -290,8 +291,9 @@ def manage_credentials(
 
     The function first calls :func:`load_configuration` to resolve the
     credentials-file location. Required fields are prompted when missing or
-    placeholder values are present. Optional OpenAQ and AirNow fields are only
-    prompted when ``prompt_optional`` is true.
+    placeholder values are present unless ``prompt_credentials`` is false.
+    Optional OpenAQ and AirNow fields are only prompted when
+    ``prompt_optional`` is true.
 
     Remote verification is opt-in because it requires internet access and may
     contact external services. Earthdata, OpenAQ, and AirNow are checked with
@@ -315,12 +317,11 @@ def manage_credentials(
     for section, key, secret in fields:
         if _configured(_get_value(credentials, section, key)):
             continue
+        if not prompt_credentials:
+            prompt_errors.append(f"{section}.{key} is missing or still contains a placeholder")
+            continue
         value = _prompt_for_credential(
-            section,
-            key,
-            secret,
-            input_fn=input_fn,
-            secret_input_fn=secret_input_fn,
+            section, key, secret, input_fn=input_fn, secret_input_fn=secret_input_fn
         )
         if not _configured(value):
             prompt_errors.append(f"{section}.{key} was left blank or contains a placeholder")
@@ -355,6 +356,8 @@ def manage_credentials(
                 if field[0] in invalid_remote
             ]
             for section, key, secret in invalid_fields:
+                if not prompt_credentials:
+                    continue
                 value = _prompt_for_credential(
                     section,
                     key,
