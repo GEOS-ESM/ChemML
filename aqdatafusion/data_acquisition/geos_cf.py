@@ -238,7 +238,7 @@ class GeosCfDataSource(RemoteDataSource):
                 opened: list[xr.Dataset] = []
                 for collection, variables in collections.items():
                     pattern = f"{stream}*/Y{day.year:04d}/M{day.month:02d}/D{day.day:02d}/*{collection}_tavg_1hr_glo_L1440x721_slv*"
-                    paths = sorted(root.glob(pattern))
+                    paths = _select_latest_revision_paths(root.glob(pattern))
                     if not paths:
                         warnings.append({
                             "kind": "availability", "stream": stream, "collection": collection,
@@ -414,6 +414,35 @@ def _select_requested_variables(
         raise ValueError(missing_message)
     result = dataset[selected]
     return result.rename(rename) if rename else result
+
+
+def _select_latest_revision_paths(paths: Sequence[Path]) -> list[Path]:
+    """Keep only the highest revision for each local GEOS-CF filename.
+
+    Operational filenames place the revision immediately before the file
+    extension, for example ``...20261124_09z.R0.nc4`` or
+    ``...20261124_09z.R2.nc4.cmprs``.  Files without a revision token remain
+    independent files.  Ties are resolved deterministically by filename.
+    """
+
+    revision_pattern = re.compile(r"\.R(?P<revision>\d+)(?=\.[^.]+(?:\.[^.]+)?$)")
+    latest: dict[str, tuple[int, Path]] = {}
+    for path in sorted(paths):
+        match = revision_pattern.search(path.name)
+        if match is None:
+            identity = path.name
+            revision = -1
+        else:
+            identity = path.name[:match.start()] + path.name[match.end():]
+            revision = int(match.group("revision"))
+        current = latest.get(identity)
+        if (
+            current is None
+            or revision > current[0]
+            or (revision == current[0] and str(path) > str(current[1]))
+        ):
+            latest[identity] = (revision, path)
+    return [candidate[1] for candidate in sorted(latest.values(), key=lambda item: str(item[1]))]
 
 
 def _coordinate_indexers(dataset: xr.Dataset, bounds: tuple[float, float, float, float]) -> dict[str, slice]:

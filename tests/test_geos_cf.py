@@ -11,6 +11,7 @@ from aqdatafusion.data_acquisition.geos_cf import (
     _decode_geos_cf_time,
     _open_chunked_subset,
     _remote_url,
+    _select_latest_revision_paths,
     _select_requested_variables,
 )
 from aqdatafusion.preprocessing.geos_cf import GeosCfPreprocessor
@@ -65,6 +66,20 @@ def test_geos_cf_variable_selection_is_case_insensitive() -> None:
 
     assert set(selected.data_vars) == {"pm25_rh35"}
     assert selected["pm25_rh35"].item() == 1.0
+
+
+def test_geos_cf_selects_highest_local_revision(tmp_path: Path) -> None:
+    revision_zero = tmp_path / "GEOS.cf.fcst.xgc_tavg_1hr_glo_L1440x721_slv.20261124_09z+20261129_0830z.R0.nc4"
+    revision_two = tmp_path / "GEOS.cf.fcst.xgc_tavg_1hr_glo_L1440x721_slv.20261124_09z+20261129_0830z.R2.nc4"
+    compressed_revision_one = tmp_path / "GEOS.cf.fcst.aqc_tavg_1hr_glo_L1440x721_slv.20261124_09z.R1.nc4.cmprs"
+    for path in (revision_zero, revision_two, compressed_revision_one):
+        path.touch()
+
+    selected = _select_latest_revision_paths([
+        revision_zero, revision_two, compressed_revision_one
+    ])
+
+    assert selected == [compressed_revision_one, revision_two]
 
 
 def test_geos_cf_subset_is_split_by_time_and_variable(monkeypatch) -> None:
