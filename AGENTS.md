@@ -113,8 +113,13 @@ user documentation.
 There is no project build command. For local checks:
 
 - `yamllint -d relaxed --no-warnings .github/workflows/*.yml .yamllint.yml config/default_config.yaml config/*/*.yaml` validates YAML in the same style as CI.
-- Activate the `chemml` Conda environment before running Python commands during development: `conda activate chemml`.
-- `python -m pytest tests/` runs the Python regression tests from the activated `chemml` environment.
+- Activate the `chemml` Conda environment for runtime, acquisition, and
+  configuration commands: `conda activate chemml`.
+- Create and activate the `chemml-dev` environment for tests and development
+  tooling: `conda env create --file environment-dev.yml` followed by
+  `conda activate chemml-dev`.
+- `python -m pytest tests/` runs the Python regression tests from the activated
+  `chemml-dev` environment.
 - `python aqdatafusion/config_management/configuration.py config/default_config.yaml` checks the referenced configuration files.
 - `python aqdatafusion/config_management/configuration.py config/default_config.yaml --interactive` interactively fills fixable missing or invalid configuration values.
 - `python -m aqdatafusion.utils.setup` runs the guided first-time setup flow after the conda environment is activated.
@@ -122,6 +127,9 @@ There is no project build command. For local checks:
 - On NCCS Discover, run a configured batch entry with `python docs/examples/deepsensor_run/ASIAAQ_Deepsensor_Run.py <run_name>`. The script expects its JSON settings and input data in the configured Discover directories.
 - Start an incremental database update from Python with `run_database_update()` as documented in `docs/user_guide.md`. AirNow or OpenAQ is automatically registered for regions whose `ground_monitoring.provider` selects that provider; TROPOMI, VIIRS, PACE, TEMPO NO₂, and TEMPO O₃ are automatically registered when their configured datasets are selected.
 - When conducting system tests during development, use `config/testing_config.yaml` unless otherwise specified.
+- The runtime environment definition is `environment.yml`; development-only
+  tools such as pytest, yamllint, Black, Flake8, mypy, Bandit, and Safety are
+  defined in `environment-dev.yml`.
 
 ## Coding Style & Naming Conventions
 

@@ -14,7 +14,6 @@ dependencies:
   - matplotlib
   - cartopy
   - pip
-  - yamllint
   - pip:
     # Only needed for the GOES-ABI data-access system; remove if GOES-ABI is not used.
     - s3fs>=2023.1
@@ -22,13 +21,6 @@ dependencies:
     - pydap>=3.5
     - deepsensor
     - torch>=2.0
-    # Required by aqdatafusion/config_management/configuration.py and its tests.
+    # Required by the runtime configuration and acquisition modules.
     - pyyaml
     - requests
-    - pytest
-    - pytest-cov
-    - black
-    - flake8
-    - mypy
-    - bandit
-    - safety
