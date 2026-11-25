@@ -39,6 +39,7 @@ def _repository_config_directory() -> Path:
 def _copy_missing_configuration_files(
     source_directory: Path,
     target_directory: Path,
+    configuration_filename: str = "default_config.yaml",
 ) -> List[Path]:
     """Copy shipped configuration files that are absent from the target.
 
@@ -52,6 +53,8 @@ def _copy_missing_configuration_files(
         if source_path.name == "credentials.yaml":
             continue
         relative_path = source_path.relative_to(source_directory)
+        if source_path.name == "default_config.yaml":
+            relative_path = Path(configuration_filename)
         target_path = target_directory / relative_path
         if target_path.exists():
             continue
@@ -59,6 +62,19 @@ def _copy_missing_configuration_files(
         shutil.copy2(source_path, target_path)
         copied.append(target_path)
     return copied
+
+
+def _configuration_filename(value: Union[str, Path]) -> str:
+    """Validate and normalize the master configuration filename."""
+
+    path = Path(value).expanduser()
+    if path.is_absolute() or path.name != str(path) or path.name in {"", ".", ".."}:
+        raise ValueError(
+            "configuration_filename must be a filename within config_directory"
+        )
+    if path.suffix.lower() not in {".yaml", ".yml"}:
+        raise ValueError("configuration_filename must have a .yaml or .yml suffix")
+    return path.name
 
 
 def _prompt_for_path(
@@ -115,6 +131,7 @@ def _configured_paths(configuration: Mapping[str, Any]) -> List[Path]:
 def setup_aqdatafusion(
     config_directory: Union[str, Path] = "config",
     *,
+    configuration_filename: Union[str, Path] = "default_config.yaml",
     source_config_directory: Optional[Union[str, Path]] = None,
     verify_remote: bool = False,
     prompt_optional_credentials: bool = False,
@@ -128,8 +145,13 @@ def setup_aqdatafusion(
     Parameters
     ----------
     config_directory:
-        Directory containing the user's ``default_config.yaml`` and component
+        Directory containing the user's master configuration and component
         files. Missing configuration files are copied into this directory.
+    configuration_filename:
+        Filename for the master configuration copied and configured by setup.
+        The default is ``default_config.yaml``; use a different YAML filename
+        to maintain multiple regional or experiment-specific configurations in
+        one configuration directory.
     source_config_directory:
         Directory containing the shipped configuration files. By default this
         is the repository's ``config`` directory.
@@ -151,15 +173,18 @@ def setup_aqdatafusion(
 
     target_directory = Path(config_directory).expanduser().resolve()
     source_directory = Path(source_config_directory or _repository_config_directory()).expanduser().resolve()
+    master_filename = _configuration_filename(configuration_filename)
     if not source_directory.is_dir():
         raise FileNotFoundError(f"source configuration directory does not exist: {source_directory}")
     target_directory.mkdir(parents=True, exist_ok=True)
 
-    copied_files = _copy_missing_configuration_files(source_directory, target_directory)
-    config_path = target_directory / "default_config.yaml"
+    copied_files = _copy_missing_configuration_files(
+        source_directory, target_directory, master_filename
+    )
+    config_path = target_directory / master_filename
     filepaths_path = target_directory / "filepaths" / "filepaths.yaml"
     if not config_path.is_file():
-        raise FileNotFoundError(f"default configuration was not installed: {config_path}")
+        raise FileNotFoundError(f"master configuration was not installed: {config_path}")
     if not filepaths_path.is_file():
         raise FileNotFoundError(f"filepath configuration was not installed: {filepaths_path}")
 
@@ -239,12 +264,18 @@ def main() -> int:
 
     parser = argparse.ArgumentParser(description="Set up a local ChemML configuration")
     parser.add_argument("--config-directory", default="config")
+    parser.add_argument(
+        "--configuration-filename",
+        default="default_config.yaml",
+        help="master configuration filename to create (default: default_config.yaml)",
+    )
     parser.add_argument("--verify-remote", action="store_true")
     parser.add_argument("--prompt-optional-credentials", action="store_true")
     parser.add_argument("--no-download-basemap", action="store_true")
     args = parser.parse_args()
     result = setup_aqdatafusion(
         args.config_directory,
+        configuration_filename=args.configuration_filename,
         verify_remote=args.verify_remote,
         prompt_optional_credentials=args.prompt_optional_credentials,
         download_basemap=not args.no_download_basemap,

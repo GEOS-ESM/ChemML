@@ -42,6 +42,17 @@ directories, and verifies the result with the configuration checker:
 python -m aqdatafusion.utils.setup
 ```
 
+To create a separately named master configuration, pass a filename such as:
+
+```bash
+python -m aqdatafusion.utils.setup \
+    --configuration-filename atl_config.yaml
+```
+
+The default remains `default_config.yaml`. Named configurations use the same
+component files and `filepaths/filepaths.yaml`, making it possible to maintain
+multiple regional configurations in one configuration directory.
+
 The same flow can be started from Python:
 
 ```python

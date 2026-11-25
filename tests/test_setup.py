@@ -31,3 +31,30 @@ def test_setup_aqdatafusion_copies_configures_and_validates(tmp_path: Path) -> N
     assert input_root.is_dir()
     assert output_root.is_dir()
     assert result["created_directories"]
+
+
+def test_setup_aqdatafusion_can_create_named_master_configuration(
+    tmp_path: Path,
+) -> None:
+    target_config = tmp_path / "config"
+    input_root = tmp_path / "input"
+    output_root = tmp_path / "output"
+    responses = iter(
+        [str(input_root), str(output_root), "earthdata-user", "nccs-user", "nccs-project"]
+    )
+    secret_responses = iter(["earthdata-password"])
+
+    result = setup_aqdatafusion(
+        target_config,
+        configuration_filename="atl_config.yaml",
+        source_config_directory=REPOSITORY_ROOT / "config",
+        input_fn=lambda _prompt: next(responses),
+        secret_input_fn=lambda _prompt: next(secret_responses),
+        output_fn=lambda _message: None,
+        download_basemap=False,
+    )
+
+    assert result["status"] == "configured"
+    assert result["config_path"] == target_config / "atl_config.yaml"
+    assert (target_config / "atl_config.yaml").is_file()
+    assert not (target_config / "default_config.yaml").exists()
