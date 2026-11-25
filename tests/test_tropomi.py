@@ -127,7 +127,7 @@ def test_tropomi_acquisition_uses_configured_short_names(monkeypatch, tmp_path: 
 
     def search_data(**kwargs):
         calls.append(kwargs)
-        return [Granule(kwargs["short_name"])]
+        return (granule for granule in [Granule(kwargs["short_name"])])
 
     def download(granules, local_path, threads):
         paths = []

@@ -76,7 +76,9 @@ class TropomiDataSource(RemoteDataSource):
             if version:
                 search_kwargs["version"] = str(version)
             try:
-                granules[product] = earthaccess.search_data(**search_kwargs)
+                # earthaccess may return GranuleResults rather than a list;
+                # normalize it before combining the two product searches.
+                granules[product] = list(earthaccess.search_data(**search_kwargs))
             except Exception as error:
                 raise AcquisitionError(
                     f"Earthdata search failed for {short_name}",
