@@ -11,6 +11,7 @@ from aqdatafusion.data_acquisition.geos_cf import (
     _decode_geos_cf_time,
     _open_chunked_subset,
     _remote_url,
+    _select_requested_variables,
 )
 from aqdatafusion.preprocessing.geos_cf import GeosCfPreprocessor
 
@@ -53,6 +54,17 @@ def test_geos_cf_forecast_url_uses_initialization_endpoint() -> None:
         pd.Timestamp("2026-11-01T09:00:00Z"),
     )
     assert url.endswith("/aqc_tavg_1hr_glo_L1440x721_slv.20261101_09z")
+
+
+def test_geos_cf_variable_selection_is_case_insensitive() -> None:
+    dataset = xr.Dataset({"PM25_RH35": (("time",), [1.0])})
+
+    selected = _select_requested_variables(
+        dataset, ["pm25_rh35"], "missing variable"
+    )
+
+    assert set(selected.data_vars) == {"pm25_rh35"}
+    assert selected["pm25_rh35"].item() == 1.0
 
 
 def test_geos_cf_subset_is_split_by_time_and_variable(monkeypatch) -> None:

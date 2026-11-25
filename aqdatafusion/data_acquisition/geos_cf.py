@@ -262,10 +262,10 @@ def _open_subset(
     start: pd.Timestamp, end: pd.Timestamp,
 ) -> xr.Dataset:
     with xr.open_dataset(url, engine="pydap", decode_times=False) as opened:
-        selected = [name for name in variables if name in opened.data_vars]
-        if not selected:
-            raise ValueError("none of the requested variables are exposed by the collection")
-        dataset = opened[selected]
+        dataset = _select_requested_variables(
+            opened, variables,
+            "none of the requested variables are exposed by the collection",
+        )
         indexers = _coordinate_indexers(dataset, bounds)
         raw_times = np.asarray(dataset["time"].values)
         decoded = _decode_geos_cf_time(raw_times, dataset["time"].attrs)
@@ -361,10 +361,10 @@ def _open_local_subset(
     start: pd.Timestamp, end: pd.Timestamp,
 ) -> xr.Dataset:
     with xr.open_dataset(path, decode_times=False) as opened:
-        selected = [name for name in variables if name in opened.data_vars]
-        if not selected:
-            raise ValueError(f"none of the requested variables are present in {path}")
-        dataset = opened[selected]
+        dataset = _select_requested_variables(
+            opened, variables,
+            f"none of the requested variables are present in {path}",
+        )
         indexers = _coordinate_indexers(dataset, bounds)
         raw_times = np.asarray(dataset["time"].values)
         decoded = _decode_geos_cf_time(raw_times, dataset["time"].attrs)
@@ -376,6 +376,44 @@ def _open_local_subset(
         indices = np.flatnonzero(mask)
         dataset = dataset.isel(time=slice(int(indices[0]), int(indices[-1]) + 1), **indexers)
         return dataset.assign_coords(time=("time", decoded[indices])).load()
+
+
+def _select_requested_variables(
+    dataset: xr.Dataset, variables: Sequence[str], missing_message: str
+) -> xr.Dataset:
+    """Select configured variables, accepting case differences in source names.
+
+    The public OpenDAP collections expose lower-case names, while local NCCS
+    files can contain upper-case characters.  Keep the configured names in
+    the returned dataset so downstream preprocessing sees one stable schema.
+    Exact matches take precedence if a source happens to expose names that
+    differ only by case.
+    """
+
+    data_variables = list(dataset.data_vars)
+    by_casefold: dict[str, list[str]] = {}
+    for name in data_variables:
+        by_casefold.setdefault(str(name).casefold(), []).append(str(name))
+
+    selected: list[str] = []
+    rename: dict[str, str] = {}
+    for requested in variables:
+        requested_name = str(requested)
+        if requested_name in dataset.data_vars:
+            actual = requested_name
+        else:
+            matches = by_casefold.get(requested_name.casefold(), [])
+            actual = matches[0] if len(matches) == 1 else None
+        if actual is None:
+            continue
+        selected.append(actual)
+        if actual != requested_name:
+            rename[actual] = requested_name
+
+    if not selected:
+        raise ValueError(missing_message)
+    result = dataset[selected]
+    return result.rename(rename) if rename else result
 
 
 def _coordinate_indexers(dataset: xr.Dataset, bounds: tuple[float, float, float, float]) -> dict[str, slice]:
