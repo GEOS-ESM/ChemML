@@ -47,6 +47,19 @@ def test_geos_cf_raw_time_decodes_year_one_epoch() -> None:
     assert values[0] == np.datetime64("2026-11-01T09:30:00")
 
 
+def test_geos_cf_relative_time_decodes_standard_units() -> None:
+    values = _decode_geos_cf_time(
+        np.asarray([0.0, 30.0, 90.0]),
+        {"units": "minutes since 2026-11-29 08:30:00"},
+    )
+
+    np.testing.assert_array_equal(values, [
+        np.datetime64("2026-11-29T08:30:00"),
+        np.datetime64("2026-11-29T09:00:00"),
+        np.datetime64("2026-11-29T10:00:00"),
+    ])
+
+
 def test_geos_cf_forecast_url_uses_initialization_endpoint() -> None:
     url = _remote_url(
         {"base_url": "https://example.test/v2", "forecast_endpoint": "dated"},

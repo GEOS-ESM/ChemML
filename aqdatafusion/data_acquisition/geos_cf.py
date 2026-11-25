@@ -457,13 +457,12 @@ def _coordinate_indexers(dataset: xr.Dataset, bounds: tuple[float, float, float,
 
 
 def _decode_geos_cf_time(values: np.ndarray, attrs: Mapping[str, Any]) -> np.ndarray:
-    units = str(attrs.get("units", "days since 1-1-1 00:00:0.0")).lower()
-    if not units.startswith("days since 1-1-1"):
-        raise ValueError(f"unsupported GEOS-CF time units: {units}")
+    units = str(attrs.get("units", "days since 1-1-1 00:00:0.0")).strip()
     values = np.asarray(values, dtype=float)
+    legacy_units = units.lower()
     minimum = str(attrs.get("minimum", ""))
     match = re.fullmatch(r"(\d{2}:\d{2})z(\d{2}[A-Za-z]{3}\d{4})", minimum)
-    if match:
+    if legacy_units.startswith("days since 1-1-1") and match:
         # GrADS supplies the human-readable origin and its numeric coordinate
         # is occasionally not aligned with Python's year-1 Gregorian epoch.
         # Anchor to the advertised minimum and use only numeric differences.
@@ -472,8 +471,26 @@ def _decode_geos_cf_time(values: np.ndarray, attrs: Mapping[str, Any]) -> np.nda
         ).replace(tzinfo=timezone.utc)
         first = float(values[0])
         decoded = [origin + timedelta(seconds=round((float(value) - first) * 86400)) for value in values]
-    else:
+    elif legacy_units.startswith("days since 1-1-1"):
         decoded = [datetime(1, 1, 1, tzinfo=timezone.utc) + timedelta(days=float(value)) for value in values]
+    else:
+        relative_match = re.fullmatch(
+            r"(?P<unit>seconds?|minutes?|hours?|days?)\s+since\s+(?P<origin>.+)",
+            units,
+            flags=re.IGNORECASE,
+        )
+        if relative_match is None:
+            raise ValueError(f"unsupported GEOS-CF time units: {units}")
+        unit = relative_match.group("unit").lower()
+        unit = {"second": "s", "seconds": "s", "minute": "m", "minutes": "m",
+                "hour": "h", "hours": "h", "day": "D", "days": "D"}[unit]
+        origin = pd.Timestamp(relative_match.group("origin"))
+        if origin.tzinfo is None:
+            origin = origin.tz_localize("UTC")
+        else:
+            origin = origin.tz_convert("UTC")
+        decoded = origin + pd.to_timedelta(values, unit=unit)
+        return decoded.tz_localize(None).to_numpy(dtype="datetime64[ns]")
     return np.asarray(
         [pd.Timestamp(value).tz_localize(None).to_datetime64() for value in decoded],
         dtype="datetime64[ns]",
