@@ -11,6 +11,7 @@ from aqdatafusion.data_acquisition.geos_cf import (
     _decode_geos_cf_time,
     _open_chunked_subset,
     _remote_url,
+    _concatenate_local_records,
     _geos_cf_filename_time,
     _geos_cf_filename_timestamps,
     _geos_cf_local_file_is_relevant,
@@ -152,6 +153,25 @@ def test_geos_cf_local_filename_filters_use_stream_specific_dates() -> None:
     assert not _geos_cf_local_file_is_relevant(
         late_forecast, "fcst", pd.Timestamp("2026-11-18", tz="UTC"), start, end
     )
+
+
+def test_geos_cf_local_records_are_concatenated_over_time() -> None:
+    first = xr.Dataset(
+        {"no2": (("time", "lat", "lon"), [[[1.0]]])},
+        coords={"time": pd.to_datetime(["2026-11-22T00:30:00"]), "lat": [33.0], "lon": [-84.0]},
+    )
+    second = xr.Dataset(
+        {"no2": (("time", "lat", "lon"), [[[2.0]]])},
+        coords={"time": pd.to_datetime(["2026-11-22T01:30:00"]), "lat": [33.0], "lon": [-84.0]},
+    )
+
+    result = _concatenate_local_records([first, second])
+
+    assert list(result.time.values) == [
+        np.datetime64("2026-11-22T00:30:00"),
+        np.datetime64("2026-11-22T01:30:00"),
+    ]
+    np.testing.assert_array_equal(result.no2.values[:, 0, 0], [1.0, 2.0])
 
 
 def test_geos_cf_forecast_initialization_falls_back_to_filename() -> None:

@@ -249,8 +249,9 @@ class GeosCfDataSource(RemoteDataSource):
         }
         for stream in ("ana", "fcst"):
             for day in stream_days[stream]:
-                opened: list[xr.Dataset] = []
+                opened_collections: list[xr.Dataset] = []
                 for collection, variables in collections.items():
+                    collection_records: list[xr.Dataset] = []
                     pattern = f"{stream}*/Y{day.year:04d}/M{day.month:02d}/D{day.day:02d}/*{collection}_tavg_1hr_glo_L1440x721_slv*"
                     candidate_paths = _select_latest_revision_paths(root.glob(pattern))
                     if not candidate_paths:
@@ -269,14 +270,26 @@ class GeosCfDataSource(RemoteDataSource):
                         try:
                             subset = _open_local_subset(path, variables, bounds, start, end)
                             subset.attrs["source_url"] = str(path)
-                            opened.append(subset)
+                            collection_records.append(subset)
                         except (OSError, ValueError, RuntimeError) as error:
                             warnings.append({"kind": "availability", "stream": stream, "collection": collection, "path": str(path), "message": str(error)})
-                if opened:
-                    merged = xr.merge(opened, compat="override", join="outer")
+                    if collection_records:
+                        opened_collections.append(_concatenate_local_records(collection_records))
+                if opened_collections:
+                    merged = xr.merge(opened_collections, compat="override", join="outer")
                     merged.attrs["geos_cf_stream"] = stream
                     records.append(merged)
         return records
+
+
+def _concatenate_local_records(records: Sequence[xr.Dataset]) -> xr.Dataset:
+    """Concatenate one-time local files before merging collections."""
+
+    if not records:
+        raise ValueError("at least one local GEOS-CF record is required")
+    if len(records) == 1:
+        return records[0]
+    return xr.concat(records, dim="time").sortby("time")
 
 
 def _open_subset(
