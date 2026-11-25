@@ -160,6 +160,15 @@ is ready to be integrated. The database-update mode is a separate explicit
 operation and must not run during package import. Do not make package imports
 perform downloads, create directories, train models, or require credentials.
 
+When extending `run_aqdatafusion()` with future model modes, keep database
+updates separate from model application so operators can offset their schedules.
+NCCS training workflows should initially generate job scripts and print the
+manual submission command without submitting jobs. Model modes should warn on
+missing inputs where selective omission is valid for evaluation, rather than
+failing unconditionally. Store trained models under the configured experiment
+model directory, with fold-specific identifiers; future model-reuse support may
+copy and rename models from another experiment.
+
 ### Recommended data-ingest pattern
 
 Use the AirNow implementation as the model for future source integrations:

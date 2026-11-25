@@ -27,6 +27,62 @@ ChemML is a high-resolution air-quality data-fusion system that combines satelli
 - **Uncertainty**: 90% confidence intervals
 - **Validation**: Comprehensive metrics with cross-validation
 
+### `run_aqdatafusion` Workflow Modes
+
+`run_aqdatafusion()` is the planned high-level entry point for the major
+operating modes of the data-fusion system. Modes should remain explicit so
+database maintenance, model development, evaluation, and model application
+can be scheduled or repeated independently.
+
+Implemented modes:
+
+- `database_update`: update the configured input-data databases for a specified
+  half-open time interval and region. Optional source selection allows focused
+  acquisition or testing.
+- `incremental_database_update`: update a configuration-defined rolling
+  interval, such as the previous day. This mode is intended for an external
+  scheduler such as cron; the scheduler invokes the mode but remains separate
+  from the workflow implementation.
+
+Planned modes:
+
+- `model_training`: train a new Deepsensor convolutional neural process (CNP)
+  using a configured time interval, input-source selection, and optional subset
+  of ground-monitor locations.
+- `model_evaluation`: load a trained CNP and apply it at designated target
+  locations over a specified interval, producing predictions and comparison
+  statistics where held-out observations are available.
+- `training_and_evaluation_pipeline`: partition input data in space and time
+  according to a configured cross-validation strategy, generate per-fold
+  training job scripts, apply each trained fold model to its validation fold,
+  calculate performance statistics, and aggregate results across folds. The
+  initial implementation should generate scripts and print the NCCS command
+  needed to run them, but must not submit or start jobs automatically.
+- `model_application`: load a trained CNP and produce a spatially and
+  temporally complete gridded output over a designated domain and interval.
+  This differs from `model_evaluation`, which targets selected locations for
+  comparison with observations.
+- `incremental_model_application`: run `model_application` for an interval
+  defined relative to the current time, such as a daily forecast of the next
+  several days. It is intended for scheduled use after the required input data
+  are available.
+
+Database updates and model-application modes are separate operations and may be
+offset in time. A model mode encountering missing input data should normally
+issue a warning and continue where possible, since deliberately withheld
+inputs may be part of evaluation or testing. Missing data should become an
+error only when the requested model or configuration requires a complete input
+that cannot be produced.
+
+Trained models belong under the configured experiment model directory and
+should be named using the experiment name plus a unique cross-validation-fold
+identifier when applicable. Future configuration should allow an experiment
+to reference a model trained by another experiment. Setup for that option may
+copy the source experiment's model files into the new experiment's model
+directory and rename them for the new run; this reuse workflow is planned but
+not yet implemented. A future configuration setting is also needed for the
+directory where generated NCCS job scripts are written.
+
 ## Development Phases
 
 ### Phase 1: Foundation — Complete
@@ -94,50 +150,18 @@ databases for all configured input sources.
   coverage.
 - [x] Validate GEOS-CF remote OpenDAP database updates.
 - [ ] Complete GEOS-CF local NCCS and end-to-end database-update validation.
-- [x] Common data acquisition functionality
-  - [x] Implement post-update database integrity verification, including
-    timestamp completeness, required variables, coordinate/grid structure,
-    duplicate detection, partition/catalog consistency, and explicit reporting
-    of any remaining gaps. Remaining source-availability gaps are reported as
-    warnings; structural integrity failures are reported as source failures.
-  - [x] Add generic site-coordinate verification at both acquisition-output and
-    database-management boundaries, using configured site IDs and tolerances
-    rather than duplicating the checks in each dataset adapter.
-  - [x] Implement a shared irregular-point regridder with dataset-specific
-    latitude/longitude resolution, numeric means, categorical modes, preserved
-    non-spatial dimensions, and NaN empty cells.
-  - [x] Extend the generic acquisition contract so source adapters can pass
-    structured API/file error messages to the logging and update-report systems.
-  - [x] Handle empty source files, including CSV files containing only headers,
-    as empty databases or explicit, actionable input errors.
-  - [x] Add database-manager tests for missing intervals, site identity,
-    coordinate consistency, empty databases, and timestamp normalization.
-  - [x] Add offline cross-source and cross-month database fixtures, including
-    overlapping updates, failure isolation, year boundaries, and leap years.
-  - [x] Add broader tests for partial updates, retries/failures, and output
-    database fixtures across implemented sources.
-  - [x] Replace the hard-coded provider-to-adapter mapping in `DatabaseManager`
-    with a registry-based source-adapter mechanism that supports custom
-    registrations and explicit adapter overrides.
-  - [x] Implement operational database-update reports with per-source results,
-    warnings, detailed failures, interpretable filenames, and configurable
-    cleanup of reports older than the retention period.
-  - [x] Keep `config/inputs/input_data_config.yaml` aligned with the settings
-    required to download and preprocess each implemented data source.
+- [x] Common data acquisition functionality, including integrity verification,
+  coordinate checks, shared regridding, structured acquisition errors, empty
+  source handling, registry-based adapters, operational reports, and regression
+  fixtures/tests.
 - [x] Update and streamline project documentation, including deployment and
   workflow guidance.
-- [x] Integration with `aqdatafusion` workflows
-  - [x] Modify `run_aqdatafusion()` to expose a database-update mode now that a
-    complete source-specific ingestion path exists.
-  - [x] Add an incremental database update mode that automatically updates the
-    input datasets around the current UTC hour, with configurable lookback,
-    lookahead, and maximum-window safeguards. A scheduler entry point is now
-    available in `scripts/update_database_incremental.sh`.
-- [ ] Examples and Scripting/Orchestration
-  - [x] Create `scripts/update_database_incremental.sh`, a Conda-activating
-    scheduler entry point for configured rolling database updates.
-  - [x] Create `docs/examples/01_data_acquisition.ipynb`, illustrating how to populate the database and visualize the data currently available in the database. Use `docs/examples/deepsensor_demo/Deepsensor_demo_Oct2025.ipynb` as inspiration for the plots.
-    - [x] Create a generalized plotting function in the `aqdatafusion/utils` folder using Cartopy for basemaps, with first-time local caching and offline fallback.
+- [x] Integrate database-update and incremental-update modes with
+  `run_aqdatafusion()`, including the Conda scheduler entry point and rolling
+  window safeguards.
+- [x] Examples and scripting/orchestration, including
+  `scripts/update_database_incremental.sh`, the data-acquisition notebook, and
+  the shared Cartopy plotting function with local caching and offline fallback.
 - [ ] Testing and verification
   - [ ] Conduct an end-to-end database-update test covering acquisition,
     preprocessing, merging, partition writing, and catalog generation.
@@ -152,17 +176,17 @@ databases for all configured input sources.
 
 **Deliverables**:
 
-- Functional data acquisition modules for the immediate Phase 2 sources.
-- Data quality control procedures.
-- Download scripts for historical data.
-- Unit tests for data modules.
-- Network-free adapter tests with mocked API/filesystem responses.
-- Representative raw-data and standardized database fixtures.
-- Tests for partial updates, retry/failure behavior, and remaining-gap
-  reporting.
-- Automated database updating script.
-- Database integrity verification.
-- Documentation for data sources.
+- ~~Functional data acquisition modules for the immediate Phase 2 sources.~~
+- ~~Data quality control procedures.~~
+- ~~Download scripts for historical data.~~
+- ~~Unit tests for data modules.~~
+- ~~Network-free adapter tests with mocked API/filesystem responses.~~
+- ~~Representative raw-data and standardized database fixtures.~~
+- ~~Tests for partial updates, retry/failure behavior, and remaining-gap
+  reporting.~~
+- ~~Automated database updating script.~~
+- ~~Database integrity verification.~~
+- ~~Documentation for data sources.~~
 
 **Dependencies**:
 
@@ -170,16 +194,6 @@ databases for all configured input sources.
 - NASA Earthdata credentials.
 - AirNow and OpenAQ API keys.
 - NCCS access.
-
-### Future Dataset Work — Deferred
-
-These datasets are outside the immediate Phase 2 implementation scope and are
-deferred until their data availability and integration requirements are ready:
-
-- [ ] GEMS ingest and preprocessing.
-- [ ] GCAS ingest and preprocessing.
-- [ ] TEMPO PM2.5 ingest and preprocessing — deferred until April 2027 because
-  the product is not expected to be available before then.
 
 ### Phase 3: Data Conditioning — Planned
 
@@ -348,6 +362,16 @@ DeepSensor-compatible data structures and apply DeepSensor normalization.
 **Dependencies**:
 
 - Phases 1–6 completion.
+
+## Deferred Dataset Work
+
+These datasets are outside the main implementation path and will be resumed
+when their data availability and integration requirements are ready:
+
+- [ ] GEMS ingest and preprocessing.
+- [ ] GCAS ingest and preprocessing.
+- [ ] TEMPO PM2.5 ingest and preprocessing — deferred until April 2027 because
+  the product is not expected to be available before then.
 
 ## Current Development Status
 
